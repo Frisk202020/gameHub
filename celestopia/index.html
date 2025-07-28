@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Conquête de Celestopia</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    </head>
+    <body>
+    </body>
+    <style>
+        @font-face {
+            font-family: DynaPuff;
+            src: url(get_file/celestopia/assets/fonts/DynaPuff/DynaPuff-Regular.ttf);
+        }
+
+        body {
+            margin: 0px;
+            padding: 0px;
+            overflow-y: scroll;
+            font-family: DynaPuff, arial;
+        }
+        #board {
+            z-index: 0;
+            padding: none;
+        }
+        #canvas {
+            z-index: 1;
+            left: 0px;
+            top: 0px;
+            position: absolute;
+            border: none;
+        }
+        .case {
+            z-index: 2;
+        }
+    </style>
+    <script type="module" src="get_file/celestopia/js/main.js"></script>
+</html>
