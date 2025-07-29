@@ -1,5 +1,6 @@
 import { BoardElement } from "./boardElement.js";
 import { Position } from "./position.js";
+import { createHelperBox, removeFromBodyOrWarn } from "./util.js";
 
 const caseFolder = "get_file/celestopia/assets/cases/";
 type caseType = "blueCoin" | "redCoin" | "greenCoin" |
@@ -65,33 +66,15 @@ export class Case extends BoardElement {
         caseStyle.position = "absolute";
         caseStyle.bottom = `${this.uiPosition.y}px`;
         caseStyle.left = `${this.uiPosition.x}px`;
-        console.log("adding events")
 
         caseImg.addEventListener("mouseenter", () => {
-            console.log("enter");
-            let helpBox = document.createElement("p");
-            helpBox.textContent = this.description;
-            helpBox.style.position = "absolute";
-            helpBox.style.zIndex = "4";
-            helpBox.style.left = `${this.uiPosition.x}px`;
-            helpBox.style.bottom = `${this.uiPosition.y + caseSize}px`;
-            helpBox.style.width = `${caseSize}px`;
-            helpBox.style.backgroundColor = "azure";
-            helpBox.style.padding = "10px";
-            helpBox.style.borderRadius = "10px";
-            helpBox.style.textAlign = "center";
-            helpBox.id = "helpbox";
+            const helpBox = createHelperBox(this.description, this.uiPosition.translate(0, caseSize), true, caseSize);
             document.body.appendChild(helpBox);
 
             pHelpBox = helpBox;
         });
         caseImg.addEventListener("mouseleave", () => {
-            if (pHelpBox instanceof HTMLParagraphElement) {
-                document.body.removeChild(pHelpBox);
-                pHelpBox = undefined;
-            } else {
-                console.log("WARN: helper box is null before proper removal");
-            }
+            removeFromBodyOrWarn(pHelpBox);
         })
 
         return caseImg;

@@ -1,4 +1,5 @@
 import { buildBoard } from "./board.js";
+import { Player } from "./player.js";
 
 buildBoard(0);
 
@@ -11,3 +12,5 @@ document.addEventListener("keydown", (event) => {
         }
     }
 })
+
+new Player(1, "Frisk", "hat");
