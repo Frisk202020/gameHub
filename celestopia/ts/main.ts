@@ -14,3 +14,6 @@ document.addEventListener("keydown", (event) => {
 })
 
 new Player(1, "Frisk", "hat");
+new Player(2, "Dokueki", "hat");
+new Player(3, "New Quark", "hat");
+new Player(4, "Casyaks", "hat");
