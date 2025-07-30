@@ -89,10 +89,12 @@ export class Player {
                 this.infoBox.classList.remove("visible");
                 if (this.helperBox !== undefined) {
                     this.helperBox.textContent = inactiveInfoHelp;
+                    this.infoBox.style.pointerEvents = "none";
                 }
             } else {
                 if (this.helperBox !== undefined) {
                     this.helperBox.textContent = activeInfoHelp;
+                    this.infoBox.style.pointerEvents = "auto";
                 }
                 this.infoBox.classList.add("visible");
             }
@@ -110,6 +112,7 @@ export class Player {
         style.width = "10vw";
         style.justifyContent = "space-between";
         style.borderRadius = "10px";
+        style.pointerEvents = "auto";
 
         const name = document.createElement("div");
         name.textContent = this.name;
@@ -135,6 +138,7 @@ export class Player {
         infoStyle.background = `linear-gradient(to bottom, ${playerColor[this.id]}, ${infoColor[this.id]})`;
         infoStyle.padding = "0.5vw";
         infoStyle.borderRadius = "10px";
+        infoStyle.pointerEvents = "none";
 
         info.className = "reveal-vertical";
         info.appendChild(this.createSubInfoBox("coin", this.coins));
