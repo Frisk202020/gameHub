@@ -1,10 +1,10 @@
+import { Aquisition } from "./aquisition.js";
 import { Item } from "./item.js";
 import { Position } from "./position.js";
-import { createHelperBox, removeFromBodyOrWarn, vwToPx } from "./util.js";
+import { createHelperBox, removeFromBodyOrWarn } from "./util.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
-type Aquisition = "pool";
 type Wonder = "astropy";
 type PlayerId = 1 | 2 | 3 | 4;
 
