@@ -57,6 +57,10 @@ export class Player {
         this.#createHtml();
     }
 
+    addAquisition(aq: Aquisition) {
+        this.aquisitions.push(aq);
+    }
+
     #createHtml() {
         const player = document.createElement("div");
         player.classList.add("player");
@@ -69,8 +73,8 @@ export class Player {
         player.addEventListener("mouseenter", () => {
             const box = createHelperBox(
                 this.infoActive ? activeInfoHelp : inactiveInfoHelp, 
+                false,
                 new Position(player.getBoundingClientRect().right + 10, 0), 
-                false
             );
             document.body.appendChild(box);
             this.helperBox = box;
@@ -144,7 +148,24 @@ export class Player {
         info.appendChild(this.createSubInfoBox("coin", this.coins));
         info.appendChild(this.createSubInfoBox("ribbon", this.ribbons));
         info.appendChild(this.createSubInfoBox("star", this.stars));
-        info.appendChild(this.createSubInfoBox("chest", this.aquisitions.length));
+
+        const aq = this.createSubInfoBox("chest", this.aquisitions.length);
+        aq.addEventListener("mouseenter", () => {
+            if (this.helperBox !== undefined) {
+                this.helperBox.textContent = "Cliquez pour afficher votre collection d'aquisitions.";
+            } else {
+                console.log("player.ts - 153 || warn: helper box is undefined");
+            }
+        });
+        aq.addEventListener("mouseleave", () => {
+            if (this.helperBox !== undefined) {
+                this.helperBox.textContent = activeInfoHelp;
+            }
+        });
+        aq.addEventListener("click", () => {
+            Aquisition.generateMenu(this.aquisitions);
+        });
+        info.appendChild(aq);
         info.appendChild(this.createSubInfoBox("wonder", this.wonders.length));
 
         return info;
