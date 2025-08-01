@@ -1,7 +1,8 @@
-import { Aquisition } from "./aquisition.js";
-import { buildBoard } from "./board.js";
-import { Player } from "./player.js";
-import {currentKeyboardEventListener, resizables } from "./util.js";
+import { buildBoard } from "./board/Board.js";
+import { Aquisition } from "./card/Aquisition.js";
+import { Player } from "./Player.js";
+import { currentKeyboardEventListener, resizables } from "./util/variables.js";
+
 
 buildBoard(0);
 

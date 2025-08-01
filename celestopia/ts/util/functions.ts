@@ -1,9 +1,4 @@
-import { Position } from "./position.js";
-
-export let currentKeyboardEventListener: KeyboardListener | undefined;
-export function setGlobalKeyboardListener(listener: KeyboardListener) {
-    currentKeyboardEventListener = listener;
-}
+import { Position } from "./Position.js";
 
 export function createHelperBox(text: string, invertYAxis: boolean, position?: Position, size?: number, zIndex?: number) {
     const helpBox = document.createElement("p");
@@ -61,21 +56,4 @@ export async function translateAnimation(element: HTMLElement, target: Position,
 
     element.style.left = `${target.x}px`;
     element.style.top = `${target.y}px`;
-}
-
-export interface DynamicPlacement {
-    move(windowWidth: number, windowHeight: number): void;
-}
-export const resizables: DynamicPlacement[] = Array();
-
-export abstract class KeyboardListener {
-    element: HTMLElement;
-    enabled: boolean;
-
-    constructor(element: HTMLElement) {
-        this.element = element;
-        this.enabled = true;
-    }
-
-    abstract eventHandler(event: KeyboardEvent): void;
 }

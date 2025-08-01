@@ -1,6 +1,6 @@
-import { BoardElement } from "./boardElement.js";
-import { Position } from "./position.js";
-import { createHelperBox, removeFromBodyOrWarn } from "./util.js";
+import { createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
+import { Position } from "../util/Position.js";
+import { BoardElement } from "./BoardElement.js";
 
 const caseFolder = "get_file/celestopia/assets/cases/";
 type caseType = "blueCoin" | "redCoin" | "greenCoin" |

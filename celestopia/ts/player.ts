@@ -1,7 +1,8 @@
-import { Aquisition } from "./aquisition.js";
-import { Item } from "./item.js";
-import { Position } from "./position.js";
-import { createHelperBox, removeFromBodyOrWarn } from "./util.js";
+import { Item } from "./board/Item.js";
+import { Aquisition } from "./card/Aquisition.js";
+import { generateMenu } from "./card/menu.js";
+import { Position } from "./util/Position.js";
+import { createHelperBox, removeFromBodyOrWarn } from "./util/functions.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -163,7 +164,7 @@ export class Player {
             }
         });
         aq.addEventListener("click", () => {
-            Aquisition.generateMenu(this.aquisitions);
+            generateMenu(this.aquisitions, "Utilisez les flèches du clavier pour naviguer entre vos aquisitions");
         });
         info.appendChild(aq);
         info.appendChild(this.createSubInfoBox("wonder", this.wonders.length));

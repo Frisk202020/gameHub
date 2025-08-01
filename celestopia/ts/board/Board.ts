@@ -1,15 +1,14 @@
-import { BoardElement } from "./boardElement.js";
-import { Case } from "./case.js";
-import { Position } from "./position.js";
+import { Case } from "./Case.js";
+import { Position } from "../util/Position.js";
+import { BoardElement } from "./BoardElement.js";
 
 export type BoardId = 0 | 1 | 2;
-type BoardBackground = "Banlieue" | "Quartier chic" | "Spatioport";
-
 export function buildBoard(id: BoardId) {
     new Board(id);
 }
-
 export let boardCanvas: HTMLCanvasElement | undefined;
+
+type BoardBackground = "Banlieue" | "Quartier chic" | "Spatioport";
 
 class Board {
     elements: Array<BoardElement>;

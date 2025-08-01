@@ -1,6 +1,6 @@
-import { BoardElement } from "./boardElement.js";
-import { Case } from "./case.js";
-import { Position } from "./position.js";
+import { Position } from "../util/Position.js";
+import { BoardElement } from "./BoardElement.js";
+import { Case } from "./Case.js";
 
 export class Intersection extends BoardElement {
     beginPos: Position;

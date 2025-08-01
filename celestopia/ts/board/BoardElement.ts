@@ -1,6 +1,6 @@
-import { boardCanvas } from "./board.js";
-import { defaultCasePadding } from "./case.js";
-import { Position } from "./position.js";
+import { boardCanvas } from "./Board.js";
+import { defaultCasePadding } from "./Case.js";
+import { Position } from "../util/Position.js";
 
 export abstract class BoardElement {
     drawLine(other: BoardElement, color: string, radius?: number): void {
