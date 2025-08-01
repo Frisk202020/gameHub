@@ -2,8 +2,9 @@ import { buildBoard } from "./board/Board.js";
 import { Aquisition } from "./card/Aquisition.js";
 import { Wonder } from "./card/Wonder.js";
 import { Player } from "./Player.js";
+import { debugTools } from "./util/debug.js";
 import { updateCounterValue } from "./util/functions.js";
-import { currentKeyboardEventListener, resizables } from "./util/variables.js";
+import { currentKeyboardEventListener, players, resizables } from "./util/variables.js";
 
 document.addEventListener("keydown", (event) => {
     switch (event.key) {
@@ -14,8 +15,7 @@ document.addEventListener("keydown", (event) => {
                 document.documentElement.requestFullscreen();
             }
             break;
-        case "ArrowLeft": // similar handler than ArrowRight
-        case "ArrowRight":
+        default:
             if (currentKeyboardEventListener !== undefined) {
                 event.preventDefault();
                 currentKeyboardEventListener.eventHandler(event);
@@ -29,9 +29,7 @@ window.addEventListener("resize", () => {
         obj.move(doc.clientWidth, doc.clientHeight);
     }
 });
-
-const players: Player[] = Array();
-const FPS = 10;
+(window as any).debugTools = debugTools
 
 function gameRenderLoop() {
     for (const p of players) {

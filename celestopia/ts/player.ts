@@ -4,6 +4,7 @@ import { Card } from "./card/Card.js";
 import { Wonder } from "./card/Wonder.js";
 import { generateMenu, ImgFolder } from "./card/menu.js";
 import { Position } from "./util/Position.js";
+import { DiceEvent } from "./util/dice.js";
 import { createHelperBox, removeFromBodyOrWarn } from "./util/functions.js";
 
 type Avatar = "hat";
@@ -32,6 +33,7 @@ export class Player {
     id: PlayerId;
     name: string;
     avatar: Avatar;
+    diceNumber: 1 | 2 | 3;
     coins: number;
     ribbons: number;
     stars: number;
@@ -46,6 +48,7 @@ export class Player {
         this.id = id;
         this.name = name;
         this.avatar = avatar;
+        this.diceNumber = 1;
         this.coins = 0;
         this.ribbons = 0;
         this.stars = 0;
@@ -156,7 +159,7 @@ export class Player {
         info.appendChild(this.#createSubInfoBox("star", this.stars));
 
         const aq = this.#createSubInfoBox("chest", this.aquisitions.length);
-        this.#addEventListeners(
+        this.#addCardEventListeners(
             aq, 
             "aquisitions",
             "Cliquez pour afficher votre collection d'aquisitions.", 
@@ -165,13 +168,15 @@ export class Player {
         info.appendChild(aq);
 
         const w = this.#createSubInfoBox("wonder", this.wonders.length);
-        this.#addEventListeners(
+        this.#addCardEventListeners(
             w,
             "wonders",
             "Cliquez pour afficher votre collection de merveilles.",
             "Utilisez les flèches du clavier pour naviguer entre vos merveilles."
         )
         info.appendChild(w);
+
+        info.appendChild(this.#createActionBox());
 
         return info;
     }
@@ -197,7 +202,31 @@ export class Player {
         return box;
     }
 
-    #addEventListeners(element: HTMLElement, imgFolder: ImgFolder, hoverMsg: string, clickMsg: string) {
+    #createActionBox() {
+        const box = document.createElement("div");
+        box.style.display = "flex";
+        box.style.justifyContent = "center";
+        box.style.alignItems = "center";
+
+        const diceAction = document.createElement("img");
+        diceAction.src = `get_file/celestopia/assets/icons/dice.png`;
+        diceAction.style.width = "30%";
+        diceAction.style.borderRadius = "100%";
+        diceAction.style.backgroundColor = "#0063aedb"
+        this.#addActionEventListeners(
+            diceAction,
+            "Lancez le dé quand c'est votre tour.",
+            () => {
+                new DiceEvent(this.diceNumber);
+            }
+        )
+        diceAction.onload = () => diceAction.style.border = `solid ${diceAction.offsetHeight * 0.1}px #ffd700`;
+
+        box.appendChild(diceAction);
+        return box;
+    }
+
+    #addCardEventListeners(element: HTMLElement, imgFolder: ImgFolder, hoverMsg: string, clickMsg: string) {
         element.addEventListener("mouseenter", () => {
             if (this.helperBox !== undefined) {
                 this.helperBox.textContent = hoverMsg;
@@ -221,5 +250,22 @@ export class Player {
         element.addEventListener("click", () => {
             generateMenu(folder, imgFolder, clickMsg);
         });
+    }
+
+    #addActionEventListeners(element: HTMLElement, hoverMsg: string, clickEvent: ()=>void) {
+        element.addEventListener("mouseenter", () => {
+            if (this.helperBox !== undefined) {
+                this.helperBox.textContent = hoverMsg;
+            } else {
+                console.log("WARN: helper box is undefined");
+            }
+        });
+        element.addEventListener("mouseleave", () => {
+            if (this.helperBox !== undefined) {
+                this.helperBox.textContent = activeInfoHelp;
+            }
+        });
+
+        element.addEventListener("click", clickEvent);
     }
 }

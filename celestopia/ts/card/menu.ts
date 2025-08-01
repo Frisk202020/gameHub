@@ -1,4 +1,4 @@
-import { createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
+import { appendBlurryBackground, appendCross, createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";
 import { Position } from "../util/Position.js";
 import { setGlobalKeyboardListener } from "../util/variables.js";
@@ -13,7 +13,7 @@ export type ImgFolder = "aquisitions" | "wonders";
 export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: string) {
     const screenSize = new Position(document.documentElement.clientWidth, document.documentElement.clientHeight);
 
-    const bg = appendBackground();
+    appendBlurryBackground();
     const img = appendImg(
         `get_file/celestopia/assets/${imgFolder}/${list[0].name}.png`,
         screenSize
@@ -21,10 +21,10 @@ export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: str
 
     img.onload = () => {
         const imgRect = img.getBoundingClientRect();
-        const box = appendHelperBox(helperText, imgRect, screenSize);
-        const {navBar, navSquares} = appendNavBar(imgRect, screenSize, list.length, imgFolder);
+        appendHelperBox(helperText, imgRect, screenSize);
+        const navSquares = appendNavBar(imgRect, screenSize, list.length, imgFolder);
 
-        appendCross(bg, img, box, navBar);
+        appendCross(["menu", cardId, newCardId, boxId, navId]);
         setGlobalKeyboardListener(new CardKeyboardListener(img, imgFolder, navSquares, list))
     }
 }
@@ -95,47 +95,7 @@ function appendNavBar(imgRect: DOMRect, screenSize: Position, length: number, fo
     navBar.style.left = `${(screenSize.x - navWidth)/2}px`;
     navBar.style.opacity = "1";
 
-    return {navBar, navSquares};
-}
-
-function appendCross(bg: HTMLDivElement, img: HTMLImageElement, box: HTMLParagraphElement, nav: HTMLDivElement) {
-    const cross = document.createElement("img");
-    cross.src = "get_file/celestopia/assets/icons/cross.png";
-    cross.style.width = "10vw";
-    cross.style.position = "fixed";
-    cross.style.right = "0px";
-    cross.style.top = "0px";
-    cross.style.zIndex = "6";
-    cross.addEventListener("click", () => {
-        document.body.removeChild(bg);
-
-        const card = document.getElementById(cardId);
-        card === null ? console.log("WARN: none active card caught while clearing the menu") : document.body.removeChild(card);
-        
-        const newCard = document.getElementById(newCardId);
-        if (newCard !== null) {
-            document.body.removeChild(newCard);
-        }
-        document.body.removeChild(nav);
-        document.body.removeChild(box);
-        document.body.removeChild(cross);
-    });
-    document.body.appendChild(cross);
-}
-
-function appendBackground() {
-    const blurryBackground = document.createElement("div");
-    const bgStyle = blurryBackground.style;
-    bgStyle.position = "absolute";
-    bgStyle.left = "0px";
-    bgStyle.top = "0px";
-    bgStyle.backgroundColor = "#d4d4cb6f";
-    bgStyle.width = "100vw";
-    bgStyle.height = "100vh";
-    bgStyle.zIndex = "5";
-    document.body.appendChild(blurryBackground);
-
-    return blurryBackground;
+    return navSquares;
 }
 
 class CardKeyboardListener extends KeyboardListener {

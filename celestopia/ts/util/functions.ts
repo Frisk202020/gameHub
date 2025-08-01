@@ -22,6 +22,46 @@ export function removeFromArray(array: any[], index: number): any {
 
     return value;
 }
+ 
+export function appendCross(idsToRemove: string[]) {
+    const cross = document.createElement("img");
+    cross.id = "cross";
+    cross.src = "get_file/celestopia/assets/icons/cross.png";
+    cross.style.width = "10vw";
+    cross.style.position = "fixed";
+    cross.style.right = "0px";
+    cross.style.top = "0px";
+    cross.style.zIndex = "6";
+    cross.addEventListener("click", () => {
+        for (const id of idsToRemove) {
+            const e = document.getElementById(id);
+            if (e === null) {
+                console.log(`WARN: ${id} is already removed`);
+            } else {
+                document.body.removeChild(e);
+            }
+        }
+
+        document.body.removeChild(cross);
+    });
+    document.body.appendChild(cross);
+}
+
+export function appendBlurryBackground() {
+    const blurryBackground = document.createElement("div");
+    blurryBackground.id = "menu";
+    const bgStyle = blurryBackground.style;
+    bgStyle.position = "absolute";
+    bgStyle.left = "0px";
+    bgStyle.top = "0px";
+    bgStyle.backgroundColor = "#d4d4cb6f";
+    bgStyle.width = "100vw";
+    bgStyle.height = "100vh";
+    bgStyle.zIndex = "5";
+    document.body.appendChild(blurryBackground);
+
+    return blurryBackground;
+}
 
 export function createHelperBox(text: string, invertYAxis: boolean, position?: Position, size?: number, zIndex?: number) {
     const helpBox = document.createElement("p");
