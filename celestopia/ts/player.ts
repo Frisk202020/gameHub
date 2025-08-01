@@ -1,12 +1,13 @@
 import { Item } from "./board/Item.js";
 import { Aquisition } from "./card/Aquisition.js";
-import { generateMenu } from "./card/menu.js";
+import { Card } from "./card/Card.js";
+import { Wonder } from "./card/Wonder.js";
+import { generateMenu, ImgFolder } from "./card/menu.js";
 import { Position } from "./util/Position.js";
 import { createHelperBox, removeFromBodyOrWarn } from "./util/functions.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
-type Wonder = "astropy";
 type PlayerId = 1 | 2 | 3 | 4;
 
 const playerBox: HTMLDivElement = document.getElementById("players") as HTMLDivElement;
@@ -60,6 +61,10 @@ export class Player {
 
     addAquisition(aq: Aquisition) {
         this.aquisitions.push(aq);
+    }
+
+    addWonder(w: Wonder) {
+        this.wonders.push(w);
     }
 
     #createHtml() {
@@ -146,33 +151,32 @@ export class Player {
         infoStyle.pointerEvents = "none";
 
         info.className = "reveal-vertical";
-        info.appendChild(this.createSubInfoBox("coin", this.coins));
-        info.appendChild(this.createSubInfoBox("ribbon", this.ribbons));
-        info.appendChild(this.createSubInfoBox("star", this.stars));
+        info.appendChild(this.#createSubInfoBox("coin", this.coins));
+        info.appendChild(this.#createSubInfoBox("ribbon", this.ribbons));
+        info.appendChild(this.#createSubInfoBox("star", this.stars));
 
-        const aq = this.createSubInfoBox("chest", this.aquisitions.length);
-        aq.addEventListener("mouseenter", () => {
-            if (this.helperBox !== undefined) {
-                this.helperBox.textContent = "Cliquez pour afficher votre collection d'aquisitions.";
-            } else {
-                console.log("player.ts - 153 || warn: helper box is undefined");
-            }
-        });
-        aq.addEventListener("mouseleave", () => {
-            if (this.helperBox !== undefined) {
-                this.helperBox.textContent = activeInfoHelp;
-            }
-        });
-        aq.addEventListener("click", () => {
-            generateMenu(this.aquisitions, "Utilisez les flèches du clavier pour naviguer entre vos aquisitions");
-        });
+        const aq = this.#createSubInfoBox("chest", this.aquisitions.length);
+        this.#addEventListeners(
+            aq, 
+            "aquisitions",
+            "Cliquez pour afficher votre collection d'aquisitions.", 
+            "Utilisez les flèches du clavier pour naviguer entre vos aquisitions."
+        );
         info.appendChild(aq);
-        info.appendChild(this.createSubInfoBox("wonder", this.wonders.length));
+
+        const w = this.#createSubInfoBox("wonder", this.wonders.length);
+        this.#addEventListeners(
+            w,
+            "wonders",
+            "Cliquez pour afficher votre collection de merveilles.",
+            "Utilisez les flèches du clavier pour naviguer entre vos merveilles."
+        )
+        info.appendChild(w);
 
         return info;
     }
 
-    createSubInfoBox(imgName: gameIcon, counterValue: number) {
+    #createSubInfoBox(imgName: gameIcon, counterValue: number) {
         const box = document.createElement("div");
         box.style.display = "flex";
         box.style.justifyContent = "space-between";
@@ -184,12 +188,38 @@ export class Player {
         img.style.marginLeft = "0.5vw";
 
         const counter = document.createElement("p");
-        counter.id = `${counterValue}.${imgName}`;
-        counter.textContent = this.stars.toString();
+        counter.id = `${this.id}.${imgName}`;
+        counter.textContent = counterValue.toString();
         counter.style.marginRight = "0.5vw";
 
         box.appendChild(img);
         box.appendChild(counter);
         return box;
+    }
+
+    #addEventListeners(element: HTMLElement, imgFolder: ImgFolder, hoverMsg: string, clickMsg: string) {
+        element.addEventListener("mouseenter", () => {
+            if (this.helperBox !== undefined) {
+                this.helperBox.textContent = hoverMsg;
+            } else {
+                console.log("WARN: helper box is undefined");
+            }
+        });
+        element.addEventListener("mouseleave", () => {
+            if (this.helperBox !== undefined) {
+                this.helperBox.textContent = activeInfoHelp;
+            }
+        });
+
+        let folder: Card[];
+        switch(imgFolder) {
+            case "aquisitions" : folder = this.aquisitions; break;
+            case "wonders": folder = this.wonders; break;
+            default: console.log("unhandled img folder");
+        }
+
+        element.addEventListener("click", () => {
+            generateMenu(folder, imgFolder, clickMsg);
+        });
     }
 }

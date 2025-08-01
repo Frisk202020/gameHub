@@ -1,5 +1,28 @@
 import { Position } from "./Position.js";
 
+export function updateCounterValue(elementId: string, value: number) {
+    const element = document.getElementById(elementId);
+    if (element === null) {
+        console.log(`WARN: can't file ${elementId} element.`);
+        return;
+    }
+
+    element.textContent = value.toString();
+}
+
+export function removeFromArray(array: any[], index: number): any {
+    if (index < 0 || index >= array.length) {
+        console.log("ERROR: index is in invalid range");
+        return undefined;
+    }
+
+    const value = array[index];
+    array[index] = array[array.length - 1];
+    array.pop();
+
+    return value;
+}
+
 export function createHelperBox(text: string, invertYAxis: boolean, position?: Position, size?: number, zIndex?: number) {
     const helpBox = document.createElement("p");
     helpBox.textContent = text;

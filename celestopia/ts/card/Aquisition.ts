@@ -1,10 +1,8 @@
-import { DynamicPlacement } from "../util/DynamicPlacement.js";
-import { vwToPx } from "../util/functions.js";
+import { removeFromArray } from "../util/functions.js";
 import { resizables } from "../util/variables.js";
 import { Card } from "./Card.js";
-import { boxId, cardId, navId } from "./menu.js";
 
-export class Aquisition extends Card implements DynamicPlacement {
+export class Aquisition extends Card {
     price: number;
     coinValue: number;
     ribbonValue: number;
@@ -43,43 +41,10 @@ export class Aquisition extends Card implements DynamicPlacement {
 
     static getRandomAquisition() {
         const i = Math.floor(Math.random() * Aquisition.bank.length);
-        const value = Aquisition.bank[i];
-        Aquisition.bank[i] = Aquisition.bank[Aquisition.bank.length - 1];
-        Aquisition.bank.pop();
-
-        return value;
+        return removeFromArray(Aquisition.bank, i);
     }
 
     static returnAquisitionToBank(aquisition: Aquisition) {
         Aquisition.bank.push(aquisition);
-    }
-
-    move(windowWidth: number, windowHeight: number): void {
-        const img = document.getElementById(cardId);
-        const px = vwToPx(40);
-        if (img != undefined) {
-            img.style.left = `${(windowWidth - px)/2}px`;
-            img.style.top = `${(windowHeight - px)/2}px`;
-
-            const helpBox = document.getElementById(boxId);
-            if (helpBox != undefined) {
-                const rect = helpBox.getBoundingClientRect();
-                const width = rect.right - rect.left;
-                helpBox.style.left = `${(windowWidth - width)/2}px`;
-                helpBox.style.top = `${img.getBoundingClientRect().bottom}px`;
-            } else {
-                console.log("WARN: aquisition card is loaded, but not the helper box");
-            }
-
-            const nav = document.getElementById(navId);
-            if (nav != undefined) {
-                const rect = nav.getBoundingClientRect();
-                const width = rect.right - rect.left;
-                nav.style.left = `${(windowWidth - width)/2}px`;
-                nav.style.top = `${img.getBoundingClientRect().bottom - 50}px`;
-            } else {
-                console.log("WARN: aquisition card is loaded, but not the nav bar");
-            }
-        }
     }
 }

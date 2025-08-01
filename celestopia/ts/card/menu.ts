@@ -2,29 +2,30 @@ import { createHelperBox, translateAnimation, vwToPx } from "../util/functions.j
 import { KeyboardListener } from "../util/KeyboardListener.js";
 import { Position } from "../util/Position.js";
 import { setGlobalKeyboardListener } from "../util/variables.js";
-import { Card } from "./Card";
+import { Card } from "./Card.js";
 
 export const cardId = "activeCard";
 export const newCardId = "newCard";
 export const boxId = "menuHelperBox";
 export const navId = "menuNavBar";
+export type ImgFolder = "aquisitions" | "wonders";
 
-export function generateMenu(list: Card[], helperText: string) {
+export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: string) {
     const screenSize = new Position(document.documentElement.clientWidth, document.documentElement.clientHeight);
 
     const bg = appendBackground();
     const img = appendImg(
-        `get_file/celestopia/assets/aquisitions/${list[0].name}.png`,
+        `get_file/celestopia/assets/${imgFolder}/${list[0].name}.png`,
         screenSize
     )
 
     img.onload = () => {
         const imgRect = img.getBoundingClientRect();
         const box = appendHelperBox(helperText, imgRect, screenSize);
-        const {navBar, navSquares} = appendNavBar(imgRect, screenSize, list.length);
+        const {navBar, navSquares} = appendNavBar(imgRect, screenSize, list.length, imgFolder);
 
         appendCross(bg, img, box, navBar);
-        setGlobalKeyboardListener(new CardKeyboardListener(img, navSquares, list))
+        setGlobalKeyboardListener(new CardKeyboardListener(img, imgFolder, navSquares, list))
     }
 }
 
@@ -59,7 +60,7 @@ function appendHelperBox(text: string, imgRect: DOMRect, screenSize: Position) {
     return box;
 }
 
-function appendNavBar(imgRect: DOMRect, screenSize: Position, length: number) {
+function appendNavBar(imgRect: DOMRect, screenSize: Position, length: number, folder: ImgFolder) {
     const navBar = document.createElement("div");
     navBar.id = navId;
 
@@ -80,7 +81,12 @@ function appendNavBar(imgRect: DOMRect, screenSize: Position, length: number) {
         navSquares.push(sq);
         navBar.appendChild(sq);
     }
-    navSquares[0].style.backgroundColor = "#ffd700";
+
+    switch(folder) {
+        case "aquisitions": navSquares[0].style.backgroundColor = "#b3ec69"; break;
+        case "wonders": navSquares[0].style.backgroundColor = "#ffd700"; break;
+        default: console.log("Unhandled img folder");
+    }
 
     navBar.style.opacity = "0";
     document.body.appendChild(navBar);
@@ -134,11 +140,13 @@ function appendBackground() {
 
 class CardKeyboardListener extends KeyboardListener {
     cards: Card[];
+    folderName: ImgFolder;
     navBar: HTMLDivElement[];
     currentIndex: number;
 
-    constructor(element: HTMLImageElement, nav: HTMLDivElement[], cards: Card[]) {
-        super(element)
+    constructor(element: HTMLImageElement, folder: ImgFolder, nav: HTMLDivElement[], cards: Card[]) {
+        super(element);
+        this.folderName = folder;
         this.navBar = nav;
         this.cards = cards;
         this.currentIndex = 0;
@@ -197,9 +205,14 @@ class CardKeyboardListener extends KeyboardListener {
                 this.currentIndex++;
             }
         }
-        this.navBar[this.currentIndex].style.backgroundColor = "#ffd700";
 
-        card.src = `get_file/celestopia/assets/aquisitions/${this.cards[this.currentIndex].name}.png`;
+        switch(this.folderName) {
+            case "aquisitions": this.navBar[this.currentIndex].style.backgroundColor = "#b3ec69"; break;
+            case "wonders": this.navBar[this.currentIndex].style.backgroundColor = "#ffd700"; break;
+            default: console.log("Unhandled img folder");
+        }
+
+        card.src = `get_file/celestopia/assets/${this.folderName}/${this.cards[this.currentIndex].name}.png`;
         card.id = newCardId;
         document.body.appendChild(card);
         return card;
