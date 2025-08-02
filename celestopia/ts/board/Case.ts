@@ -31,7 +31,7 @@ const descriptions = {
 
 type WalkWay = "straight" | "backwards" | "vertical" | "vertiacal-backwards";
 
-const caseSize = 100;
+export const caseSize = 100;
 const caseMargin = 50;
 export const defaultCasePadding = 48 * caseSize / 729;
 let pHelpBox: HTMLParagraphElement | undefined;

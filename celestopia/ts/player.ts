@@ -4,8 +4,12 @@ import { Card } from "./card/Card.js";
 import { Wonder } from "./card/Wonder.js";
 import { generateMenu, ImgFolder } from "./card/menu.js";
 import { Position } from "./util/Position.js";
-import { DiceEvent } from "./util/dice.js";
+import { DiceEvent } from "./action/dice.js";
 import { createHelperBox, removeFromBodyOrWarn } from "./util/functions.js";
+import { MailEvent } from "./action/mail.js";
+import { initChannel } from "./util/channel.js";
+import { Case, caseSize } from "./board/Case.js";
+import { board } from "./util/variables.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -14,12 +18,20 @@ type PlayerId = 1 | 2 | 3 | 4;
 const playerBox: HTMLDivElement = document.getElementById("players") as HTMLDivElement;
 const activeInfoHelp = "Cliquez pour replier.";
 const inactiveInfoHelp = "Cliquez pour voir les ressources du joueur.";
+let helperBox: HTMLDivElement | undefined = undefined;
 
 const playerColor = {
     1: "#29b0ff",
     2: "#fa2714",
     3: "#4ac75e",
     4: "#ebdf3f"
+}
+
+const actionColor = {
+    1: "#0063ae",
+    2: "#c40202",
+    3: "#04890d",
+    4: "#b39803",
 }
 
 const infoColor ={
@@ -33,6 +45,10 @@ export class Player {
     id: PlayerId;
     name: string;
     avatar: Avatar;
+    pawn!: HTMLImageElement;
+    boardId: 0 | 1 | 2;
+    caseId: number;
+    pendingCaseId: number;
     diceNumber: 1 | 2 | 3;
     coins: number;
     ribbons: number;
@@ -40,7 +56,6 @@ export class Player {
     items: Array<Item>;
     aquisitions: Array<Aquisition>;
     wonders: Array<Wonder>;
-    helperBox: HTMLParagraphElement | undefined;
     infoBox: HTMLDivElement;
     infoActive: boolean;
 
@@ -48,6 +63,9 @@ export class Player {
         this.id = id;
         this.name = name;
         this.avatar = avatar;
+        this.boardId = 0;
+        this.caseId = 0;
+        this.pendingCaseId = 0;
         this.diceNumber = 1;
         this.coins = 0;
         this.ribbons = 0;
@@ -55,7 +73,6 @@ export class Player {
         this.items = Array();
         this.aquisitions = Array();
         this.wonders = Array();
-        this.helperBox = undefined;
         this.infoBox = this.#createInfoBox();
         this.infoActive = false;
 
@@ -86,10 +103,10 @@ export class Player {
                 new Position(player.getBoundingClientRect().right + 10, 0), 
             );
             document.body.appendChild(box);
-            this.helperBox = box;
+            helperBox = box;
         })
         player.addEventListener("mouseleave", () => {
-            removeFromBodyOrWarn(this.helperBox);
+            removeFromBodyOrWarn(helperBox);
         })
         player.addEventListener("click", () => {
             if (this.infoActive) {
@@ -100,19 +117,35 @@ export class Player {
 
             if (this.infoActive) {
                 this.infoBox.classList.remove("visible");
-                if (this.helperBox !== undefined) {
-                    this.helperBox.textContent = inactiveInfoHelp;
+                if (helperBox !== undefined) {
+                    helperBox.textContent = inactiveInfoHelp;
                     this.infoBox.style.pointerEvents = "none";
                 }
             } else {
-                if (this.helperBox !== undefined) {
-                    this.helperBox.textContent = activeInfoHelp;
+                if (helperBox !== undefined) {
+                    helperBox.textContent = activeInfoHelp;
                     this.infoBox.style.pointerEvents = "auto";
                 }
                 this.infoBox.classList.add("visible");
             }
             this.infoActive = !this.infoActive;
         })
+
+        const pawn = document.createElement("img");
+        pawn.src = `get_file/celestopia/assets/icons/${this.avatar}.png`;
+        pawn.id = `${this.id}.pawn`;
+        pawn.style.width = `${caseSize/2}px`;
+        pawn.style.height = `${caseSize/2}px`
+        pawn.style.position = "absolute";
+        
+        const pos = computeOnBoardPosition(board.elements[this.caseId] as Case);
+        pawn.style.left = `${pos.x}px`;
+        pawn.style.bottom = `${pos.y}px`;
+        this.pawn = pawn;
+        
+        pawn.style.zIndex = "3";
+        document.body.appendChild(pawn);
+
     }
 
     #createBanner() {
@@ -202,41 +235,17 @@ export class Player {
         return box;
     }
 
-    #createActionBox() {
-        const box = document.createElement("div");
-        box.style.display = "flex";
-        box.style.justifyContent = "center";
-        box.style.alignItems = "center";
-
-        const diceAction = document.createElement("img");
-        diceAction.src = `get_file/celestopia/assets/icons/dice.png`;
-        diceAction.style.width = "30%";
-        diceAction.style.borderRadius = "100%";
-        diceAction.style.backgroundColor = "#0063aedb"
-        this.#addActionEventListeners(
-            diceAction,
-            "Lancez le dé quand c'est votre tour.",
-            () => {
-                new DiceEvent(this.diceNumber);
-            }
-        )
-        diceAction.onload = () => diceAction.style.border = `solid ${diceAction.offsetHeight * 0.1}px #ffd700`;
-
-        box.appendChild(diceAction);
-        return box;
-    }
-
     #addCardEventListeners(element: HTMLElement, imgFolder: ImgFolder, hoverMsg: string, clickMsg: string) {
         element.addEventListener("mouseenter", () => {
-            if (this.helperBox !== undefined) {
-                this.helperBox.textContent = hoverMsg;
+            if (helperBox !== undefined) {
+                helperBox.textContent = hoverMsg;
             } else {
                 console.log("WARN: helper box is undefined");
             }
         });
         element.addEventListener("mouseleave", () => {
-            if (this.helperBox !== undefined) {
-                this.helperBox.textContent = activeInfoHelp;
+            if (helperBox !== undefined) {
+                helperBox.textContent = activeInfoHelp;
             }
         });
 
@@ -252,20 +261,54 @@ export class Player {
         });
     }
 
-    #addActionEventListeners(element: HTMLElement, hoverMsg: string, clickEvent: ()=>void) {
-        element.addEventListener("mouseenter", () => {
-            if (this.helperBox !== undefined) {
-                this.helperBox.textContent = hoverMsg;
+    #createActionBox() {
+        const box = document.createElement("div");
+        box.style.display = "flex";
+        box.style.justifyContent = "center";
+        box.style.alignItems = "center";
+        box.appendChild(this.#createAction("dice.png", "Lancez le dé quand c'est votre tour.", () => { 
+            const {tx, rx} = initChannel<number>();
+            new DiceEvent(tx, this.diceNumber);
+            rx.recv().then((n) => this.pendingCaseId = this.caseId + n); 
+        }));
+        box.appendChild(this.#createAction("mail.png", "Payez vos courriers en avance.",  () => {
+            const {tx, rx} = initChannel<number>();
+            new MailEvent(tx, playerColor[this.id]);
+            rx.recv().then((n) => {
+                this.coins -= n;
+            })
+        }));
+        box.appendChild(this.#createAction("bag.png", "Utilisez un objet (avant de lancer le dé).",  () => {}));
+        return box;
+    }
+
+    #createAction(imgSrc: string, hover: string, action: ()=>void) {
+        const elm = document.createElement("img");
+        elm.src = `get_file/celestopia/assets/icons/${imgSrc}`;
+        elm.style.width = "25%";
+        elm.style.margin = "2.5%";
+        elm.style.borderRadius = "25%";
+        elm.style.backgroundColor = actionColor[this.id];
+        
+        elm.addEventListener("mouseenter", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = hover;
             } else {
                 console.log("WARN: helper box is undefined");
             }
         });
-        element.addEventListener("mouseleave", () => {
-            if (this.helperBox !== undefined) {
-                this.helperBox.textContent = activeInfoHelp;
+        elm.addEventListener("mouseleave", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = activeInfoHelp;
             }
         });
 
-        element.addEventListener("click", clickEvent);
+        elm.addEventListener("click", action);
+        elm.onload = () => elm.style.border = `solid ${elm.offsetHeight * 0.05}px #ffd700`;
+        return elm;
     }
+}
+
+export function computeOnBoardPosition(elm: Case) {
+    return new Position(elm.uiPosition.x + caseSize/4, elm.uiPosition.y + caseSize/2);
 }

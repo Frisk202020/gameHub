@@ -1,7 +1,6 @@
 import { appendBlurryBackground, appendCross, createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";
 import { Position } from "../util/Position.js";
-import { setGlobalKeyboardListener } from "../util/variables.js";
 import { Card } from "./Card.js";
 
 export const cardId = "activeCard";
@@ -25,7 +24,7 @@ export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: str
         const navSquares = appendNavBar(imgRect, screenSize, list.length, imgFolder);
 
         appendCross(["menu", cardId, newCardId, boxId, navId]);
-        setGlobalKeyboardListener(new CardKeyboardListener(img, imgFolder, navSquares, list))
+        new CardKeyboardListener(img, imgFolder, navSquares, list);
     }
 }
 

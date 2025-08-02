@@ -4,7 +4,7 @@ import { BoardElement } from "./BoardElement.js";
 
 export type BoardId = 0 | 1 | 2;
 export function buildBoard(id: BoardId) {
-    new Board(id);
+    return new Board(id);
 }
 export let boardCanvas: HTMLCanvasElement | undefined;
 
@@ -20,7 +20,7 @@ class Board {
         let board: BoardConstructor;
 
         switch(id) {
-            case 0: board = this.#board1(); break;
+            case 0: board = this.#board0(); break;
             case 1: board = this.#board2(); break;
             case 2: board = this.#board3();
         }
@@ -75,7 +75,7 @@ class Board {
         document.body.appendChild(boardDiv);
     }
 
-    #board1(): BoardConstructor {
+    #board0(): BoardConstructor {
         return {
             elements: Array(
                 new Case(new Position(0, 0), "start"), new Case(new Position(1, 0), "mail"), new Case(new Position(2, 0), "greenCoin"),

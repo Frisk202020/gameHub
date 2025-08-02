@@ -1,26 +1,27 @@
-import { buildBoard } from "./board/Board.js";
+import { boardCanvas } from "./board/Board.js";
+import { Case } from "./board/Case.js";
 import { Aquisition } from "./card/Aquisition.js";
 import { Wonder } from "./card/Wonder.js";
-import { Player } from "./Player.js";
+import { computeOnBoardPosition, Player } from "./Player.js";
 import { debugTools } from "./util/debug.js";
-import { updateCounterValue } from "./util/functions.js";
-import { currentKeyboardEventListener, players, resizables } from "./util/variables.js";
+import { translateAnimation, updateCounterValue } from "./util/functions.js";
+import { board, currentKeyboardEventListener, players, resizables } from "./util/variables.js";
 
 document.addEventListener("keydown", (event) => {
-    switch (event.key) {
-        case "Enter": 
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
-            } else {
-                document.documentElement.requestFullscreen();
-            }
-            break;
-        default:
-            if (currentKeyboardEventListener !== undefined) {
-                event.preventDefault();
-                currentKeyboardEventListener.eventHandler(event);
-            }
-            break;
+    if (debugTools.keys) { console.log(event.key) };
+    if (currentKeyboardEventListener !== undefined) {
+        event.preventDefault();
+        currentKeyboardEventListener.eventHandler(event);
+    } else {
+        switch (event.key) {
+            case "Enter": 
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    document.documentElement.requestFullscreen();
+                }
+                break;
+        }
     }
 });
 window.addEventListener("resize", () => {
@@ -31,13 +32,29 @@ window.addEventListener("resize", () => {
 });
 (window as any).debugTools = debugTools
 
-function gameRenderLoop() {
+async function gameRenderLoop() {
     for (const p of players) {
         updateCounterValue(`${p.id}.coin`, p.coins);
         updateCounterValue(`${p.id}.ribbon`, p.ribbons);
         updateCounterValue(`${p.id}.star`, p.stars);
         updateCounterValue(`${p.id}.chest`, p.aquisitions.length);
         updateCounterValue(`${p.id}.wonder`, p.wonders.length);
+
+        while (p.caseId < p.pendingCaseId) {
+            p.caseId++;
+            const elm = board.elements[p.caseId];
+            if (elm instanceof Case) {
+                if (boardCanvas !== undefined) {
+                    let pos = computeOnBoardPosition(elm);
+                    pos.y = boardCanvas.height - pos.y;
+                    await translateAnimation(p.pawn, pos , 30, 1);
+                }
+            } else {
+                // TODO: manage intersections
+            }
+
+            await new Promise(r => setTimeout(r, 500));
+        }
     }
 
     requestAnimationFrame(gameRenderLoop);
@@ -46,7 +63,6 @@ function gameRenderLoop() {
 function main() {
     gameRenderLoop();
 
-    buildBoard(0);
     const frisk = new Player(1, "Frisk", "hat");
     const dokueki = new Player(2, "Dokueki", "hat");
     new Player(3, "New Quark", "hat");

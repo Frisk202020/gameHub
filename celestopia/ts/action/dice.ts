@@ -1,6 +1,6 @@
-import { appendBlurryBackground, appendCross, vwToPx } from "./functions.js";
-import { KeyboardListener } from "./KeyboardListener.js";
-import { setGlobalKeyboardListener } from "./variables.js";
+import { Sender } from "../util/channel.js";
+import { appendBlurryBackground, appendCross, vwToPx } from "../util/functions.js";
+import { KeyboardListener } from "../util/KeyboardListener.js";
 
 const FPS = 15;
 
@@ -28,11 +28,12 @@ function generateMenu(color: string) {
 }
 
 export class DiceEvent extends KeyboardListener {
+    tx: Sender<number>;
     diceNumber: 1 | 2 | 3;
     color: string;
     stop: boolean;
 
-    constructor(dices: 1 | 2 | 3) {
+    constructor(tx: Sender<number>, dices: 1 | 2 | 3) {
         let color: string;
         switch(dices) {
             case 1: color = "#496dfe"; break;
@@ -42,17 +43,16 @@ export class DiceEvent extends KeyboardListener {
 
         const element = generateMenu(color);
         super(element);
+        this.tx = tx;
         this.diceNumber = dices;
         this.stop = false;
         this.color = color;
         this.#routine();
-
-        setGlobalKeyboardListener(this);
     }
 
     async #routine() {
+        let n = 0;
         while (!this.stop) {
-            let n: number;
             switch(this.diceNumber) {
                 case 1: n = 1 + Math.floor(Math.random() * 6); break;
                 case 2: n = 2 + Math.floor(Math.random() * 11); break;
@@ -70,7 +70,7 @@ export class DiceEvent extends KeyboardListener {
             await new Promise(r => setTimeout(r, 200));
         }
         
-        // TODO: Retrieve dice result
+        this.tx.send(n);
         const cross = document.getElementById("cross");
         if (cross === null) {
             console.log("WARN: cross is already removed");

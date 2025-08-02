@@ -1,3 +1,5 @@
+import { setGlobalKeyboardListener } from "./variables.js";
+
 export abstract class KeyboardListener {
     element: HTMLElement;
     enabled: boolean;
@@ -5,6 +7,8 @@ export abstract class KeyboardListener {
     constructor(element: HTMLElement) {
         this.element = element;
         this.enabled = true;
+
+        setGlobalKeyboardListener(this);
     }
 
     abstract eventHandler(event: KeyboardEvent): void;
