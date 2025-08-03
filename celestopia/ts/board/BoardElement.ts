@@ -15,15 +15,15 @@ export abstract class BoardElement {
         const toPos = other.getBeginPos();
 
         context.beginPath();
-        context.moveTo(fromPos.x, canvas.height - fromPos.y);
+        context.moveTo(fromPos.x, fromPos.y);
         
         if (radius === undefined) {
-            context.lineTo(toPos.x, canvas.height - toPos.y);
+            context.lineTo(toPos.x, toPos.y);
         } else {    
             if (fromPos.x < toPos.x) {
-                context.arcTo(toPos.x, canvas.height - fromPos.y, toPos.x, canvas.height - toPos.y, radius + defaultCasePadding);
+                context.arcTo(toPos.x,fromPos.y, toPos.x, toPos.y, radius + defaultCasePadding);
             } else {
-                context.arcTo(fromPos.x, canvas.height - toPos.y, toPos.x, canvas.height - toPos.y, radius + defaultCasePadding);
+                context.arcTo(fromPos.x, toPos.y, toPos.x, toPos.y, radius + defaultCasePadding);
             }
         }
         context.strokeStyle = color;

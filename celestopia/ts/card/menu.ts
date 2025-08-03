@@ -12,23 +12,24 @@ export type ImgFolder = "aquisitions" | "wonders";
 export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: string) {
     const screenSize = new Position(document.documentElement.clientWidth, document.documentElement.clientHeight);
 
-    appendBlurryBackground();
+    const bg = appendBlurryBackground();
     const img = appendImg(
         `get_file/celestopia/assets/${imgFolder}/${list[0].name}.png`,
-        screenSize
+        screenSize,
+        bg
     )
 
     img.onload = () => {
         const imgRect = img.getBoundingClientRect();
-        appendHelperBox(helperText, imgRect, screenSize);
-        const navSquares = appendNavBar(imgRect, screenSize, list.length, imgFolder);
+        appendHelperBox(helperText, imgRect, screenSize, bg);
+        const navSquares = appendNavBar(imgRect, screenSize, list.length, imgFolder, bg);
 
-        appendCross(["menu", cardId, newCardId, boxId, navId]);
-        new CardKeyboardListener(img, imgFolder, navSquares, list);
+        appendCross(["menu"]);
+        new CardKeyboardListener(img, bg, imgFolder, navSquares, list);
     }
 }
 
-function appendImg(src: string, screenSize: Position) {
+function appendImg(src: string, screenSize: Position, parent: HTMLDivElement) {
     const img = document.createElement("img");
     img.id = cardId;
     img.src = src;
@@ -40,16 +41,16 @@ function appendImg(src: string, screenSize: Position) {
     img.style.left = `${(screenSize.x - px)/2}px`;
     img.style.top = `${(screenSize.y - px)/2}px`;
 
-    document.body.appendChild(img);
+    parent.appendChild(img);
     return img;
 }
 
-function appendHelperBox(text: string, imgRect: DOMRect, screenSize: Position) {
-    const box = createHelperBox(text, false, undefined, undefined, 6);
+function appendHelperBox(text: string, imgRect: DOMRect, screenSize: Position, parent: HTMLDivElement) {
+    const box = createHelperBox(text, undefined, undefined, 6);
     box.id = boxId;
     box.style.opacity = "0";
     box.style.top = `${imgRect.bottom}px`;
-    document.body.appendChild(box);
+    parent.appendChild(box);
 
     const boxRect = box.getBoundingClientRect();
     const boxWidth = boxRect.right - boxRect.left;
@@ -59,7 +60,7 @@ function appendHelperBox(text: string, imgRect: DOMRect, screenSize: Position) {
     return box;
 }
 
-function appendNavBar(imgRect: DOMRect, screenSize: Position, length: number, folder: ImgFolder) {
+function appendNavBar(imgRect: DOMRect, screenSize: Position, length: number, folder: ImgFolder, parent: HTMLDivElement) {
     const navBar = document.createElement("div");
     navBar.id = navId;
 
@@ -88,7 +89,7 @@ function appendNavBar(imgRect: DOMRect, screenSize: Position, length: number, fo
     }
 
     navBar.style.opacity = "0";
-    document.body.appendChild(navBar);
+    parent.appendChild(navBar);
     const navRect = navBar.getBoundingClientRect();
     const navWidth = navRect.right - navRect.left;
     navBar.style.left = `${(screenSize.x - navWidth)/2}px`;
@@ -100,12 +101,14 @@ function appendNavBar(imgRect: DOMRect, screenSize: Position, length: number, fo
 class CardKeyboardListener extends KeyboardListener {
     cards: Card[];
     folderName: ImgFolder;
+    bg: HTMLDivElement;
     navBar: HTMLDivElement[];
     currentIndex: number;
 
-    constructor(element: HTMLImageElement, folder: ImgFolder, nav: HTMLDivElement[], cards: Card[]) {
+    constructor(element: HTMLImageElement, bg: HTMLDivElement, folder: ImgFolder, nav: HTMLDivElement[], cards: Card[]) {
         super(element);
         this.folderName = folder;
+        this.bg = bg;
         this.navBar = nav;
         this.cards = cards;
         this.currentIndex = 0;
@@ -132,8 +135,8 @@ class CardKeyboardListener extends KeyboardListener {
         }
 
         translateAnimation(newCard, new Position(leftPos, rect.top), 60, 0.5).then(() => {
-            if (document.body.contains(this.element)) {
-                document.body.removeChild(this.element); // can be removed if cross is prompted
+            if (this.bg.contains(this.element)) {
+                this.bg.removeChild(this.element); // can be removed if cross is prompted
             }
             this.element = newCard;
             this.element.id = cardId;
@@ -173,7 +176,7 @@ class CardKeyboardListener extends KeyboardListener {
 
         card.src = `get_file/celestopia/assets/${this.folderName}/${this.cards[this.currentIndex].name}.png`;
         card.id = newCardId;
-        document.body.appendChild(card);
+        this.bg.appendChild(card);
         return card;
     }
 }

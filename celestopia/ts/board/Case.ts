@@ -64,11 +64,11 @@ export class Case extends BoardElement {
         const caseStyle = caseImg.style;
         caseStyle.width = `${caseSize}px`;
         caseStyle.position = "absolute";
-        caseStyle.bottom = `${this.uiPosition.y}px`;
+        caseStyle.top = `${this.uiPosition.y}px`;
         caseStyle.left = `${this.uiPosition.x}px`;
 
         caseImg.addEventListener("mouseenter", () => {
-            const helpBox = createHelperBox(this.description, true, this.uiPosition.translate(0, caseSize), caseSize);
+            const helpBox = createHelperBox(this.description, this.uiPosition.translate(0, caseSize), caseSize);
             document.body.appendChild(helpBox);
 
             pHelpBox = helpBox;

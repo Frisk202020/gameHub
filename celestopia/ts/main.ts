@@ -46,14 +46,13 @@ async function gameRenderLoop() {
             if (elm instanceof Case) {
                 if (boardCanvas !== undefined) {
                     let pos = computeOnBoardPosition(elm);
-                    pos.y = boardCanvas.height - pos.y;
-                    await translateAnimation(p.pawn, pos , 30, 1);
+                    await translateAnimation(p.pawn, pos , 60, 0.25);
                 }
             } else {
                 // TODO: manage intersections
             }
 
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 100));
         }
     }
 

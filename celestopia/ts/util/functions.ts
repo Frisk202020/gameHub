@@ -51,7 +51,7 @@ export function appendBlurryBackground() {
     const blurryBackground = document.createElement("div");
     blurryBackground.id = "menu";
     const bgStyle = blurryBackground.style;
-    bgStyle.position = "absolute";
+    bgStyle.position = "fixed";
     bgStyle.left = "0px";
     bgStyle.top = "0px";
     bgStyle.backgroundColor = "#d4d4cb6f";
@@ -63,19 +63,14 @@ export function appendBlurryBackground() {
     return blurryBackground;
 }
 
-export function createHelperBox(text: string, invertYAxis: boolean, position?: Position, size?: number, zIndex?: number) {
+export function createHelperBox(text: string, position?: Position, size?: number, zIndex?: number) {
     const helpBox = document.createElement("p");
     helpBox.textContent = text;
     helpBox.style.position = "absolute";
     helpBox.style.zIndex = zIndex === undefined ? "4" : zIndex.toString();
     if (position !== undefined) {
         helpBox.style.left = `${position.x}px`;
-        if (invertYAxis) {
-            helpBox.style.bottom = `${position.y}px`;
-        }
-        else {
-            helpBox.style.top = `${position.y}px`;
-        }
+        helpBox.style.top = `${position.y}px`;
     }
 
     if (size !== undefined) { helpBox.style.width = `${size}px` };
@@ -106,7 +101,8 @@ export async function translateAnimation(element: HTMLElement, target: Position,
     const dt = 1000 / frames;
     
     const rect = element.getBoundingClientRect();
-    let currentPos = new Position(rect.left, rect.top);
+    let currentPos = new Position(rect.left + window.scrollX, rect.top);
+    console.log("starting pos : " + currentPos);
     let dP = target.difference(currentPos);
     dP.divideMut(it);
 

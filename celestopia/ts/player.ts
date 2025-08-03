@@ -99,9 +99,9 @@ export class Player {
         player.addEventListener("mouseenter", () => {
             const box = createHelperBox(
                 this.infoActive ? activeInfoHelp : inactiveInfoHelp, 
-                false,
                 new Position(player.getBoundingClientRect().right + 10, 0), 
             );
+            box.style.position = "fixed";
             document.body.appendChild(box);
             helperBox = box;
         })
@@ -140,7 +140,7 @@ export class Player {
         
         const pos = computeOnBoardPosition(board.elements[this.caseId] as Case);
         pawn.style.left = `${pos.x}px`;
-        pawn.style.bottom = `${pos.y}px`;
+        pawn.style.top = `${pos.y}px`;
         this.pawn = pawn;
         
         pawn.style.zIndex = "3";
@@ -310,5 +310,5 @@ export class Player {
 }
 
 export function computeOnBoardPosition(elm: Case) {
-    return new Position(elm.uiPosition.x + caseSize/4, elm.uiPosition.y + caseSize/2);
+    return new Position(elm.uiPosition.x + caseSize/4, elm.uiPosition.y);
 }
