@@ -3,7 +3,7 @@ import { Position } from "../util/Position.js";
 import { BoardElement } from "./BoardElement.js";
 
 const caseFolder = "get_file/celestopia/assets/cases/";
-type caseType = "blueCoin" | "redCoin" | "greenCoin" |
+export type caseType = "blueCoin" | "redCoin" | "greenCoin" |
     "mail" | "3Mail" | "5Mail" | "furnace" | "postBox" | "ladder" | "teleporter" | "dice" | "duel" |
     "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start";
 
@@ -37,6 +37,7 @@ export const defaultCasePadding = 48 * caseSize / 729;
 let pHelpBox: HTMLParagraphElement | undefined;
 
 export class Case extends BoardElement {
+    type: caseType;
     position: Position;
     uiPosition: Position;
     walkWay: WalkWay;
@@ -47,6 +48,7 @@ export class Case extends BoardElement {
 
     constructor(position: Position, type: caseType, walkway?: WalkWay, padding?: number) {
         super();
+        this.type = type;
         this.position = position;
         this.uiPosition = new Position(caseMargin + position.x * (caseMargin + caseSize), caseMargin + position.y * (caseMargin + caseSize));
         this.walkWay = walkway === undefined ? "straight" : walkway;

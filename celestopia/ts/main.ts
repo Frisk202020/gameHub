@@ -40,21 +40,44 @@ async function gameRenderLoop() {
         updateCounterValue(`${p.id}.chest`, p.aquisitions.length);
         updateCounterValue(`${p.id}.wonder`, p.wonders.length);
 
-        while (p.caseId < p.pendingCaseId) {
-            p.caseId++;
-            const elm = board.elements[p.caseId];
-            if (elm instanceof Case) {
-                if (boardCanvas !== undefined) {
-                    let pos = computeOnBoardPosition(elm);
-                    await translateAnimation(p.pawn, pos , 60, 0.25);
+        if (p.caseId < p.pendingCaseId) {
+            while (p.caseId < p.pendingCaseId) {
+                p.caseId++;
+                const elm = board.elements[p.caseId];
+                if (elm instanceof Case) {
+                    if (boardCanvas !== undefined) {
+                        let pos = computeOnBoardPosition(elm);
+                        await translateAnimation(p.pawn, pos , 60, 0.25);
+                    }
+                } else {
+                    // TODO: manage intersections
                 }
-            } else {
-                // TODO: manage intersections
+
+                await new Promise(r => setTimeout(r, 100));
             }
 
-            await new Promise(r => setTimeout(r, 100));
+            const caseElm = board.elements[p.caseId] as Case;
+            p.caseResponse(caseElm.type);
+        } else if (p.caseId > p.pendingCaseId) {
+            while (p.caseId > p.pendingCaseId) {
+                p.caseId--;
+                const elm = board.elements[p.caseId];
+                if (elm instanceof Case) {
+                    if (boardCanvas !== undefined) {
+                        let pos = computeOnBoardPosition(elm);
+                        await translateAnimation(p.pawn, pos , 60, 0.25);
+                    }
+                } else {
+                    // TODO: manage intersections
+                }
+
+                await new Promise(r => setTimeout(r, 100));
+            }
+
+            const caseElm = board.elements[p.caseId] as Case;
+            p.caseResponse(caseElm.type);
         }
-    }
+    } 
 
     requestAnimationFrame(gameRenderLoop);
 }

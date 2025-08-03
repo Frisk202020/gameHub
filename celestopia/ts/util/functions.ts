@@ -7,7 +7,7 @@ export function updateCounterValue(elementId: string, value: number) {
         return;
     }
 
-    element.textContent = value.toString();
+    element.textContent = Math.round(value).toString();
 }
 
 export function removeFromArray(array: any[], index: number): any {
@@ -102,7 +102,6 @@ export async function translateAnimation(element: HTMLElement, target: Position,
     
     const rect = element.getBoundingClientRect();
     let currentPos = new Position(rect.left + window.scrollX, rect.top);
-    console.log("starting pos : " + currentPos);
     let dP = target.difference(currentPos);
     dP.divideMut(it);
 

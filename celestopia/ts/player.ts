@@ -8,8 +8,8 @@ import { DiceEvent } from "./action/dice.js";
 import { createHelperBox, removeFromBodyOrWarn } from "./util/functions.js";
 import { MailEvent } from "./action/mail.js";
 import { initChannel } from "./util/channel.js";
-import { Case, caseSize } from "./board/Case.js";
-import { board } from "./util/variables.js";
+import { Case, caseSize, caseType } from "./board/Case.js";
+import { board, pig } from "./util/variables.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -85,6 +85,53 @@ export class Player {
 
     addWonder(w: Wonder) {
         this.wonders.push(w);
+    }
+
+    caseResponse(type: caseType) {
+        switch(type) {
+            case "redCoin":
+                const choices = [50, 100, 250, 500];
+                const chosen = choices[Math.floor(Math.random() * 4)];
+                pig.feed(chosen);
+                const newValue = this.coins - chosen;
+
+                if (!this.infoActive) {
+                    this.infoBox.classList.add("visible");
+                }
+
+                this.#progressiveCoinChange(newValue).then(() => {
+                    this.infoBox.classList.remove("visible");
+                    console.log(this);
+                });
+        }
+    }
+
+    async #progressiveCoinChange(target: number) {
+        const dN = (target - this.coins) / 120;
+        for (let i = 0; i < 120; i++) {
+            this.coins += dN;
+            await new Promise(r => setTimeout(r, 100/6));
+        }
+
+        this.coins = target;
+    }
+    async #progressiveRibbonChange(target: number) {
+        const dN = (target - this.ribbons) / 120;
+        for (let i = 0; i < 120; i++) {
+            this.coins += dN;
+            await new Promise(r => setTimeout(r, 100/6));
+        }
+
+        this.ribbons = target;
+    }
+    async #progressiveStarChange(target: number) {
+        const dN = (target - this.stars) / 120;
+        for (let i = 0; i < 120; i++) {
+            this.stars += dN;
+            await new Promise(r => setTimeout(r, 100/6));
+        }
+
+        this.stars = target;
     }
 
     #createHtml() {
