@@ -5,7 +5,7 @@ import { Wonder } from "./card/Wonder.js";
 import { computeOnBoardPosition, Player } from "./Player.js";
 import { debugTools } from "./util/debug.js";
 import { translateAnimation, updateCounterValue } from "./util/functions.js";
-import { board, currentKeyboardEventListener, players, resizables } from "./util/variables.js";
+import { board, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -39,6 +39,8 @@ async function gameRenderLoop() {
         updateCounterValue(`${p.id}.star`, p.stars);
         updateCounterValue(`${p.id}.chest`, p.aquisitions.length);
         updateCounterValue(`${p.id}.wonder`, p.wonders.length);
+        updateCounterValue(`bankCounter`, pig.content);
+        pig.setColor();
 
         if (p.caseId < p.pendingCaseId) {
             while (p.caseId < p.pendingCaseId) {
@@ -87,8 +89,8 @@ function main() {
 
     const frisk = new Player(1, "Frisk", "hat");
     const dokueki = new Player(2, "Dokueki", "hat");
-    new Player(3, "New Quark", "hat");
-    new Player(4, "Casyaks", "hat");
+    const q = new Player(3, "New Quark", "hat");
+    const cas = new Player(4, "Casyaks", "hat");
 
     for (let i = 0; i < 3; i++) {
         frisk.addAquisition(Aquisition.getRandomAquisition());
@@ -103,6 +105,8 @@ function main() {
 
     players.push(frisk);
     players.push(dokueki);
+    players.push(q);
+    players.push(cas);
 }
 
 main();

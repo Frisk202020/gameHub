@@ -10,6 +10,7 @@ import { MailEvent } from "./action/mail.js";
 import { initChannel } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
 import { board, pig } from "./util/variables.js";
+import { GreenEvent } from "./event/Event.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -88,26 +89,45 @@ export class Player {
     }
 
     caseResponse(type: caseType) {
-        switch(type) {
-            case "redCoin":
-                const choices = [50, 100, 250, 500];
-                const chosen = choices[Math.floor(Math.random() * 4)];
-                pig.feed(chosen);
-                const newValue = this.coins - chosen;
+        if (type === "redCoin") {
+            const choices = [50, 100, 250, 500];
+            const chosen = choices[Math.floor(Math.random() * 4)];
+            pig.feed(chosen);
+            const newValue = this.coins - chosen;
 
-                if (!this.infoActive) {
-                    this.infoBox.classList.add("visible");
-                }
+            this.progressiveCoinChange(newValue).then(() => {
+                this.infoBox.classList.remove("visible");
+            });
+        } else if (type === "blueCoin") {
+            const choices = [50, 100, 300, 600, 1000];
+            const newValue = this.coins + choices[Math.floor(Math.random() * 5)];
 
-                this.#progressiveCoinChange(newValue).then(() => {
-                    this.infoBox.classList.remove("visible");
-                    console.log(this);
-                });
+            this.progressiveCoinChange(newValue).then(() => {
+                this.infoBox.classList.remove("visible");
+            });
+        } else if (type === "greenCoin") {
+            GreenEvent.pickRandomEvent(this);
         }
     }
 
-    async #progressiveCoinChange(target: number) {
+    async progressiveCoinChange(target: number) {
+        if (!this.infoActive) {
+            this.infoBox.classList.add("visible");
+        }
         const dN = (target - this.coins) / 120;
+        const current = this.coins;
+        this.coins = target - this.coins;
+        const elm = document.getElementById(`${this.id}.coin`) as HTMLElement;
+        if (this.coins < 0) {
+            elm.style.color = "#b70808";
+        } else {
+            elm.style.color = "#009220";
+        }
+
+        await new Promise(r => setTimeout(r, 2000));
+        this.coins = current;
+        elm.style.color = "black";
+
         for (let i = 0; i < 120; i++) {
             this.coins += dN;
             await new Promise(r => setTimeout(r, 100/6));
@@ -115,17 +135,49 @@ export class Player {
 
         this.coins = target;
     }
-    async #progressiveRibbonChange(target: number) {
+    async progressiveRibbonChange(target: number) {
+        if (!this.infoActive) {
+            this.infoBox.classList.add("visible");
+        }
         const dN = (target - this.ribbons) / 120;
+        const current = this.ribbons;
+        this.ribbons = target - this.ribbons;
+        const elm = document.getElementById(`${this.id}.ribbon`) as HTMLElement;
+        if (this.ribbons < 0) {
+            elm.style.color = "#b70808";
+        } else {
+            elm.style.color = "#009220";
+        }
+
+        await new Promise(r => setTimeout(r, 2000));
+        this.ribbons = current;
+        elm.style.color = "black";
+
         for (let i = 0; i < 120; i++) {
-            this.coins += dN;
+            this.ribbons += dN;
             await new Promise(r => setTimeout(r, 100/6));
         }
 
         this.ribbons = target;
     }
-    async #progressiveStarChange(target: number) {
+    async progressiveStarChange(target: number) {
+        if (!this.infoActive) {
+            this.infoBox.classList.add("visible");
+        }
         const dN = (target - this.stars) / 120;
+        const current = this.stars;
+        this.stars = target - this.stars;
+        const elm = document.getElementById(`${this.id}.star`) as HTMLElement;
+        if (this.stars < 0) {
+            elm.style.color = "#b70808";
+        } else {
+            elm.style.color = "#009220";
+        }
+
+        await new Promise(r => setTimeout(r, 2000));
+        this.stars = current;
+        elm.style.color = "black";
+
         for (let i = 0; i < 120; i++) {
             this.stars += dN;
             await new Promise(r => setTimeout(r, 100/6));
@@ -322,7 +374,7 @@ export class Player {
             const {tx, rx} = initChannel<number>();
             new MailEvent(tx, playerColor[this.id]);
             rx.recv().then((n) => {
-                this.coins -= n;
+                this.progressiveCoinChange(this.coins - n).then(() => this.infoBox.classList.remove("visible"));
             })
         }));
         box.appendChild(this.#createAction("bag.png", "Utilisez un objet (avant de lancer le dé).",  () => {}));

@@ -11,4 +11,5 @@ export const debugTools = {
         p.pendingCaseId = p.caseId + value;    
     },
     showPig() { console.log(pig); },
+    setPigAmmount(ammount: number) { pig.content = ammount; }
 };

@@ -46,12 +46,27 @@
         .case {
             z-index: 2;
         }
+        .pointerHover:hover {
+            cursor: pointer;
+        }
+        .pointerHover {
+            cursor: default;
+        }
         .reveal-vertical {
             opacity: 1;
             clip-path: inset(0 0 100% 0); /* fully hidden */
             transition: clip-path 2s ease;
         }
         .reveal-vertical.visible {
+            clip-path: inset(0 0 0 0); /* fully shown */
+            opacity: 1;
+        }
+        .reveal-horizontal {
+            opacity: 1;
+            clip-path: inset(0 0 0 100%); /* fully hidden */
+            transition: clip-path 2s ease;
+        }
+        .reveal-horizontal.visible {
             clip-path: inset(0 0 0 0); /* fully shown */
             opacity: 1;
         }
