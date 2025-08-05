@@ -25,6 +25,7 @@ export function removeFromArray(array: any[], index: number): any {
  
 export function appendCross(idsToRemove: string[]) {
     const cross = document.createElement("img");
+    cross.className = "pointerHover";
     cross.id = "cross";
     cross.src = "get_file/celestopia/assets/icons/cross.png";
     cross.style.width = "10vw";
@@ -54,7 +55,7 @@ export function appendBlurryBackground() {
     bgStyle.position = "fixed";
     bgStyle.left = "0px";
     bgStyle.top = "0px";
-    bgStyle.backgroundColor = "#d4d4cb6f";
+    bgStyle.backgroundColor = "#d4d4cba1";
     bgStyle.width = "100vw";
     bgStyle.height = "100vh";
     bgStyle.zIndex = "5";

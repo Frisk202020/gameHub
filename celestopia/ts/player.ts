@@ -10,7 +10,8 @@ import { MailEvent } from "./action/mail.js";
 import { initChannel } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
 import { board, pig } from "./util/variables.js";
-import { GreenEvent } from "./event/Event.js";
+import { Happening } from "./event/Happening.js";
+import { Popup } from "./event/Popup.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -106,7 +107,13 @@ export class Player {
                 this.infoBox.classList.remove("visible");
             });
         } else if (type === "greenCoin") {
-            GreenEvent.pickRandomEvent(this);
+            Happening.pickRandomEvent(this);
+        } else if (type === "mail") {
+            new Popup("Vous avez reçu 1 courrier !");
+        } else if (type === "3Mail") {
+            new Popup("Vous avez reçu 3 courriers !");
+        } else if (type === "5Mail") {
+            new Popup("Vous avez reçu 5 courriers !");
         }
     }
 
@@ -249,6 +256,7 @@ export class Player {
 
     #createBanner() {
         const banner = document.createElement("div");
+        banner.className = "pointerHover";
         const style = banner.style;
         style.display = "flex";
         style.flexDirection = "row";
@@ -286,11 +294,11 @@ export class Player {
         infoStyle.pointerEvents = "none";
 
         info.className = "reveal-vertical";
-        info.appendChild(this.#createSubInfoBox("coin", this.coins));
-        info.appendChild(this.#createSubInfoBox("ribbon", this.ribbons));
-        info.appendChild(this.#createSubInfoBox("star", this.stars));
+        info.appendChild(this.#createSubInfoBox("coin", this.coins, false));
+        info.appendChild(this.#createSubInfoBox("ribbon", this.ribbons, false));
+        info.appendChild(this.#createSubInfoBox("star", this.stars, false));
 
-        const aq = this.#createSubInfoBox("chest", this.aquisitions.length);
+        const aq = this.#createSubInfoBox("chest", this.aquisitions.length, true);
         this.#addCardEventListeners(
             aq, 
             "aquisitions",
@@ -299,7 +307,7 @@ export class Player {
         );
         info.appendChild(aq);
 
-        const w = this.#createSubInfoBox("wonder", this.wonders.length);
+        const w = this.#createSubInfoBox("wonder", this.wonders.length, true);
         this.#addCardEventListeners(
             w,
             "wonders",
@@ -313,8 +321,9 @@ export class Player {
         return info;
     }
 
-    #createSubInfoBox(imgName: gameIcon, counterValue: number) {
+    #createSubInfoBox(imgName: gameIcon, counterValue: number, pointerHover: boolean) {
         const box = document.createElement("div");
+        if (pointerHover) { box.className = "pointerHover"; }
         box.style.display = "flex";
         box.style.justifyContent = "space-between";
         box.style.alignItems = "center";
@@ -362,6 +371,7 @@ export class Player {
 
     #createActionBox() {
         const box = document.createElement("div");
+        box.className = "pointerHover";
         box.style.display = "flex";
         box.style.justifyContent = "center";
         box.style.alignItems = "center";

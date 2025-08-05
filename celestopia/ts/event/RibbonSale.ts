@@ -1,32 +1,28 @@
 import { Player } from "../Player.js";
-import { GreenEvent } from "./Event.js";
+import { BoardEvent } from "./BoardEvent.js";
+import { Happening } from "./Happening.js";
 
-export class RibbonSale extends GreenEvent {
+export class RibbonSale extends Happening {
     target: Player;
     coins: number;
     ribbons: number;
 
     constructor(player: Player) {
-        super(
-            "Vente de rubans !",
-            "Un artisan en herbe vous vend des rubans à prix coutant !",
-            true,
-        );
-        this.target = player;
-
         const coins = [100, 150, 225, 325, 450];
         const ribbons = [200, 300, 500, 700, 1000];
         const index = Math.floor(Math.random() * 5);
 
+        super(
+            "Vente de rubans !",
+            "Un artisan en herbe vous vend des rubans à prix coutant !",
+            false,
+            true,
+            BoardEvent.generateTextBox(`Acheter ${ribbons[index]} rubans pour ${coins[index]} pièces ?`)
+        );
+
+        this.target = player;
         this.coins = coins[index];
         this.ribbons = ribbons[index];
-
-        this.generateSpecificUIElements();
-    }
-
-    protected generateSpecificUIElements(): void {
-        this.appendTextBox(`Acheter ${this.ribbons} rubans pour ${this.coins} pièces ?`);
-        this.appendButtons(true);
     }
 
     protected event(): void {

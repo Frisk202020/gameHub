@@ -76,6 +76,7 @@ export class Piggy {
         icon.src = "get_file/celestopia/assets/icons/pig.png";
         icon.style.height = "8vw";
         icon.style.width = "8vw";
+        icon.className = "pointerHover";
         box.appendChild(icon);
 
         icon.addEventListener("click", () => {

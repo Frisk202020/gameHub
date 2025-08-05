@@ -1,28 +1,30 @@
 import { Player } from "../Player.js";
 import { players } from "../util/variables.js";
-import { GreenEvent } from "./Event.js";
+import { Happening } from "./Happening.js";
 
-export class Theft extends GreenEvent {
+export class Theft extends Happening {
     target: Player;
     victim: Player;
     ammount: number;
 
     constructor(player: Player) {
-        const victim = players[Math.floor(Math.random() * players.length)];
+        const playerIndex = players.indexOf(player);
+        let index = Math.floor(Math.random() * (players.length - 1));
+        if (index === playerIndex) {
+            index++;
+        }
+        const victim = players[index];
 
         super(
             "Extorsion de fonds !",
             `Volez des pièces à ${victim.name}`,
+            false,
             false
         )
 
         this.target = player;
         this.victim = victim;
-        this.ammount = 1 + Math.floor(Math.random() * 1000);
-    }
-
-    protected generateSpecificUIElements(): void {
-        this.appendButtons(false);
+        this.ammount = Math.min(1 + Math.floor(Math.random() * 1000), victim.coins); // can't steal more than what the victim has
     }
 
     protected event(): void {

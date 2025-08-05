@@ -1,32 +1,27 @@
 import { Player } from "../Player.js";
-import { GreenEvent } from "./Event.js";
+import { BoardEvent } from "./BoardEvent.js";
+import { Happening } from "./Happening.js";
 
-export class StarSell extends GreenEvent {
+export class StarSell extends Happening {
     target: Player;
     coins: number;
     stars: number;
 
     constructor(player: Player) {
-        super(
-            "Acheteur d'étoiles !",
-            "Un astrophysicien vous achète des étoiles à un bon prix !",
-            true,
-        );
-        this.target = player;
-
         const stars = [50, 110, 170, 300, 500];
         const coins = [75, 150, 200, 400, 650];
         const index = Math.floor(Math.random() * 5);
 
+        super(
+            "Acheteur d'étoiles !",
+            "Un astrophysicien vous achète des étoiles à un bon prix !",
+            player.stars < stars[index],
+            true,
+            BoardEvent.generateTextBox(`Vendre ${stars[index]} étoiles pour ${coins[index]} pièces ?`)
+        );
+        this.target = player;
         this.coins = coins[index];
         this.stars = stars[index];
-
-        this.generateSpecificUIElements();
-    }
-
-    protected generateSpecificUIElements(): void {
-        this.appendTextBox(`Vendre ${this.stars} étoiles pour ${this.coins} pièces ?`);
-        this.appendButtons(true);
     }
 
     protected event(): void {
