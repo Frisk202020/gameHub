@@ -1,3 +1,4 @@
+import { WonderName } from "../card/Wonder.js";
 import { createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
 import { Position } from "../util/Position.js";
 import { BoardElement } from "./BoardElement.js";
@@ -37,40 +38,84 @@ export const defaultCasePadding = 48 * caseSize / 729;
 let pHelpBox: HTMLParagraphElement | undefined;
 
 export class Case extends BoardElement {
-    type: caseType;
-    position: Position;
-    uiPosition: Position;
-    walkWay: WalkWay;
-    size: number;
-    link: string;
-    padding: number;
-    description: string;
+    #type: caseType;
+    #position: Position;
+    #uiPosition: Position;
+    #walkWay: WalkWay;
+    #size: number;
+    #link: string;
+    #padding: number;
+    #description: string;
 
-    constructor(position: Position, type: caseType, walkway?: WalkWay, padding?: number) {
+    constructor(position: Position, type: caseType, walkway?: WalkWay, padding?: number, destination?: number, wonder?: WonderName) {
         super();
-        this.type = type;
-        this.position = position;
-        this.uiPosition = new Position(caseMargin + position.x * (caseMargin + caseSize), caseMargin + position.y * (caseMargin + caseSize));
-        this.walkWay = walkway === undefined ? "straight" : walkway;
-        this.size = caseSize;
-        this.link = caseFolder + type + ".png";
-        this.padding = padding === undefined ? defaultCasePadding : padding;
-        this.description = descriptions[type];
+        this.#type = type;
+        this.#position = position;
+        this.#uiPosition = new Position(caseMargin + position.x * (caseMargin + caseSize), caseMargin + position.y * (caseMargin + caseSize));
+        this.#walkWay = walkway === undefined ? "straight" : walkway;
+        this.#size = caseSize;
+        this.#link = caseFolder + type + ".png";
+        this.#padding = padding === undefined ? defaultCasePadding : padding;
+        this.#description = descriptions[type];
+
+        if (type === "ladder") {
+            if (destination ===  undefined) {
+                console.log("ERROR: initiated a ladder case without a destination");
+            } else {
+                (this as any).destination = destination;
+            }
+        } else if (type === "wonder") {
+            if (wonder === undefined) {
+                console.log("ERROR: initiatedd a wonder case without a wonder name");
+            } else {
+                (this as any).wonder = wonder;
+            }
+        }
+    }
+
+    get size() {
+        return this.#size;
+    } get type() {
+        return this.#type;
+    } get uiPosition() {
+        return this.#uiPosition;
+    } get position() {
+        return this.#position;
+    } get beginPos() {
+        let output: Position;
+        switch (this.#walkWay) {
+            case "straight": output = this.#uiPosition.translate(this.#padding, caseSize / 2); break;
+            case "backwards": output = this.#uiPosition.translate(caseSize - this.#padding, caseSize / 2); break;
+            case "vertical": output = this.#uiPosition.translate(caseSize/2, caseSize - this.#padding); break;
+            case "vertiacal-backwards": output = this.#uiPosition.translate(caseSize/2, this.#padding);
+        }
+
+        return output;
+    } get endPos() {
+        let output: Position;
+        switch (this.#walkWay) {
+            case "straight": output = this.#uiPosition.translate(caseSize - this.#padding, caseSize / 2); break;
+            case "backwards": output = this.#uiPosition.translate(this.#padding, caseSize / 2); break;
+            case "vertical": output = this.#uiPosition.translate(caseSize/2, this.#padding); break;
+            case "vertiacal-backwards": output = this.#uiPosition.translate(caseSize/2, caseSize - 2 * this.#padding);
+        }
+
+        return output;
     }
 
     createHtmlElement() {
         const caseImg = document.createElement("img");
         caseImg.classList.add("case");
-        caseImg.src = this.link;
+        caseImg.src = this.#link;
 
         const caseStyle = caseImg.style;
         caseStyle.width = `${caseSize}px`;
         caseStyle.position = "absolute";
-        caseStyle.top = `${this.uiPosition.y}px`;
-        caseStyle.left = `${this.uiPosition.x}px`;
+        caseStyle.top = `${this.#uiPosition.y}px`;
+        caseStyle.left = `${this.#uiPosition.x}px`;
 
         caseImg.addEventListener("mouseenter", () => {
-            const helpBox = createHelperBox(this.description, this.uiPosition.translate(0, caseSize), caseSize);
+            const helpBox = createHelperBox(this.#description, this.#uiPosition.translate(0, caseSize), caseSize);
             document.body.appendChild(helpBox);
 
             pHelpBox = helpBox;
@@ -80,29 +125,5 @@ export class Case extends BoardElement {
         })
 
         return caseImg;
-    }
-
-    getBeginPos(): Position {
-        let output: Position;
-        switch (this.walkWay) {
-            case "straight": output = this.uiPosition.translate(this.padding, caseSize / 2); break;
-            case "backwards": output = this.uiPosition.translate(caseSize - this.padding, caseSize / 2); break;
-            case "vertical": output = this.uiPosition.translate(caseSize/2, caseSize - this.padding); break;
-            case "vertiacal-backwards": output = this.uiPosition.translate(caseSize/2, this.padding);
-        }
-
-        return output;
-    }
-
-    getEndPos(): Position {
-        let output: Position;
-        switch (this.walkWay) {
-            case "straight": output = this.uiPosition.translate(caseSize - this.padding, caseSize / 2); break;
-            case "backwards": output = this.uiPosition.translate(this.padding, caseSize / 2); break;
-            case "vertical": output = this.uiPosition.translate(caseSize/2, this.padding); break;
-            case "vertiacal-backwards": output = this.uiPosition.translate(caseSize/2, caseSize - 2 * this.padding);
-        }
-
-        return output;
     }
 }

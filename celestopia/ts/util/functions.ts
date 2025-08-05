@@ -10,7 +10,7 @@ export function updateCounterValue(elementId: string, value: number) {
     element.textContent = Math.round(value).toString();
 }
 
-export function removeFromArray(array: any[], index: number): any {
+export function removeFromArray<T>(array: T[], index: number): T | undefined {
     if (index < 0 || index >= array.length) {
         console.log("ERROR: index is in invalid range");
         return undefined;

@@ -12,6 +12,8 @@ import { Case, caseSize, caseType } from "./board/Case.js";
 import { board, pig } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
+import { Chest } from "./event/Chest.js";
+import { Crown } from "./event/Crown.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -44,49 +46,63 @@ const infoColor ={
 }
 
 export class Player {
-    id: PlayerId;
-    name: string;
-    avatar: Avatar;
-    pawn!: HTMLImageElement;
+    #id: PlayerId;
+    #name: string;
+    #avatar: Avatar;
+    #pawn!: HTMLImageElement;
     boardId: 0 | 1 | 2;
     caseId: number;
     pendingCaseId: number;
+    teleport: boolean;
     diceNumber: 1 | 2 | 3;
     coins: number;
     ribbons: number;
     stars: number;
     items: Array<Item>;
-    aquisitions: Array<Aquisition>;
-    wonders: Array<Wonder>;
-    infoBox: HTMLDivElement;
-    infoActive: boolean;
+    #aquisitions: Array<Aquisition>;
+    #wonders: Array<Wonder>;
+    #infoBox: HTMLDivElement;
+    #infoActive: boolean;
 
     constructor(id: PlayerId, name: string, avatar: Avatar) {
-        this.id = id;
-        this.name = name;
-        this.avatar = avatar;
+        this.#id = id;
+        this.#name = name;
+        this.#avatar = avatar;
         this.boardId = 0;
         this.caseId = 0;
         this.pendingCaseId = 0;
+        this.teleport = false;
         this.diceNumber = 1;
         this.coins = 0;
         this.ribbons = 0;
         this.stars = 0;
         this.items = Array();
-        this.aquisitions = Array();
-        this.wonders = Array();
-        this.infoBox = this.#createInfoBox();
-        this.infoActive = false;
+        this.#aquisitions = Array();
+        this.#wonders = Array();
+        this.#infoBox = this.#createInfoBox();
+        this.#infoActive = false;
 
         this.#createHtml();
     }
 
-    addAquisition(aq: Aquisition) {
-        this.aquisitions.push(aq);
+    get name() {
+        return this.#name;
+    } get id() {
+        return this.#id;
+    } get pawn() {
+        return this.#pawn;
+    } get aquisitionCount() {
+        return this.#aquisitions.length;
+    } get wonderCount() {
+        return this.#wonders.length;
     }
 
+    addAquisition(aq: Aquisition) {
+        this.#aquisitions.push(aq);
+    } 
+
     addWonder(w: Wonder) {
-        this.wonders.push(w);
+        this.#wonders.push(w);
     }
 
     caseResponse(type: caseType) {
@@ -96,16 +112,12 @@ export class Player {
             pig.feed(chosen);
             const newValue = this.coins - chosen;
 
-            this.progressiveCoinChange(newValue).then(() => {
-                this.infoBox.classList.remove("visible");
-            });
+            this.progressiveCoinChange(newValue);
         } else if (type === "blueCoin") {
             const choices = [50, 100, 300, 600, 1000];
             const newValue = this.coins + choices[Math.floor(Math.random() * 5)];
 
-            this.progressiveCoinChange(newValue).then(() => {
-                this.infoBox.classList.remove("visible");
-            });
+            this.progressiveCoinChange(newValue);
         } else if (type === "greenCoin") {
             Happening.pickRandomEvent(this);
         } else if (type === "mail") {
@@ -114,17 +126,31 @@ export class Player {
             new Popup("Vous avez reçu 3 courriers !");
         } else if (type === "5Mail") {
             new Popup("Vous avez reçu 5 courriers !");
+        } else if (type === "aquisition") {
+            new Chest(this);
+        } else if (type === "ladder") {
+            this.pendingCaseId = (board.elements[this.caseId] as any).destination;
+            this.teleport = true;
+        } else if (type === "dice") {
+            new Popup("Relancez les dés !");
+            //TODO: re-enable dices when turn system is implemented
+        } else if (type === "furnace") {
+            new Popup("Brulez tous vos courriers. Vous n'avez rien à payer !");
+        } else if (type === "wonder") {
+            new Crown(this, (board.elements[this.caseId] as any).wonder);
+        } else if (type === "duel") {
+            new Popup("Participez à un duel !");
         }
     }
 
     async progressiveCoinChange(target: number) {
-        if (!this.infoActive) {
-            this.infoBox.classList.add("visible");
+        if (!this.#infoActive) {
+            this.#infoBox.classList.add("visible");
         }
         const dN = (target - this.coins) / 120;
         const current = this.coins;
         this.coins = target - this.coins;
-        const elm = document.getElementById(`${this.id}.coin`) as HTMLElement;
+        const elm = document.getElementById(`${this.#id}.coin`) as HTMLElement;
         if (this.coins < 0) {
             elm.style.color = "#b70808";
         } else {
@@ -141,15 +167,16 @@ export class Player {
         }
 
         this.coins = target;
+        this.#infoBox.classList.remove("visible");
     }
     async progressiveRibbonChange(target: number) {
-        if (!this.infoActive) {
-            this.infoBox.classList.add("visible");
+        if (!this.#infoActive) {
+            this.#infoBox.classList.add("visible");
         }
         const dN = (target - this.ribbons) / 120;
         const current = this.ribbons;
         this.ribbons = target - this.ribbons;
-        const elm = document.getElementById(`${this.id}.ribbon`) as HTMLElement;
+        const elm = document.getElementById(`${this.#id}.ribbon`) as HTMLElement;
         if (this.ribbons < 0) {
             elm.style.color = "#b70808";
         } else {
@@ -166,15 +193,16 @@ export class Player {
         }
 
         this.ribbons = target;
+        this.#infoBox.classList.remove("visible");
     }
     async progressiveStarChange(target: number) {
-        if (!this.infoActive) {
-            this.infoBox.classList.add("visible");
+        if (!this.#infoActive) {
+            this.#infoBox.classList.add("visible");
         }
         const dN = (target - this.stars) / 120;
         const current = this.stars;
         this.stars = target - this.stars;
-        const elm = document.getElementById(`${this.id}.star`) as HTMLElement;
+        const elm = document.getElementById(`${this.#id}.star`) as HTMLElement;
         if (this.stars < 0) {
             elm.style.color = "#b70808";
         } else {
@@ -191,20 +219,21 @@ export class Player {
         }
 
         this.stars = target;
+        this.#infoBox.classList.remove("visible");
     }
 
     #createHtml() {
         const player = document.createElement("div");
         player.classList.add("player");
-        player.id = this.name;
+        player.id = this.#name;
         player.appendChild(this.#createBanner());
-        player.appendChild(this.infoBox);
+        player.appendChild(this.#infoBox);
         player.style.display = "flex";
         player.style.flexDirection = "column";
         playerBox.appendChild(player);
         player.addEventListener("mouseenter", () => {
             const box = createHelperBox(
-                this.infoActive ? activeInfoHelp : inactiveInfoHelp, 
+                this.#infoActive ? activeInfoHelp : inactiveInfoHelp, 
                 new Position(player.getBoundingClientRect().right + 10, 0), 
             );
             box.style.position = "fixed";
@@ -215,31 +244,31 @@ export class Player {
             removeFromBodyOrWarn(helperBox);
         })
         player.addEventListener("click", () => {
-            if (this.infoActive) {
-                this.infoBox.classList.remove("visible");
+            if (this.#infoActive) {
+                this.#infoBox.classList.remove("visible");
             } else {
-                this.infoBox.classList.add("visible");
+                this.#infoBox.classList.add("visible");
             }
 
-            if (this.infoActive) {
-                this.infoBox.classList.remove("visible");
+            if (this.#infoActive) {
+                this.#infoBox.classList.remove("visible");
                 if (helperBox !== undefined) {
                     helperBox.textContent = inactiveInfoHelp;
-                    this.infoBox.style.pointerEvents = "none";
+                    this.#infoBox.style.pointerEvents = "none";
                 }
             } else {
                 if (helperBox !== undefined) {
                     helperBox.textContent = activeInfoHelp;
-                    this.infoBox.style.pointerEvents = "auto";
+                    this.#infoBox.style.pointerEvents = "auto";
                 }
-                this.infoBox.classList.add("visible");
+                this.#infoBox.classList.add("visible");
             }
-            this.infoActive = !this.infoActive;
+            this.#infoActive = !this.#infoActive;
         })
 
         const pawn = document.createElement("img");
-        pawn.src = `get_file/celestopia/assets/icons/${this.avatar}.png`;
-        pawn.id = `${this.id}.pawn`;
+        pawn.src = `get_file/celestopia/assets/icons/${this.#avatar}.png`;
+        pawn.id = `${this.#id}.pawn`;
         pawn.style.width = `${caseSize/2}px`;
         pawn.style.height = `${caseSize/2}px`
         pawn.style.position = "absolute";
@@ -247,7 +276,7 @@ export class Player {
         const pos = computeOnBoardPosition(board.elements[this.caseId] as Case);
         pawn.style.left = `${pos.x}px`;
         pawn.style.top = `${pos.y}px`;
-        this.pawn = pawn;
+        this.#pawn = pawn;
         
         pawn.style.zIndex = "3";
         document.body.appendChild(pawn);
@@ -261,21 +290,21 @@ export class Player {
         style.display = "flex";
         style.flexDirection = "row";
         style.padding = "0.5vw";
-        style.backgroundColor = playerColor[this.id];
+        style.backgroundColor = playerColor[this.#id];
         style.width = "10vw";
         style.justifyContent = "space-between";
         style.borderRadius = "10px";
         style.pointerEvents = "auto";
 
         const name = document.createElement("div");
-        name.textContent = this.name;
+        name.textContent = this.#name;
         name.style.display = "grid";
         name.style.alignItems = "center";
         name.style.height = "5vh";
         name.style.marginRight = "5px";
 
         const icon = document.createElement("img");
-        icon.src = `get_file/celestopia/assets/icons/${this.avatar}.png`;
+        icon.src = `get_file/celestopia/assets/icons/${this.#avatar}.png`;
         icon.style.height = "5vh";
         icon.style.marginLeft = "5px";
 
@@ -288,7 +317,7 @@ export class Player {
         const info = document.createElement("div");
         const infoStyle = info.style;
         infoStyle.width = "10vw";
-        infoStyle.background = `linear-gradient(to bottom, ${playerColor[this.id]}, ${infoColor[this.id]})`;
+        infoStyle.background = `linear-gradient(to bottom, ${playerColor[this.#id]}, ${infoColor[this.#id]})`;
         infoStyle.padding = "0.5vw";
         infoStyle.borderRadius = "10px";
         infoStyle.pointerEvents = "none";
@@ -298,7 +327,7 @@ export class Player {
         info.appendChild(this.#createSubInfoBox("ribbon", this.ribbons, false));
         info.appendChild(this.#createSubInfoBox("star", this.stars, false));
 
-        const aq = this.#createSubInfoBox("chest", this.aquisitions.length, true);
+        const aq = this.#createSubInfoBox("chest", this.#aquisitions.length, true);
         this.#addCardEventListeners(
             aq, 
             "aquisitions",
@@ -307,7 +336,7 @@ export class Player {
         );
         info.appendChild(aq);
 
-        const w = this.#createSubInfoBox("wonder", this.wonders.length, true);
+        const w = this.#createSubInfoBox("wonder", this.#wonders.length, true);
         this.#addCardEventListeners(
             w,
             "wonders",
@@ -334,7 +363,7 @@ export class Player {
         img.style.marginLeft = "0.5vw";
 
         const counter = document.createElement("p");
-        counter.id = `${this.id}.${imgName}`;
+        counter.id = `${this.#id}.${imgName}`;
         counter.textContent = counterValue.toString();
         counter.style.marginRight = "0.5vw";
 
@@ -359,8 +388,8 @@ export class Player {
 
         let folder: Card[];
         switch(imgFolder) {
-            case "aquisitions" : folder = this.aquisitions; break;
-            case "wonders": folder = this.wonders; break;
+            case "aquisitions" : folder = this.#aquisitions; break;
+            case "wonders": folder = this.#wonders; break;
             default: console.log("unhandled img folder");
         }
 
@@ -382,9 +411,9 @@ export class Player {
         }));
         box.appendChild(this.#createAction("mail.png", "Payez vos courriers en avance.",  () => {
             const {tx, rx} = initChannel<number>();
-            new MailEvent(tx, playerColor[this.id]);
+            new MailEvent(tx, playerColor[this.#id]);
             rx.recv().then((n) => {
-                this.progressiveCoinChange(this.coins - n).then(() => this.infoBox.classList.remove("visible"));
+                this.progressiveCoinChange(this.coins - n);
             })
         }));
         box.appendChild(this.#createAction("bag.png", "Utilisez un objet (avant de lancer le dé).",  () => {}));
@@ -397,7 +426,7 @@ export class Player {
         elm.style.width = "25%";
         elm.style.margin = "2.5%";
         elm.style.borderRadius = "25%";
-        elm.style.backgroundColor = actionColor[this.id];
+        elm.style.backgroundColor = actionColor[this.#id];
         
         elm.addEventListener("mouseenter", () => {
             if (helperBox !== undefined) {

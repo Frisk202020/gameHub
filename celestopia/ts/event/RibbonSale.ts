@@ -3,9 +3,9 @@ import { BoardEvent } from "./BoardEvent.js";
 import { Happening } from "./Happening.js";
 
 export class RibbonSale extends Happening {
-    target: Player;
-    coins: number;
-    ribbons: number;
+    #target: Player;
+    #coins: number;
+    #ribbons: number;
 
     constructor(player: Player) {
         const coins = [100, 150, 225, 325, 450];
@@ -20,16 +20,13 @@ export class RibbonSale extends Happening {
             BoardEvent.generateTextBox(`Acheter ${ribbons[index]} rubans pour ${coins[index]} pièces ?`)
         );
 
-        this.target = player;
-        this.coins = coins[index];
-        this.ribbons = ribbons[index];
+        this.#target = player;
+        this.#coins = coins[index];
+        this.#ribbons = ribbons[index];
     }
 
     protected event(): void {
-        const promises = Array();
-        promises.push(this.target.progressiveCoinChange(this.target.coins - this.coins));
-        promises.push(this.target.progressiveRibbonChange(this.target.ribbons + this.ribbons));
-
-        Promise.all(promises).then(() => this.target.infoBox.classList.remove("visible"));
+        this.#target.progressiveCoinChange(this.#target.coins - this.#coins);
+        this.#target.progressiveRibbonChange(this.#target.ribbons + this.#ribbons);
     }
 }

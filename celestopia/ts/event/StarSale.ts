@@ -3,9 +3,9 @@ import { BoardEvent } from "./BoardEvent.js";
 import { Happening } from "./Happening.js";
 
 export class StarSale extends Happening {
-    target: Player;
-    coins: number;
-    stars: number;
+    #target: Player;
+    #coins: number;
+    #stars: number;
 
     constructor(player: Player) {
         const coins = [100, 150, 225, 325, 450];
@@ -19,16 +19,13 @@ export class StarSale extends Happening {
             true,
             BoardEvent.generateTextBox(`Acheter ${stars[index]} étoiles pour ${coins[index]} pièces ?`)
         );
-        this.target = player;
-        this.coins = coins[index];
-        this.stars = stars[index];
+        this.#target = player;
+        this.#coins = coins[index];
+        this.#stars = stars[index];
     }
 
     protected event(): void {
-        const promises = Array();
-        promises.push(this.target.progressiveCoinChange(this.target.coins - this.coins));
-        promises.push(this.target.progressiveStarChange(this.target.stars + this.stars));
-
-        Promise.all(promises).then(() => this.target.infoBox.classList.remove("visible"));
+        this.#target.progressiveCoinChange(this.#target.coins - this.#coins);
+        this.#target.progressiveStarChange(this.#target.stars + this.#stars);
     }
 }

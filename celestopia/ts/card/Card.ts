@@ -3,10 +3,18 @@ import { vwToPx } from "../util/functions.js";
 import { boxId, cardId, navId } from "./menu.js";
 
 export abstract class Card implements DynamicPlacement {
-    name: string;
+    #name: string;
+    #src: string;
 
-    constructor(name: string) {
-        this.name = name;
+    constructor(name: string, folder: "aquisitions" | "wonders") {
+        this.#name = name;
+        this.#src = `get_file/celestopia/assets/${folder}/${name}.png`
+    }
+
+    protected get name() {
+        return this.#name;
+    } get src() {
+        return this.#src;
     }
 
     move(windowWidth: number, windowHeight: number): void {

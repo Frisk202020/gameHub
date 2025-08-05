@@ -3,9 +3,9 @@ import { players } from "../util/variables.js";
 import { Happening } from "./Happening.js";
 
 export class Theft extends Happening {
-    target: Player;
-    victim: Player;
-    ammount: number;
+    #target: Player;
+    #victim: Player;
+    #ammount: number;
 
     constructor(player: Player) {
         const playerIndex = players.indexOf(player);
@@ -22,13 +22,13 @@ export class Theft extends Happening {
             false
         )
 
-        this.target = player;
-        this.victim = victim;
-        this.ammount = Math.min(1 + Math.floor(Math.random() * 1000), victim.coins); // can't steal more than what the victim has
+        this.#target = player;
+        this.#victim = victim;
+        this.#ammount = Math.min(1 + Math.floor(Math.random() * 1000), victim.coins); // can't steal more than what the victim has
     }
 
     protected event(): void {
-        this.target.progressiveCoinChange(this.target.coins + this.ammount).then(() => this.target.infoBox.classList.remove("visible"));
-        this.victim.progressiveCoinChange(this.victim.coins - this.ammount).then(() => this.victim.infoBox.classList.remove("visible"));
+        this.#target.progressiveCoinChange(this.#target.coins + this.#ammount);
+        this.#victim.progressiveCoinChange(this.#victim.coins - this.#ammount);
     }
 }

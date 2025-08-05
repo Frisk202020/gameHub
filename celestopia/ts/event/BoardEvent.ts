@@ -1,10 +1,10 @@
 import { appendBlurryBackground, createHelperBox } from "../util/functions.js";
 
 export abstract class BoardEvent {
-    menu: HTMLDivElement;
-    box: HTMLDivElement;
+    protected menu: HTMLDivElement;
+    protected box: HTMLDivElement;
 
-    constructor(elements: HTMLElement[],disableOk: boolean, deny: boolean, okHandler?: ()=>void) {
+    constructor(elements: HTMLElement[],disableOk: boolean, deny: boolean, okHandler?: ()=>void, denyHandler?: ()=>void) {
         const menu = appendBlurryBackground();
         const flex = document.createElement("div");
         flex.style.display = "flex";
@@ -19,7 +19,7 @@ export abstract class BoardEvent {
             this.box.appendChild(e);
         }
 
-        this.#appendButtons(disableOk, deny, okHandler);
+        this.#appendButtons(disableOk, deny, okHandler, denyHandler);
         this.menu = menu;
         document.body.appendChild(menu);
     }
@@ -34,14 +34,22 @@ export abstract class BoardEvent {
         return description;
     }
 
-    #appendButtons(disableOk: boolean, deny: boolean, okHandler?: ()=>void) {
+    protected static generateImage(src: string) {
+        const img = document.createElement("img");
+        img.src = src;
+        img.style.width = "30%";
+
+        return img;
+    }
+
+    #appendButtons(disableOk: boolean, deny: boolean, okHandler?: ()=>void, denyHandler?: ()=>void) {
         const buttons = document.createElement("div");
         buttons.style.display = "flex";
         buttons.style.justifyContent = "center";
 
         buttons.appendChild(this.#okButton(disableOk, okHandler));
         if (deny) {
-            buttons.appendChild(this.#denyButton());
+            buttons.appendChild(this.#denyButton(denyHandler));
         }
 
         this.box.appendChild(buttons);
@@ -67,7 +75,7 @@ export abstract class BoardEvent {
         return button;
     }
 
-    #denyButton() {
+    #denyButton(handler?: ()=>void) {
         const button = document.createElement("div");
         button.textContent = "Refuser";
         button.style.fontSize = "30px";
@@ -78,9 +86,9 @@ export abstract class BoardEvent {
         button.style.backgroundColor = "#c10a19ff";
         button.className = "pointerHover";
 
-        button.addEventListener("click", () => {
+        button.addEventListener("click", handler === undefined ? () => {
             document.body.removeChild(this.menu);
-        });
+        } : handler);
         return button;
     }
 }

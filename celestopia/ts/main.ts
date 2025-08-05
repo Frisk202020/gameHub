@@ -37,12 +37,16 @@ async function gameRenderLoop() {
         updateCounterValue(`${p.id}.coin`, p.coins);
         updateCounterValue(`${p.id}.ribbon`, p.ribbons);
         updateCounterValue(`${p.id}.star`, p.stars);
-        updateCounterValue(`${p.id}.chest`, p.aquisitions.length);
-        updateCounterValue(`${p.id}.wonder`, p.wonders.length);
+        updateCounterValue(`${p.id}.chest`, p.aquisitionCount);
+        updateCounterValue(`${p.id}.wonder`, p.wonderCount);
         updateCounterValue(`bankCounter`, pig.content);
         pig.setColor();
 
-        if (p.caseId < p.pendingCaseId) {
+        if (p.teleport) {
+            p.caseId = p.pendingCaseId;
+            const pos = computeOnBoardPosition(board.elements[p.caseId] as Case);
+            translateAnimation(p.pawn, pos, 60, 0.25).then(() => p.teleport = false);
+        } else if (p.caseId < p.pendingCaseId) {
             while (p.caseId < p.pendingCaseId) {
                 p.caseId++;
                 const elm = board.elements[p.caseId];
@@ -91,17 +95,6 @@ function main() {
     const dokueki = new Player(2, "Dokueki", "hat");
     const q = new Player(3, "New Quark", "hat");
     const cas = new Player(4, "Casyaks", "hat");
-
-    for (let i = 0; i < 3; i++) {
-        frisk.addAquisition(Aquisition.getRandomAquisition());
-    }
-
-    frisk.addWonder(Wonder.getWonder("astropy") as Wonder);
-    frisk.addWonder(Wonder.getWonder("teleporter") as Wonder);
-    frisk.addWonder(Wonder.getWonder("comet") as Wonder);
-    frisk.addWonder(Wonder.getWonder("bridge") as Wonder);
-    dokueki.addWonder(Wonder.getWonder("dress") as Wonder);
-    dokueki.addWonder(Wonder.getWonder("bank") as Wonder);
 
     players.push(frisk);
     players.push(dokueki);

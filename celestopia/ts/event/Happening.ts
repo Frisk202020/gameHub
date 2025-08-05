@@ -3,8 +3,8 @@ import { appendBlurryBackground } from "../util/functions.js";
 import { BoardEvent } from "./BoardEvent.js";
 
 export abstract class Happening extends BoardEvent {
-    name: string;
-    description: string;
+    protected name: string;
+    protected description: string;
 
     constructor(name: string, description: string, disableOk: boolean, denyButton: boolean, ...elements: HTMLElement[]) {
         let allElements: HTMLElement[] = [
@@ -30,8 +30,8 @@ export abstract class Happening extends BoardEvent {
     protected abstract event(): void;
 
     static async pickRandomEvent(player: Player): Promise<Happening> {
-        //const pick = Math.floor(Math.random() * 100);
-        const pick = 44;
+        const pick = Math.floor(Math.random() * 100);
+        
         if (pick < 25) {
             const { GiftEvent } = await import("./Gift.js");
             return new GiftEvent(player);

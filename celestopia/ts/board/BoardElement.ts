@@ -11,8 +11,8 @@ export abstract class BoardElement {
 
         const canvas = boardCanvas;
         const context = canvas.getContext("2d") as CanvasRenderingContext2D;
-        const fromPos = this.getEndPos();
-        const toPos = other.getBeginPos();
+        const fromPos = this.endPos;
+        const toPos = other.beginPos;
 
         context.beginPath();
         context.moveTo(fromPos.x, fromPos.y);
@@ -31,6 +31,6 @@ export abstract class BoardElement {
         context.stroke();
     }
 
-    abstract getBeginPos(): Position;
-    abstract getEndPos(): Position;
+    abstract get beginPos(): Position;
+    abstract get endPos(): Position;
 }

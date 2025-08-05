@@ -2,12 +2,12 @@ const MAX = 10000;
 
 export class Piggy {
     content: number;
-    counter!: HTMLParagraphElement;
-    counterRevealed: boolean;
+    #counter!: HTMLParagraphElement;
+    #counterRevealed: boolean;
 
     constructor() {
         this.content = 0;
-        this.counterRevealed = false;
+        this.#counterRevealed = false;
 
         this.#generateUI();
     }
@@ -42,10 +42,10 @@ export class Piggy {
     //gold: 255,215,0
     setColor() {
         const ratio = this.content / MAX;
-        this.counter.style.backgroundColor = `rgb(255, ${255 - Math.round(40*ratio)}, ${255 - Math.round(255*ratio)})`;
+        this.#counter.style.backgroundColor = `rgb(255, ${255 - Math.round(40*ratio)}, ${255 - Math.round(255*ratio)})`;
 
         if (this.content === MAX) {
-            this.counter.style.color = "#ab0c0c";
+            this.#counter.style.color = "#ab0c0c";
         }
     }
 
@@ -69,7 +69,7 @@ export class Piggy {
         counter.style.width = "6vw";
         counter.style.borderRadius = "10px";
         counter.style.textAlign = "right";
-        this.counter = counter;
+        this.#counter = counter;
         box.appendChild(counter);
 
         const icon = document.createElement("img");
@@ -82,31 +82,31 @@ export class Piggy {
         icon.addEventListener("click", () => {
             icon.src = "get_file/celestopia/assets/icons/pigHappy.png";
             new Promise(r => setTimeout(r, 500)).then(() => icon.src = "get_file/celestopia/assets/icons/pig.png");
-            if (this.counterRevealed) {
+            if (this.#counterRevealed) {
                 counter.classList.remove("visible");
             } else {
                 counter.classList.add("visible");
             }
 
-            this.counterRevealed = !this.counterRevealed;
+            this.#counterRevealed = !this.#counterRevealed;
         })
 
         document.body.appendChild(box);
     }
 
     async #progressiveCounterIncrement(increment: number) {
-        if (!this.counterRevealed) {
-            this.counter.classList.add("visible");
+        if (!this.#counterRevealed) {
+            this.#counter.classList.add("visible");
         }
         const dN = increment / 120;
         const current = this.content;
         const target = current + increment;
 
         this.content = increment;
-        this.counter.style.color = "#009220";
+        this.#counter.style.color = "#009220";
         await new Promise(r => setTimeout(r, 2000));
         this.content = current;
-        this.counter.style.color = "black";
+        this.#counter.style.color = "black";
 
         for (let i = 0; i < 120; i++) {
             this.content += dN;

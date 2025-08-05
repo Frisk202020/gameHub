@@ -11,10 +11,10 @@ export let boardCanvas: HTMLCanvasElement | undefined;
 type BoardBackground = "Banlieue" | "Quartier chic" | "Spatioport";
 
 class Board {
-    elements: Array<BoardElement>;
-    background: BoardBackground;
-    length: number;
-    height: number;
+    #elements: Array<BoardElement>;
+    #background: BoardBackground;
+    #length: number;
+    #height: number;
 
     constructor(id: BoardId) {
         let board: BoardConstructor;
@@ -25,12 +25,16 @@ class Board {
             case 2: board = this.#board3();
         }
 
-        this.elements = board.elements;
-        this.background = board.background;
-        this.height = board.height;
-        this.length = board.length;
+        this.#elements = board.elements;
+        this.#background = board.background;
+        this.#height = board.height;
+        this.#length = board.length;
 
         this.#stylish();
+    }
+
+    get elements() {
+        return this.#elements;
     }
 
     #stylish(): void {
@@ -43,8 +47,8 @@ class Board {
         boardDiv.id = "board";
         boardDiv.style.backgroundColor = "grey";
 
-        const width = 100 + 200 * this.length;
-        const height = 100 + 200 * this.height;
+        const width = 100 + 200 * this.#length;
+        const height = 100 + 200 * this.#height;
         boardDiv.style.height = `${height}px`;
         boardDiv.style.width = `${width}px`
         boardCanvas.width = width;
@@ -54,11 +58,11 @@ class Board {
         boardDiv.style.left = "0px";
         boardDiv.style.position = "absolute";
 
-        for (let i = 0; i < this.elements.length; i++) {
-            let elm = this.elements[i];
+        for (let i = 0; i < this.#elements.length; i++) {
+            let elm = this.#elements[i];
             if (elm instanceof Case) {
-                if (i < this.elements.length - 1) {
-                    const nextElm = this.elements[i + 1];
+                if (i < this.#elements.length - 1) {
+                    const nextElm = this. #elements[i + 1];
 
                     if (nextElm instanceof Case) {
                         if (nextElm.position.x === elm.position.x || nextElm.position.y === elm.position.y) {
@@ -83,7 +87,7 @@ class Board {
                 new Case(new Position(2, 3), "greenCoin"),
                 new Case(new Position(3, 3), "3Mail"),
                 new Case(new Position(4, 3), "aquisition"),
-                new Case(new Position(5, 3), "ladder"),
+                new Case(new Position(5, 3), "ladder", undefined, undefined, 28),
                 new Case(new Position(6, 3), "blueCoin"),
                 new Case(new Position(7, 3), "blueCoin"),
                 new Case(new Position(8, 3), "redCoin"),
@@ -93,7 +97,7 @@ class Board {
                 new Case(new Position(12, 3), "redCoin"),
                 new Case(new Position(13, 3), "dice"),
                 new Case(new Position(14, 3), "aquisition"),
-                new Case(new Position(15, 2), "wonder", "vertiacal-backwards"),
+                new Case(new Position(15, 2), "wonder", "vertiacal-backwards", undefined, undefined, "astropy"),
                 new Case(new Position(14, 1), "duel", "backwards"),
                 new Case(new Position(13, 1), "furnace", "backwards"),
                 new Case(new Position(12, 1), "greenCoin", "backwards"),
@@ -106,7 +110,7 @@ class Board {
                 new Case(new Position(5, 1), "greenCoin", "backwards"),
                 new Case(new Position(4, 1), "redCoin", "backwards"),
                 new Case(new Position(3, 1), "duel", "backwards"),
-                new Case(new Position(2, 1), "ladder", "backwards"),
+                new Case(new Position(2, 1), "ladder", "backwards", undefined, 5),
                 new Case(new Position(1, 1), "postBox", "backwards"),
                 new Case(new Position(0, 1), "teleporter", "backwards", 0)
             ),

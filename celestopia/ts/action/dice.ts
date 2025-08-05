@@ -28,10 +28,10 @@ function generateMenu(color: string) {
 }
 
 export class DiceEvent extends KeyboardListener {
-    tx: Sender<number>;
-    diceNumber: 1 | 2 | 3;
-    color: string;
-    stop: boolean;
+    #tx: Sender<number>;
+    #diceNumber: 1 | 2 | 3;
+    #color: string;
+    #stop: boolean;
 
     constructor(tx: Sender<number>, dices: 1 | 2 | 3) {
         let color: string;
@@ -43,17 +43,17 @@ export class DiceEvent extends KeyboardListener {
 
         const element = generateMenu(color);
         super(element);
-        this.tx = tx;
-        this.diceNumber = dices;
-        this.stop = false;
-        this.color = color;
+        this.#tx = tx;
+        this.#diceNumber = dices;
+        this.#stop = false;
+        this.#color = color;
         this.#routine();
     }
 
     async #routine() {
         let n = 0;
-        while (!this.stop) {
-            switch(this.diceNumber) {
+        while (!this.#stop) {
+            switch(this.#diceNumber) {
                 case 1: n = 1 + Math.floor(Math.random() * 6); break;
                 case 2: n = 2 + Math.floor(Math.random() * 11); break;
                 case 3: n = 3 + Math.floor(Math.random() * 16); break;
@@ -65,12 +65,12 @@ export class DiceEvent extends KeyboardListener {
 
         let black = false;
         for (let i = 0; i < 10; i++) {
-            this.element.style.color = black ? "#000000" : this.color;
+            this.element.style.color = black ? "#000000" : this.#color;
             black = !black;
             await new Promise(r => setTimeout(r, 200));
         }
         
-        this.tx.send(n);
+        this.#tx.send(n);
         const cross = document.getElementById("cross");
         if (cross === null) {
             console.log("WARN: cross is already removed");
@@ -81,7 +81,7 @@ export class DiceEvent extends KeyboardListener {
 
     eventHandler(event: KeyboardEvent): void {
         if (event.key === " ") {
-            this.stop = true;
+            this.#stop = true;
         } 
     }
 }

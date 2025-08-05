@@ -2,7 +2,7 @@ import { Player } from "../Player.js";
 import { Happening } from "./Happening.js";
 
 export class GiftEvent extends Happening {
-    target: Player;
+    #target: Player;
     
     constructor(player: Player) {
         super(
@@ -11,15 +11,13 @@ export class GiftEvent extends Happening {
             false,
             false,
         );
-        this.target = player;
+        this.#target = player;
     }
 
     protected event(): void {
         const choices = [700, 1500, 2500, 4000];
         const chosen = choices[Math.floor(Math.random() * 4)];
 
-        this.target.progressiveCoinChange(this.target.coins + chosen).then(() => {
-            this.target.infoBox.classList.remove("visible");
-        });
+        this.#target.progressiveCoinChange(this.#target.coins + chosen);
     }
 }

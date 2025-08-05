@@ -40,58 +40,58 @@ function generateMenu(color: string) {
 }
 
 export class MailEvent extends KeyboardListener {
-    p: HTMLParagraphElement;
-    cursor: HTMLDivElement;
-    tx: Sender<number>;
-    promptText: string;
-    exit: boolean;
-    showCursor: boolean;
+    #p: HTMLParagraphElement;
+    #cursor: HTMLDivElement;
+    #tx: Sender<number>;
+    #promptText: string;
+    #exit: boolean;
+    #showCursor: boolean;
 
     constructor(tx: Sender<number>, color: string) {
         const {box, text, cursor} = generateMenu(color);
         super(box);
-        this.p = text;
-        this.tx = tx;
-        this.cursor = cursor;
-        this.promptText = "";
-        this.exit = false;
-        this.showCursor = false;
+        this.#p = text;
+        this.#tx = tx;
+        this.#cursor = cursor;
+        this.#promptText = "";
+        this.#exit = false;
+        this.#showCursor = false;
 
         this.#routine();
     }
 
     eventHandler(event: KeyboardEvent): void {
         if (event.key === "Backspace") {
-            this.promptText = this.promptText.substring(0, this.promptText.length - 1);
-        } else if (event.key === "Enter" && this.promptText.length > 0) {
-            this.exit = true;
+            this.#promptText = this.#promptText.substring(0, this.#promptText.length - 1);
+        } else if (event.key === "Enter" && this.#promptText.length > 0) {
+            this.#exit = true;
         }else if (event.key < "0" || event.key > "9") {
             return;
-        } else if (this.promptText.length > 6) {
+        } else if (this.#promptText.length > 6) {
             return;
         } else {
-            this.promptText = this.promptText + event.key;
+            this.#promptText = this.#promptText + event.key;
         }
 
-        this.p.textContent = `Somme à payer: ${this.promptText}`;
+        this.#p.textContent = `Somme à payer: ${this.#promptText}`;
     }
 
     async #routine() {
-        while(!this.exit) {
-            if (this.promptText.length < 7) {
-                this.cursor.style.opacity = this.showCursor ? "1" : "0";
-                this.showCursor = !this.showCursor;
+        while(!this.#exit) {
+            if (this.#promptText.length < 7) {
+                this.#cursor.style.opacity = this.#showCursor ? "1" : "0";
+                this.#showCursor = !this.#showCursor;
             } else {
-                this.cursor.style.opacity = "0";
-                this.showCursor = false;
+                this.#cursor.style.opacity = "0";
+                this.#showCursor = false;
             }
             await new Promise((r) => setTimeout(r, 1000/FPS));
         }
 
-        if (this.promptText.length > 0) {
-            this.tx.send(Number(this.promptText));
+        if (this.#promptText.length > 0) {
+            this.#tx.send(Number(this.#promptText));
         } else {
-            this.tx.send(0);
+            this.#tx.send(0);
         }
         const cross = document.getElementById("cross");
         if (cross === null) {

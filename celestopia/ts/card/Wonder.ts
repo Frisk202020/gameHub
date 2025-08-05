@@ -1,23 +1,31 @@
 import { resizables } from "../util/variables.js";
 import { Card } from "./Card.js";
 
-type WonderName = "astropy" | "bank" | "bridge" | "dress" | "comet" | "teleporter";
+export type WonderName = "astropy" | "bank" | "bridge" | "dress" | "comet" | "teleporter";
 
 export class Wonder extends Card {
-    coinPrice: number;
-    ribbonPrice: number;
-    starPrice: number;
+    #coinPrice: number;
+    #ribbonPrice: number;
+    #starPrice: number;
 
     constructor(name: WonderName, coinPrice: number, ribbonPrice: number, starPrice: number) {
-        super(name);
-        this.coinPrice = coinPrice;
-        this.ribbonPrice = ribbonPrice;
-        this.starPrice = starPrice;
+        super(name, "wonders");
+        this.#coinPrice = coinPrice;
+        this.#ribbonPrice = ribbonPrice;
+        this.#starPrice = starPrice;
 
         resizables.push(this);
     }
 
-    static bank = new Map<WonderName, Wonder>([
+    get coins() {
+        return this.#coinPrice;
+    } get ribbons() {
+        return this.#ribbonPrice;
+    } get stars() {
+        return this.#starPrice;
+    }
+
+    static #bank = new Map<WonderName, Wonder>([
         ["astropy", new Wonder("astropy", 4000, 0, 20000)],
         ["bank", new Wonder("bank", 30000, 0, 0)],
         ["bridge", new Wonder("bridge", 1200, 30000, 0)],
@@ -28,12 +36,16 @@ export class Wonder extends Card {
 
 
     static getWonder(name: WonderName): Wonder | undefined {
-        const x = this.bank.get(name);
+        const x = this.#bank.get(name);
         if (x === undefined) {
             return undefined;
         } else {
-            this.bank.delete(name);
+            this.#bank.delete(name);
             return x;
         }
+    }
+
+    static returnWonder(wonder: Wonder) {
+        this.#bank.set(wonder.name as WonderName, wonder);
     }
 }

@@ -3,22 +3,32 @@ import { resizables } from "../util/variables.js";
 import { Card } from "./Card.js";
 
 export class Aquisition extends Card {
-    price: number;
-    coinValue: number;
-    ribbonValue: number;
-    starValue: number;
+    #price: number;
+    #coinValue: number;
+    #ribbonValue: number;
+    #starValue: number;
 
     constructor(name: string, price: number, coin: number, ribbon: number, star: number) {
-        super(name)
-        this.price = price;
-        this.coinValue = coin;
-        this.ribbonValue = ribbon;
-        this.starValue = star;
+        super(name, "aquisitions")
+        this.#price = price;
+        this.#coinValue = coin;
+        this.#ribbonValue = ribbon;
+        this.#starValue = star;
 
         resizables.push(this);
     }
 
-    static bank = [
+    get price() {
+        return this.#price;
+    } get coins() {
+        return this.#coinValue;
+    } get ribbons() {
+        return this.#ribbonValue;
+    } get stars() {
+        return this.#starValue;
+    }
+
+    static #bank = [
         new Aquisition("astropy", 1050, 150, 0, 1800),
         new Aquisition("baloon", 2400, 150, 3600, 0),
         new Aquisition("bd", 600, 50, 1650, 0),
@@ -40,11 +50,11 @@ export class Aquisition extends Card {
     ];
 
     static getRandomAquisition() {
-        const i = Math.floor(Math.random() * Aquisition.bank.length);
-        return removeFromArray(Aquisition.bank, i);
+        const i = Math.floor(Math.random() * Aquisition.#bank.length);
+        return removeFromArray(Aquisition.#bank, i);
     }
 
     static returnAquisitionToBank(aquisition: Aquisition) {
-        Aquisition.bank.push(aquisition);
+        Aquisition.#bank.push(aquisition);
     }
 }

@@ -1,3 +1,4 @@
+import { Popup } from "../event/Popup.js";
 import { appendBlurryBackground, appendCross, createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";
 import { Position } from "../util/Position.js";
@@ -10,11 +11,15 @@ export const navId = "menuNavBar";
 export type ImgFolder = "aquisitions" | "wonders";
 
 export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: string) {
+    if (list.length === 0) {
+        new Popup("Vous n'avez aucune carte...");
+        return;
+    } 
+    
     const screenSize = new Position(document.documentElement.clientWidth, document.documentElement.clientHeight);
-
     const bg = appendBlurryBackground();
     const img = appendImg(
-        `get_file/celestopia/assets/${imgFolder}/${list[0].name}.png`,
+        list[0].src,
         screenSize,
         bg
     )
@@ -174,7 +179,7 @@ class CardKeyboardListener extends KeyboardListener {
             default: console.log("Unhandled img folder");
         }
 
-        card.src = `get_file/celestopia/assets/${this.folderName}/${this.cards[this.currentIndex].name}.png`;
+        card.src = this.cards[this.currentIndex].src;
         card.id = newCardId;
         this.bg.appendChild(card);
         return card;
