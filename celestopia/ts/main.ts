@@ -45,7 +45,7 @@ async function gameRenderLoop() {
         if (p.teleport) {
             p.caseId = p.pendingCaseId;
             const pos = computeOnBoardPosition(board.elements[p.caseId] as Case);
-            translateAnimation(p.pawn, pos, 60, 0.25).then(() => p.teleport = false);
+            translateAnimation(p.pawn, pos, 60, 0.25, true).then(() => p.teleport = false);
         } else if (p.caseId < p.pendingCaseId) {
             while (p.caseId < p.pendingCaseId) {
                 p.caseId++;
@@ -53,7 +53,7 @@ async function gameRenderLoop() {
                 if (elm instanceof Case) {
                     if (boardCanvas !== undefined) {
                         let pos = computeOnBoardPosition(elm);
-                        await translateAnimation(p.pawn, pos , 60, 0.25);
+                        await translateAnimation(p.pawn, pos , 60, 0.25, true);
                     }
                 } else {
                     // TODO: manage intersections
@@ -71,7 +71,7 @@ async function gameRenderLoop() {
                 if (elm instanceof Case) {
                     if (boardCanvas !== undefined) {
                         let pos = computeOnBoardPosition(elm);
-                        await translateAnimation(p.pawn, pos , 60, 0.25);
+                        await translateAnimation(p.pawn, pos , 60, 0.25, true);
                     }
                 } else {
                     // TODO: manage intersections
@@ -96,8 +96,9 @@ function main() {
     const q = new Player(3, "New Quark", "hat");
     const cas = new Player(4, "Casyaks", "hat");
 
-    frisk.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
-    frisk.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
+    for (let i = 0; i < 10; i++) {
+        frisk.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
+    }
 
     players.push(frisk);
     players.push(dokueki);

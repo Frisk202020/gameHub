@@ -5,6 +5,11 @@ import { boxId, cardId, navId } from "./menu.js";
 export abstract class Card implements DynamicPlacement {
     #name: string;
     #src: string;
+    static #cardWidth = 30;
+
+    static get cardWidth(): number {
+        return this.#cardWidth;
+    }
 
     constructor(name: string, folder: "aquisitions" | "wonders") {
         this.#name = name;
@@ -19,7 +24,7 @@ export abstract class Card implements DynamicPlacement {
 
     move(windowWidth: number, windowHeight: number): void {
         const img = document.getElementById(cardId);
-        const px = vwToPx(40);
+        const px = vwToPx(Card.#cardWidth);
         if (img != undefined) {
             img.style.left = `${(windowWidth - px)/2}px`;
             img.style.top = `${(windowHeight - px)/2}px`;

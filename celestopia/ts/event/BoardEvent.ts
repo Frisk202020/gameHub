@@ -1,6 +1,7 @@
 import { appendBlurryBackground, createHelperBox } from "../util/functions.js";
 
 interface OkSetup {
+    append: boolean;
     enable: boolean;
     customLabel?: string;
     customHandler?: ()=>void;
@@ -54,8 +55,29 @@ export abstract class BoardEvent {
         return img;
     }
 
+    protected static generateButton(label: string, color: string, enabled: boolean, event: ()=>void, borderColor?: string) {
+        const button = document.createElement("div");
+        if (enabled) {
+            button.className = "pointerHover"
+        }
+        button.textContent = label;
+        button.style.fontSize = "30px";
+        button.style.margin = "50px";
+        button.style.padding = "10px";
+        button.style.borderRadius = "10px";
+        button.style.border = `3px solid ${borderColor === undefined ? "#ffd700" : borderColor}`;
+        button.style.backgroundColor = color;
+        button.addEventListener("click", event);
+
+        return button;
+    }
+
+    protected static unappendedOkSetup() {
+        return { append: false, enable: false };
+    }
+
     protected static okSetup(enable: boolean, customLabel?: string, customHandler?: ()=>void) {
-        return {enable, customLabel, customHandler};
+        return {append: true, enable, customLabel, customHandler};
     }
 
     protected static denySetup(append: boolean, customLabel?: string, customHandler?: ()=>void) {
@@ -63,11 +85,15 @@ export abstract class BoardEvent {
     }
 
     #appendButtons(ok: OkSetup, deny: DenySetup) {
+        if (!ok.append && !deny.append) { return; }
+
         const buttons = document.createElement("div");
         buttons.style.display = "flex";
         buttons.style.justifyContent = "center";
 
-        buttons.appendChild(this.#okButton(ok));
+        if (ok.append) {
+            buttons.appendChild(this.#okButton(ok));
+        }
         if (deny.append) {
             buttons.appendChild(this.#denyButton(deny.customLabel, deny.customHandler));
         }
@@ -76,19 +102,13 @@ export abstract class BoardEvent {
     }
 
     #okButton(config: OkSetup) {
-        const button = document.createElement("div");
-        button.textContent = config.customLabel === undefined ? "Ok" : config.customLabel;
-        button.style.fontSize = "30px";
-        button.style.margin = "50px";
-        button.style.padding = "10px";
-        button.style.borderRadius = "10px";
-        button.style.border = "3px solid #ffd700";
-        button.style.backgroundColor = config.enable ? "#03a316" : "#aba7a7";
-
+        const button = BoardEvent.generateButton(
+            config.customLabel === undefined ? "Ok" : config.customLabel,
+            config.enable ? "#03a316" : "#aba7a7",
+            config.enable,
+            config.enable ? config.customHandler === undefined ? () => {document.body.removeChild(this.menu);} : config.customHandler : ()=>{}
+        )
         if (config.enable) {
-            button.addEventListener("click", config.customHandler === undefined ? () => {
-                document.body.removeChild(this.menu);
-            } : config.customHandler);
             button.className = "pointerHover";
         }
 
@@ -96,19 +116,13 @@ export abstract class BoardEvent {
     }
 
     #denyButton(label?: string, handler?: ()=>void) {
-        const button = document.createElement("div");
-        button.textContent = label === undefined ? "Refuser" : label;
-        button.style.fontSize = "30px";
-        button.style.margin = "50px";
-        button.style.padding = "10px";
-        button.style.borderRadius = "10px";
-        button.style.border = "3px solid #ffd700";
-        button.style.backgroundColor = "#c10a19ff";
-        button.className = "pointerHover";
-
-        button.addEventListener("click", handler === undefined ? () => {
-            document.body.removeChild(this.menu);
-        } : handler);
-        return button;
+        return BoardEvent.generateButton(
+            label === undefined ? "Refuser" : label,
+            "#c10a19ff",
+            true,
+            handler === undefined ? () => {
+                document.body.removeChild(this.menu);
+            } : handler
+        );
     }
 }

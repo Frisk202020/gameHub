@@ -16,6 +16,7 @@ import { Chest } from "./event/Chest.js";
 import { Crown } from "./event/Crown.js";
 import { PigEvent } from "./event/PigEvent.js";
 import { Tuple } from "./util/tuple.js";
+import { Magic } from "./event/Magic.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -117,7 +118,15 @@ export class Player {
 
         Aquisition.returnToBank(aq);
         if (aq.name === "magic") {
-            //TODO
+            const {tx, rx} = initChannel<Money>();
+            new Magic(tx);
+            rx.recv().then((m) => {
+                switch(m) {
+                    case "coin": this.progressiveCoinChange(this.coins + boostedClone.coins); break;
+                    case "ribbon": this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons); break;
+                    case "star": this.progressiveStarChange(this.stars + boostedClone.stars);
+                }
+            });
         } else {
             this.progressiveCoinChange(this.coins + boostedClone.coins);
             this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons);

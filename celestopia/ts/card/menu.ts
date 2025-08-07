@@ -55,26 +55,25 @@ export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: str
         const msg = document.createElement("p");
         msg.textContent = "Gains de vente";
         msg.style.fontSize = "5vh";
-        msg.style.textAlign = "center";
         gains.appendChild(msg);
 
+        const gainsSubBox = document.createElement("div");
+        gainsSubBox.style.display = "flex";
+        gainsSubBox.style.justifyContent = "center";
+        gainsSubBox.style.alignItems = "center";
+        gains.appendChild(gainsSubBox);
+
         const {box: coinElm, ammount: coinAmmount} = createGainDiv("coin", sellingAq.coins);
-        gains.appendChild(coinElm);
-        if (sellingAq.coins > 0) {
-            sellCoinCounterRoutine(coinAmmount);
-        }
+        gainsSubBox.appendChild(coinElm);
+        sellCoinCounterRoutine(coinAmmount);
 
         const {box: ribbonElm, ammount: ribbonAmmount} = createGainDiv("ribbon", sellingAq.ribbons);
-        gains.appendChild(ribbonElm);
-        if (sellingAq.ribbons > 0) {
-            sellRibbonCounterRoutine(ribbonAmmount);
-        }
+        gainsSubBox.appendChild(ribbonElm);
+        sellRibbonCounterRoutine(ribbonAmmount);
 
         const {box: starElm, ammount: starAmmount} = createGainDiv("star", sellingAq.stars);
-        gains.appendChild(starElm);
-        if (sellingAq.stars > 0) {
-            sellStarCounterRoutine(starAmmount);
-        }
+        gainsSubBox.appendChild(starElm);
+        sellStarCounterRoutine(starAmmount);
         box.appendChild(gains);
 
         const button = document.createElement("div");
@@ -163,7 +162,10 @@ function createGainDiv(type: Money, value: number) {
     ammount.textContent = value.toString();
     ammount.style.fontSize = "3vh";
     ammount.style.margin = "0px";
-    ammount.style.width = "6vh";
+    ammount.style.width = "10vw";
+    ammount.style.textAlign = "center";
+    ammount.style.display = "grid";
+    ammount.style.alignItems = "center";
     box.appendChild(ammount);
 
     return {box, ammount};
@@ -173,10 +175,10 @@ function appendImg(src: string, screenSize: Position, parent: HTMLDivElement) {
     const img = document.createElement("img");
     img.id = cardId;
     img.src = src;
-    img.style.width = "40vw";
+    img.style.width = `${Card.cardWidth}vw`;
     img.style.zIndex = "6";
 
-    const px = vwToPx(40);
+    const px = vwToPx(Card.cardWidth);
     img.style.position = "fixed";
     img.style.left = `${(screenSize.x - px)/2}px`;
     img.style.top = `${(screenSize.y - px)/2}px`;
@@ -264,17 +266,17 @@ class CardKeyboardListener extends KeyboardListener {
 
         switch (event.key) {
             case "ArrowRight": 
-                translateAnimation(this.element, new Position(vwToPx(-60), rect.top), 60, 0.5);
+                translateAnimation(this.element, new Position(vwToPx(-100 + Card.cardWidth), rect.top), 60, 0.5, false);
                 newCard = this.#generateNewCard("left");
                 break;
             case "ArrowLeft": 
-                translateAnimation(this.element, new Position(vwToPx(140), rect.top), 60, 0.5);
+                translateAnimation(this.element, new Position(vwToPx(100 + Card.cardWidth), rect.top), 60, 0.5, false);
                 newCard = this.#generateNewCard("right");
                 break;
             default: this.enabled = true; return;
         }
 
-        translateAnimation(newCard, new Position(leftPos, rect.top), 60, 0.5).then(() => {
+        translateAnimation(newCard, new Position(leftPos, rect.top), 60, 0.5, false).then(() => {
             if (this.bg.contains(this.element)) {
                 this.bg.removeChild(this.element); // can be removed if cross is prompted
             }
@@ -288,19 +290,19 @@ class CardKeyboardListener extends KeyboardListener {
         const card = document.createElement("img");
         card.style.position = "fixed";
         card.style.top = this.element.style.top;
-        card.style.width = "40vw";
+        card.style.width = `${Card.cardWidth}vw`;
         card.style.zIndex = "6";
 
         this.navBar[this.currentIndex].style.backgroundColor = "#5e5c5cff";
         if (position === "right") {
-            card.style.left = "-60vw";
+            card.style.left = `${-100 + Card.cardWidth}vw`;
             if (this.currentIndex === 0) {
                 this.currentIndex = this.cards.length - 1;
             } else {
                 this.currentIndex--;
             }
         } else {
-            card.style.left = "140vw";
+            card.style.left = `${100 + Card.cardWidth}vw`;
             if (this.currentIndex === this.cards.length - 1) {
                 this.currentIndex = 0;
             } else {

@@ -108,13 +108,13 @@ export function removeFromBodyOrWarn(element: Node | undefined) {
     }
 }
 
-export async function translateAnimation(element: HTMLElement, target: Position, frames: number, timeSeconds: number) {
-    // assumes the element is position: absolute
+export async function translateAnimation(element: HTMLElement, target: Position, frames: number, timeSeconds: number, correctScrollPos: boolean) {
+    // assumes the element is position: absolute or fixed
     const it = timeSeconds * frames;
     const dt = 1000 / frames;
     
     const rect = element.getBoundingClientRect();
-    let currentPos = new Position(rect.left + window.scrollX, rect.top);
+    let currentPos = new Position(correctScrollPos ? rect.left + window.scrollX : rect.left, rect.top);
     let dP = target.difference(currentPos);
     dP.divideMut(it);
 
