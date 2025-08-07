@@ -4,11 +4,12 @@ import { KeyboardListener } from "../util/KeyboardListener.js";
 
 const FPS = 2;
 
-function generateMenu(color: string) {
+function generateMenu(double: boolean, color: string) {
     const bg = appendBlurryBackground();
     bg.style.display = "flex";
     bg.style.justifyContent = "center";
     bg.style.alignItems = "center";
+    bg.style.flexDirection = "column";
 
     const box = document.createElement("div");
     box.id = "prompt";
@@ -22,8 +23,16 @@ function generateMenu(color: string) {
     box.style.alignItems = "center";
     box.style.backgroundColor = "azure";
 
+    if (double) {
+        const text = document.createElement("p");
+        text.innerText = "Entrez la somme que vous devez. Le double vous sera retiré.";
+        text.style.fontSize = "5vh";
+        text.style.textAlign = "center";
+        bg.appendChild(text);
+    }
+
     const text = document.createElement("p");
-    text.textContent = "Somme à payer: ";
+    text.innerHTML = "Somme à payer:&nbsp;";
     box.appendChild(text);
 
     const cursor = document.createElement("div");
@@ -40,6 +49,7 @@ function generateMenu(color: string) {
 }
 
 export class MailEvent extends KeyboardListener {
+    #double: boolean;
     #p: HTMLParagraphElement;
     #cursor: HTMLDivElement;
     #tx: Sender<number>;
@@ -47,9 +57,10 @@ export class MailEvent extends KeyboardListener {
     #exit: boolean;
     #showCursor: boolean;
 
-    constructor(tx: Sender<number>, color: string) {
-        const {box, text, cursor} = generateMenu(color);
+    constructor(double: boolean, tx: Sender<number>, color: string) {
+        const {box, text, cursor} = generateMenu(double, color);
         super(box);
+        this.#double = double;
         this.#p = text;
         this.#tx = tx;
         this.#cursor = cursor;
@@ -73,7 +84,7 @@ export class MailEvent extends KeyboardListener {
             this.#promptText = this.#promptText + event.key;
         }
 
-        this.#p.textContent = `Somme à payer: ${this.#promptText}`;
+        this.#p.innerHTML = `Somme à payer:&nbsp;${this.#promptText}`;
     }
 
     async #routine() {
@@ -89,7 +100,12 @@ export class MailEvent extends KeyboardListener {
         }
 
         if (this.#promptText.length > 0) {
-            this.#tx.send(Number(this.#promptText));
+            const n = Number(this.#promptText);
+            if (this.#double) {
+                this.#tx.send(2 * n);
+            } else {
+                this.#tx.send(n);
+            }
         } else {
             this.#tx.send(0);
         }

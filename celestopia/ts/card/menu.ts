@@ -1,7 +1,11 @@
 import { Popup } from "../event/Popup.js";
+import { initChannel, Sender } from "../util/channel.js";
 import { appendBlurryBackground, appendCross, createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";
 import { Position } from "../util/Position.js";
+import { Tuple } from "../util/tuple.js";
+import { Money } from "../util/variables.js";
+import { Aquisition } from "./Aquisition.js";
 import { Card } from "./Card.js";
 
 export const cardId = "activeCard";
@@ -10,7 +14,16 @@ export const boxId = "menuHelperBox";
 export const navId = "menuNavBar";
 export type ImgFolder = "aquisitions" | "wonders";
 
-export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: string) {
+let sellingAq: Aquisition | undefined = undefined;
+let boostedClone: Aquisition | undefined = undefined;
+let boost: Money | undefined = undefined;
+
+interface SellConfig {
+    tx: Sender<Tuple<Aquisition, Aquisition>>,
+    type: Money
+}
+
+export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: string, config?: SellConfig) {
     if (list.length === 0) {
         new Popup("Vous n'avez aucune carte...");
         return;
@@ -18,6 +31,67 @@ export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: str
     
     const screenSize = new Position(document.documentElement.clientWidth, document.documentElement.clientHeight);
     const bg = appendBlurryBackground();
+    
+    if (config !== undefined) {
+        sellingAq = list[0] as Aquisition;
+        boost = config.type;
+        boostedClone = (list[0] as Aquisition).getBoostedClone(boost);
+
+        const box = document.createElement("div");
+        box.style.display = "flex";
+        box.style.justifyContent = "center";
+        box.style.alignItems = "center";
+        box.style.marginLeft = "auto";
+        box.style.marginRight = "auto";
+        
+        const gains = document.createElement("div");
+        gains.style.display = "flex";
+        gains.style.justifyContent = "center";
+        gains.style.alignItems = "center";
+        gains.style.flexDirection = "column";
+        gains.style.margin = "1vh";
+        gains.style.marginRight = "3vw";
+
+        const msg = document.createElement("p");
+        msg.textContent = "Gains de vente";
+        msg.style.fontSize = "5vh";
+        msg.style.textAlign = "center";
+        gains.appendChild(msg);
+
+        const {box: coinElm, ammount: coinAmmount} = createGainDiv("coin", sellingAq.coins);
+        gains.appendChild(coinElm);
+        if (sellingAq.coins > 0) {
+            sellCoinCounterRoutine(coinAmmount);
+        }
+
+        const {box: ribbonElm, ammount: ribbonAmmount} = createGainDiv("ribbon", sellingAq.ribbons);
+        gains.appendChild(ribbonElm);
+        if (sellingAq.ribbons > 0) {
+            sellRibbonCounterRoutine(ribbonAmmount);
+        }
+
+        const {box: starElm, ammount: starAmmount} = createGainDiv("star", sellingAq.stars);
+        gains.appendChild(starElm);
+        if (sellingAq.stars > 0) {
+            sellStarCounterRoutine(starAmmount);
+        }
+        box.appendChild(gains);
+
+        const button = document.createElement("div");
+        button.className = "pointerHover";
+        button.textContent = "Vendre";
+        button.style.fontSize = "5vh";
+        button.style.borderRadius = "15px";
+        button.style.backgroundColor = "#ffd700";
+        button.style.border = "solid black 2px";
+        button.addEventListener("click", () => {
+            document.body.removeChild(bg);
+            config.tx.send(new Tuple(sellingAq as Aquisition, boostedClone as Aquisition));
+        });
+        box.appendChild(button);
+        bg.appendChild(box);
+    }
+
     const img = appendImg(
         list[0].src,
         screenSize,
@@ -29,9 +103,70 @@ export function generateMenu(list: Card[], imgFolder: ImgFolder, helperText: str
         appendHelperBox(helperText, imgRect, screenSize, bg);
         const navSquares = appendNavBar(imgRect, screenSize, list.length, imgFolder, bg);
 
-        appendCross(["menu"]);
+        if (config === undefined) {
+            appendCross(["menu"], bg);
+        } else {
+            const {tx, rx} = initChannel<void>();
+            appendCross(["menu"], bg, tx);
+            rx.recv().then(() => {
+                sellingAq = undefined;
+                boostedClone = undefined;
+                boost = undefined;
+            });
+        }
+
         new CardKeyboardListener(img, bg, imgFolder, navSquares, list);
     }
+}
+
+function sellCoinCounterRoutine(elm: HTMLParagraphElement) {
+    if (boostedClone === undefined) {
+        console.log("WARN: called coin counter routine but clone aquisition is undefined");
+        return;
+    }
+    elm.textContent = boostedClone.coins.toString();
+
+    requestAnimationFrame(() => sellCoinCounterRoutine(elm));
+}
+function sellRibbonCounterRoutine(elm: HTMLParagraphElement) {
+    if (boostedClone === undefined) {
+        console.log("WARN: called coin counter routine but clone aquisition is undefined");
+        return;
+    }
+    elm.textContent = boostedClone.ribbons.toString();
+
+    requestAnimationFrame(() => sellRibbonCounterRoutine(elm));
+}
+function sellStarCounterRoutine(elm: HTMLParagraphElement) {
+    if (boostedClone === undefined) {
+        console.log("WARN: called coin counter routine but clone aquisition is undefined");
+        return;
+    }
+    elm.textContent = boostedClone.stars.toString();
+
+    requestAnimationFrame(() => sellStarCounterRoutine(elm));
+}
+
+function createGainDiv(type: Money, value: number) {
+    const box = document.createElement("div");
+    box.style.display = "flex";
+    box.style.justifyContent = "center";
+    box.style.height = "5vh";
+    box.style.margin = "1vh";
+
+    const img = document.createElement("img");
+    img.src = `get_file/celestopia/assets/icons/${type}.png`;
+    img.style.marginRight = "10px";
+    box.appendChild(img);
+
+    const ammount = document.createElement("p");
+    ammount.textContent = value.toString();
+    ammount.style.fontSize = "3vh";
+    ammount.style.margin = "0px";
+    ammount.style.width = "6vh";
+    box.appendChild(ammount);
+
+    return {box, ammount};
 }
 
 function appendImg(src: string, screenSize: Position, parent: HTMLDivElement) {
@@ -42,7 +177,7 @@ function appendImg(src: string, screenSize: Position, parent: HTMLDivElement) {
     img.style.zIndex = "6";
 
     const px = vwToPx(40);
-    img.style.position = "absolute";
+    img.style.position = "fixed";
     img.style.left = `${(screenSize.x - px)/2}px`;
     img.style.top = `${(screenSize.y - px)/2}px`;
 
@@ -146,12 +281,12 @@ class CardKeyboardListener extends KeyboardListener {
             this.element = newCard;
             this.element.id = cardId;
             this.enabled = true;
-        })        
+        });   
     }
 
     #generateNewCard(position: "left" | "right") {
         const card = document.createElement("img");
-        card.style.position = "absolute";
+        card.style.position = "fixed";
         card.style.top = this.element.style.top;
         card.style.width = "40vw";
         card.style.zIndex = "6";
@@ -179,8 +314,14 @@ class CardKeyboardListener extends KeyboardListener {
             default: console.log("Unhandled img folder");
         }
 
-        card.src = this.cards[this.currentIndex].src;
+        const cardObj = this.cards[this.currentIndex];
+        card.src = cardObj.src;
         card.id = newCardId;
+        if (sellingAq !== undefined && boost !== undefined) {
+            sellingAq = cardObj as Aquisition;
+            boostedClone = (cardObj as Aquisition).getBoostedClone(boost)
+        }
+
         this.bg.appendChild(card);
         return card;
     }

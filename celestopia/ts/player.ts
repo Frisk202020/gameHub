@@ -4,16 +4,18 @@ import { Card } from "./card/Card.js";
 import { Wonder } from "./card/Wonder.js";
 import { generateMenu, ImgFolder } from "./card/menu.js";
 import { Position } from "./util/Position.js";
-import { DiceEvent } from "./action/dice.js";
+import { DiceEvent } from "./event/DiceEvent.js";
 import { createHelperBox, removeFromBodyOrWarn } from "./util/functions.js";
-import { MailEvent } from "./action/mail.js";
-import { initChannel } from "./util/channel.js";
+import { MailEvent } from "./event/MailEvent.js";
+import { initChannel, Sender } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
-import { board, pig } from "./util/variables.js";
+import { board, Money, pig } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
 import { Chest } from "./event/Chest.js";
 import { Crown } from "./event/Crown.js";
+import { PigEvent } from "./event/PigEvent.js";
+import { Tuple } from "./util/tuple.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -100,6 +102,28 @@ export class Player {
     addAquisition(aq: Aquisition) {
         this.#aquisitions.push(aq);
     } 
+    #removeAquisition(aq: Aquisition, boostedClone: Aquisition) {
+        if (this.#aquisitions.length === 0) {
+            console.log("ERROR: tried to remove aquisition, but player didn't have one");
+            return;
+        }
+        const i = this.#aquisitions.indexOf(aq);
+        if (i === -1) {
+            console.log("ERROR: tried to remove aquisition but player did not have it");
+            return;
+        } else {
+            this.#aquisitions.splice(i, 1);
+        }
+
+        Aquisition.returnToBank(aq);
+        if (aq.name === "magic") {
+            //TODO
+        } else {
+            this.progressiveCoinChange(this.coins + boostedClone.coins);
+            this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons);
+            this.progressiveStarChange(this.stars + boostedClone.stars);
+        }
+    }
 
     addWonder(w: Wonder) {
         this.#wonders.push(w);
@@ -118,7 +142,7 @@ export class Player {
             const newValue = this.coins + choices[Math.floor(Math.random() * 5)];
 
             this.progressiveCoinChange(newValue);
-        } else if (type === "greenCoin") {
+        } else if (type === "greenEvent") {
             Happening.pickRandomEvent(this);
         } else if (type === "mail") {
             new Popup("Vous avez reçu 1 courrier !");
@@ -140,6 +164,34 @@ export class Player {
             new Crown(this, (board.elements[this.caseId] as any).wonder);
         } else if (type === "duel") {
             new Popup("Participez à un duel !");
+        } else if (type === "piggy") {
+            new PigEvent(this);
+        } else if (type === "postBox") {
+            const {tx, rx} = initChannel<number>();
+            new MailEvent(true, tx, playerColor[this.#id]);
+            rx.recv().then((n) => {
+                this.progressiveCoinChange(this.coins - n);
+            });
+        } else if (type === "sale") {
+            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
+            generateMenu(this.#aquisitions, "aquisitions", "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.", this.#sellInterface(tx, "coin"));
+            rx.recv().then((t) => {
+                this.#removeAquisition(t.first, t.second);
+            });
+        } else if (type === "saleRibbon") {
+            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
+            generateMenu(this.#aquisitions, "aquisitions", "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.", this.#sellInterface(tx, "ribbon"));
+            rx.recv().then((t) => {
+                this.#removeAquisition(t.first, t.second);
+            });
+        } else if (type === "saleStar") {
+            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
+            generateMenu(this.#aquisitions, "aquisitions", "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.", this.#sellInterface(tx, "star"));
+            rx.recv().then((t) => {
+                this.#removeAquisition(t.first, t.second);
+            });
+        } else {
+            console.log(type);
         }
     }
 
@@ -411,7 +463,7 @@ export class Player {
         }));
         box.appendChild(this.#createAction("mail.png", "Payez vos courriers en avance.",  () => {
             const {tx, rx} = initChannel<number>();
-            new MailEvent(tx, playerColor[this.#id]);
+            new MailEvent(false, tx, playerColor[this.#id]);
             rx.recv().then((n) => {
                 this.progressiveCoinChange(this.coins - n);
             })
@@ -444,6 +496,10 @@ export class Player {
         elm.addEventListener("click", action);
         elm.onload = () => elm.style.border = `solid ${elm.offsetHeight * 0.05}px #ffd700`;
         return elm;
+    }
+
+    #sellInterface(tx: Sender<Tuple<Aquisition, Aquisition>>, type: Money) {
+        return { tx, type }
     }
 }
 

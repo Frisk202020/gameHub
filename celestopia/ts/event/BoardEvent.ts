@@ -1,10 +1,22 @@
 import { appendBlurryBackground, createHelperBox } from "../util/functions.js";
 
+interface OkSetup {
+    enable: boolean;
+    customLabel?: string;
+    customHandler?: ()=>void;
+}
+
+interface DenySetup {
+    append: boolean;
+    customLabel?: string;
+    customHandler?: ()=>void;
+}
+
 export abstract class BoardEvent {
     protected menu: HTMLDivElement;
     protected box: HTMLDivElement;
 
-    constructor(elements: HTMLElement[],disableOk: boolean, deny: boolean, okHandler?: ()=>void, denyHandler?: ()=>void) {
+    constructor(elements: HTMLElement[], ok: OkSetup, deny: DenySetup) {
         const menu = appendBlurryBackground();
         const flex = document.createElement("div");
         flex.style.display = "flex";
@@ -19,7 +31,7 @@ export abstract class BoardEvent {
             this.box.appendChild(e);
         }
 
-        this.#appendButtons(disableOk, deny, okHandler, denyHandler);
+        this.#appendButtons(ok, deny);
         this.menu = menu;
         document.body.appendChild(menu);
     }
@@ -42,42 +54,50 @@ export abstract class BoardEvent {
         return img;
     }
 
-    #appendButtons(disableOk: boolean, deny: boolean, okHandler?: ()=>void, denyHandler?: ()=>void) {
+    protected static okSetup(enable: boolean, customLabel?: string, customHandler?: ()=>void) {
+        return {enable, customLabel, customHandler};
+    }
+
+    protected static denySetup(append: boolean, customLabel?: string, customHandler?: ()=>void) {
+        return {append, customLabel, customHandler};
+    }
+
+    #appendButtons(ok: OkSetup, deny: DenySetup) {
         const buttons = document.createElement("div");
         buttons.style.display = "flex";
         buttons.style.justifyContent = "center";
 
-        buttons.appendChild(this.#okButton(disableOk, okHandler));
-        if (deny) {
-            buttons.appendChild(this.#denyButton(denyHandler));
+        buttons.appendChild(this.#okButton(ok));
+        if (deny.append) {
+            buttons.appendChild(this.#denyButton(deny.customLabel, deny.customHandler));
         }
 
         this.box.appendChild(buttons);
     }
 
-    #okButton(disable: boolean, handler?: ()=>void) {
+    #okButton(config: OkSetup) {
         const button = document.createElement("div");
-        button.textContent = "Ok";
+        button.textContent = config.customLabel === undefined ? "Ok" : config.customLabel;
         button.style.fontSize = "30px";
         button.style.margin = "50px";
         button.style.padding = "10px";
         button.style.borderRadius = "10px";
         button.style.border = "3px solid #ffd700";
-        button.style.backgroundColor = disable ? "#aba7a7ff" : "#03a316";
+        button.style.backgroundColor = config.enable ? "#03a316" : "#aba7a7";
 
-        if (!disable) {
-            button.addEventListener("click", handler === undefined ? () => {
+        if (config.enable) {
+            button.addEventListener("click", config.customHandler === undefined ? () => {
                 document.body.removeChild(this.menu);
-            } : handler);
+            } : config.customHandler);
             button.className = "pointerHover";
         }
 
         return button;
     }
 
-    #denyButton(handler?: ()=>void) {
+    #denyButton(label?: string, handler?: ()=>void) {
         const button = document.createElement("div");
-        button.textContent = "Refuser";
+        button.textContent = label === undefined ? "Refuser" : label;
         button.style.fontSize = "30px";
         button.style.margin = "50px";
         button.style.padding = "10px";

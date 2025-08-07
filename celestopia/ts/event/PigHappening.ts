@@ -1,7 +1,7 @@
 import { pig } from "../util/variables.js";
 import { Happening } from "./Happening.js";
 
-export class Pig extends Happening {
+export class PigHappening extends Happening {
     constructor() {
         super(
             "Le festin de la cagnotte !",

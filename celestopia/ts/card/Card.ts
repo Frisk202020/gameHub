@@ -11,7 +11,7 @@ export abstract class Card implements DynamicPlacement {
         this.#src = `get_file/celestopia/assets/${folder}/${name}.png`
     }
 
-    protected get name() {
+    get name() {
         return this.#name;
     } get src() {
         return this.#src;

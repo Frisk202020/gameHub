@@ -14,3 +14,5 @@ export const players: Player[] = Array();
 export const board = buildBoard(0);
 
 export const pig = new Piggy();
+
+export type Money = "coin" | "ribbon" | "star";

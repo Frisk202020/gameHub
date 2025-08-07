@@ -1,3 +1,4 @@
+import { Sender } from "./channel.js";
 import { Position } from "./Position.js";
 
 export function updateCounterValue(elementId: string, value: number) {
@@ -23,7 +24,8 @@ export function removeFromArray<T>(array: T[], index: number): T | undefined {
     return value;
 }
  
-export function appendCross(idsToRemove: string[]) {
+// tx is when we need to alert the caller when cross is pressed
+export function appendCross(idsToRemove: string[], parent?: HTMLDivElement, tx?: Sender<void>) {
     const cross = document.createElement("img");
     cross.className = "pointerHover";
     cross.id = "cross";
@@ -43,9 +45,15 @@ export function appendCross(idsToRemove: string[]) {
             }
         }
 
-        document.body.removeChild(cross);
+        if (tx !== undefined) {
+            tx.send();
+        }
+
+        if (document.body.contains(cross)) {
+            document.body.removeChild(cross);
+        }
     });
-    document.body.appendChild(cross);
+    (parent === undefined ? document.body : parent).appendChild(cross);
 }
 
 export function appendBlurryBackground() {
@@ -85,6 +93,10 @@ export function createHelperBox(text: string, position?: Position, size?: number
 
 export function vwToPx(vw: number) {
     return vw * document.documentElement.clientWidth/100;
+}
+
+export function vhToPx(vh: number) {
+    return vh * document.documentElement.clientHeight/100;
 }
 
 export function removeFromBodyOrWarn(element: Node | undefined) {

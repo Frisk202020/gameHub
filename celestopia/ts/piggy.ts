@@ -1,8 +1,12 @@
+import { vhToPx, vwToPx } from "./util/functions.js";
+
 const MAX = 10000;
 
 export class Piggy {
     content: number;
+    #box!: HTMLDivElement;
     #counter!: HTMLParagraphElement;
+    #icon!: HTMLImageElement;
     #counterRevealed: boolean;
 
     constructor() {
@@ -34,8 +38,23 @@ export class Piggy {
     }
 
     break() {
+        const rect = this.#icon.getBoundingClientRect();
+        const boom = document.createElement("img");
+        boom.src = `get_file/celestopia/assets/boom.gif?t=${Date.now()}`;
+        boom.style.left = `${rect.left - vwToPx(1)}px`;
+        boom.style.top = `${rect.top - vhToPx(5)}px`;
+        boom.style.width = "10vw";
+        boom.style.zIndex = "5";
+        boom.style.position = "fixed";
+        new Audio("get_file/celestopia/assets/boom.mp3").play();
+
+        document.body.appendChild(boom);
+        new Promise(r => setTimeout(r, 1800)).then(() => {
+            document.body.removeChild(boom);
+        });
+
         const content = this.content;
-        this.content = 0;
+        this.#progressiveCounterIncrement(-content);
         return content;
     }
 
@@ -55,7 +74,8 @@ export class Piggy {
         box.style.bottom = "1vh";
         box.style.right = "1vw";
         box.style.display = "flex";
-        box.style.alignItems = "center";
+        box.style.alignItems = "center"
+        this.#box = box;
 
         const counter = document.createElement("p");
         counter.id = "bankCounter";
@@ -76,7 +96,9 @@ export class Piggy {
         icon.src = "get_file/celestopia/assets/icons/pig.png";
         icon.style.height = "8vw";
         icon.style.width = "8vw";
+        icon.style.marginLeft = "2vw";
         icon.className = "pointerHover";
+        this.#icon = icon;
         box.appendChild(icon);
 
         icon.addEventListener("click", () => {
@@ -103,7 +125,7 @@ export class Piggy {
         const target = current + increment;
 
         this.content = increment;
-        this.#counter.style.color = "#009220";
+        this.#counter.style.color = increment >= 0 ? "#009220" : "#b70808";
         await new Promise(r => setTimeout(r, 2000));
         this.content = current;
         this.#counter.style.color = "black";

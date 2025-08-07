@@ -8,8 +8,8 @@ export class Crown extends BoardEvent {
         if (w === undefined) {
             super(
                 [BoardEvent.generateTextBox("Cette merveille a déjà été achetée...")],
-                false,
-                false
+                BoardEvent.okSetup(true),
+                BoardEvent.denySetup(false),
             )
         } else {
             super(
@@ -17,19 +17,21 @@ export class Crown extends BoardEvent {
                     BoardEvent.generateTextBox("Acheter cette merveille ?"),
                     BoardEvent.generateImage(w.src)
                 ],
-                player.coins < w.coins || player.ribbons < w.ribbons || player.stars < w.stars,
-                true,
-                () => {
-                    document.body.removeChild(this.menu);
-                    player.progressiveCoinChange(player.coins - w.coins);
-                    player.progressiveRibbonChange(player.ribbons - w.ribbons);
-                    player.progressiveStarChange(player.stars - w.stars);
-                    player.addWonder(w);
-                },
-                () => {
+                BoardEvent.okSetup(
+                    player.coins >= w.coins && player.ribbons >= w.ribbons && player.stars >= w.stars,
+                    undefined,
+                    () => {
+                        document.body.removeChild(this.menu);
+                        player.progressiveCoinChange(player.coins - w.coins);
+                        player.progressiveRibbonChange(player.ribbons - w.ribbons);
+                        player.progressiveStarChange(player.stars - w.stars);
+                        player.addWonder(w);
+                    }
+                ),
+                BoardEvent.denySetup(true, undefined, () => {
                     document.body.removeChild(this.menu);
                     Wonder.returnWonder(w);
-                }
+                }),
             )
         }
     }

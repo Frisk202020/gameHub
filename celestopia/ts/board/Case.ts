@@ -4,7 +4,7 @@ import { Position } from "../util/Position.js";
 import { BoardElement } from "./BoardElement.js";
 
 const caseFolder = "get_file/celestopia/assets/cases/";
-export type caseType = "blueCoin" | "redCoin" | "greenCoin" |
+export type caseType = "blueCoin" | "redCoin" | "greenEvent" |
     "mail" | "3Mail" | "5Mail" | "furnace" | "postBox" | "ladder" | "teleporter" | "dice" | "duel" |
     "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start";
 
@@ -12,7 +12,7 @@ const descriptions = {
     "start": "Le début d'un long voyage...",
     "blueCoin": "Gagnez etre 50 et 1000 pièces. Le somme est aléatoire.",
     "redCoin": "Donnez entre 50 et 500 pièces à la cagnotte. La somme est aléatoire.",
-    "greenCoin": "Participez à un événement aléatoire pour tenter de gagner des pièces !",
+    "greenEvent": "Participez à un événement aléatoire pour tenter de gagner des pièces !",
     "mail": "Prenez 1 courrier.",
     "3Mail": "Prenez 3 courriers.",
     "5Mail": "Prenez 5 courriers.",

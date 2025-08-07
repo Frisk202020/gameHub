@@ -96,6 +96,9 @@ function main() {
     const q = new Player(3, "New Quark", "hat");
     const cas = new Player(4, "Casyaks", "hat");
 
+    frisk.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
+    frisk.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
+
     players.push(frisk);
     players.push(dokueki);
     players.push(q);

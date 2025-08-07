@@ -15,12 +15,11 @@ export abstract class Happening extends BoardEvent {
 
         super(
             allElements,
-            disableOk, 
-            denyButton, 
-            () => {
+            BoardEvent.okSetup(!disableOk, undefined, () => {
                 document.body.removeChild(this.menu);
                 this.event();
-            },
+            }),
+            BoardEvent.denySetup(denyButton)
         )
         this.name = name;
         this.description = description;
@@ -49,8 +48,8 @@ export abstract class Happening extends BoardEvent {
             const { StarSell } = await import("./StarSell.js");
             return new StarSell(player);
         } else if (pick < 75) {
-            const { Pig } = await import("./Pig.js");
-            return new Pig();
+            const { PigHappening } = await import("./PigHappening.js");
+            return new PigHappening();
         } else {
             const { Theft } = await import("./Theft.js");
             return new Theft(player);

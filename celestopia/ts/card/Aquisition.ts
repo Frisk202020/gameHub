@@ -1,5 +1,5 @@
 import { removeFromArray } from "../util/functions.js";
-import { resizables } from "../util/variables.js";
+import { Money, resizables } from "../util/variables.js";
 import { Card } from "./Card.js";
 
 export class Aquisition extends Card {
@@ -28,6 +28,16 @@ export class Aquisition extends Card {
         return this.#starValue;
     }
 
+    getBoostedClone(boost: Money) {
+        return new Aquisition(
+            this.name,
+            this.#price,
+            boost === "coin" ? this.coins * 1.5 : this.coins,
+            boost === "ribbon" ? this.ribbons * 1.5 : this.ribbons,
+            boost === "star" ? this.stars * 1.5 : this.stars,
+        )
+    }
+
     static #bank = [
         new Aquisition("astropy", 1050, 150, 0, 1800),
         new Aquisition("baloon", 2400, 150, 3600, 0),
@@ -54,7 +64,7 @@ export class Aquisition extends Card {
         return removeFromArray(Aquisition.#bank, i);
     }
 
-    static returnAquisitionToBank(aquisition: Aquisition) {
+    static returnToBank(aquisition: Aquisition) {
         Aquisition.#bank.push(aquisition);
     }
 }
