@@ -2,6 +2,7 @@ import { boardCanvas } from "./board/Board.js";
 import { Case } from "./board/Case.js";
 import { Aquisition } from "./card/Aquisition.js";
 import { Wonder } from "./card/Wonder.js";
+import { DiceItem } from "./item/DiceItem.js";
 import { computeOnBoardPosition, Player } from "./Player.js";
 import { debugTools } from "./util/debug.js";
 import { translateAnimation, updateCounterValue } from "./util/functions.js";
@@ -96,9 +97,8 @@ function main() {
     const q = new Player(3, "New Quark", "hat");
     const cas = new Player(4, "Casyaks", "hat");
 
-    for (let i = 0; i < 10; i++) {
-        frisk.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
-    }
+    frisk.addItem(new DiceItem(frisk));
+    frisk.addItem(new DiceItem(frisk));
 
     players.push(frisk);
     players.push(dokueki);

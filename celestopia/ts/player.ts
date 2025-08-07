@@ -1,4 +1,4 @@
-import { Item } from "./board/Item.js";
+import { Item } from "./item/Item.js";
 import { Aquisition } from "./card/Aquisition.js";
 import { Card } from "./card/Card.js";
 import { Wonder } from "./card/Wonder.js";
@@ -17,6 +17,7 @@ import { Crown } from "./event/Crown.js";
 import { PigEvent } from "./event/PigEvent.js";
 import { Tuple } from "./util/tuple.js";
 import { Magic } from "./event/Magic.js";
+import { ItemMenu } from "./item/ItemMenu.js";
 
 type Avatar = "hat";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -61,14 +62,16 @@ export class Player {
     coins: number;
     ribbons: number;
     stars: number;
-    items: Array<Item>;
+    #items: Array<Item>;
     #aquisitions: Array<Aquisition>;
     #wonders: Array<Wonder>;
     #infoBox: HTMLDivElement;
     #infoActive: boolean;
+    color: string;
 
     constructor(id: PlayerId, name: string, avatar: Avatar) {
         this.#id = id;
+        this.color = playerColor[id];
         this.#name = name;
         this.#avatar = avatar;
         this.boardId = 0;
@@ -79,7 +82,7 @@ export class Player {
         this.coins = 0;
         this.ribbons = 0;
         this.stars = 0;
-        this.items = Array();
+        this.#items = Array();
         this.#aquisitions = Array();
         this.#wonders = Array();
         this.#infoBox = this.#createInfoBox();
@@ -177,7 +180,7 @@ export class Player {
             new PigEvent(this);
         } else if (type === "postBox") {
             const {tx, rx} = initChannel<number>();
-            new MailEvent(true, tx, playerColor[this.#id]);
+            new MailEvent(true, tx, this.color);
             rx.recv().then((n) => {
                 this.progressiveCoinChange(this.coins - n);
             });
@@ -202,6 +205,47 @@ export class Player {
         } else {
             console.log(type);
         }
+    }
+
+    hasItems() {
+        return this.#items.length > 0;
+    }
+
+    addItem(item: Item) {
+        if (this.#items.length === 5) {
+            return false;
+        }
+
+        this.#items.push(item);
+        return true;
+    }
+
+    removeItem(item: Item) {
+        const index = this.#items.indexOf(item);
+        if (index === -1) {
+            console.log("ERROR: tried to remove a item but the player didn't have it.");
+            return;
+        } else {
+            this.#items.splice(index, 1);
+        }
+    }
+
+    itemIterator(): IterableIterator<Item> {
+        let index = 0;
+        const data = this.#items;
+
+        return {
+            [Symbol.iterator]() {
+                return this;
+            },
+            next(): IteratorResult<Item> {
+                if (index < data.length) {
+                    return { value: data[index++], done: false };
+                } else {
+                    return { value: undefined, done: true };
+                }
+            }
+        };
     }
 
     async progressiveCoinChange(target: number) {
@@ -351,7 +395,7 @@ export class Player {
         style.display = "flex";
         style.flexDirection = "row";
         style.padding = "0.5vw";
-        style.backgroundColor = playerColor[this.#id];
+        style.backgroundColor = this.color;
         style.width = "10vw";
         style.justifyContent = "space-between";
         style.borderRadius = "10px";
@@ -378,7 +422,7 @@ export class Player {
         const info = document.createElement("div");
         const infoStyle = info.style;
         infoStyle.width = "10vw";
-        infoStyle.background = `linear-gradient(to bottom, ${playerColor[this.#id]}, ${infoColor[this.#id]})`;
+        infoStyle.background = `linear-gradient(to bottom, ${this.color}, ${infoColor[this.#id]})`;
         infoStyle.padding = "0.5vw";
         infoStyle.borderRadius = "10px";
         infoStyle.pointerEvents = "none";
@@ -472,12 +516,12 @@ export class Player {
         }));
         box.appendChild(this.#createAction("mail.png", "Payez vos courriers en avance.",  () => {
             const {tx, rx} = initChannel<number>();
-            new MailEvent(false, tx, playerColor[this.#id]);
+            new MailEvent(false, tx, this.color);
             rx.recv().then((n) => {
                 this.progressiveCoinChange(this.coins - n);
             })
         }));
-        box.appendChild(this.#createAction("bag.png", "Utilisez un objet (avant de lancer le dé).",  () => {}));
+        box.appendChild(this.#createAction("bag.png", "Utilisez un objet (avant de lancer le dé).",  () => new ItemMenu(this, true)));
         return box;
     }
 

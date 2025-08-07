@@ -80,6 +80,18 @@ export abstract class BoardEvent {
         return {append: true, enable, customLabel, customHandler};
     }
 
+    protected enableOk(customHandler?: ()=>void) {
+        const button = document.getElementById("menuOk");
+        if (button === null) {
+            console.log("WARN: called enable ok while button isn't initialized yet");
+            return;
+        }
+
+        button.style.backgroundColor = "#03a316";
+        button.className = "pointerHover";
+        button.addEventListener("click", customHandler === undefined ? ()=>document.body.removeChild(this.menu)  : customHandler);
+    }
+
     protected static denySetup(append: boolean, customLabel?: string, customHandler?: ()=>void) {
         return {append, customLabel, customHandler};
     }
@@ -111,6 +123,7 @@ export abstract class BoardEvent {
         if (config.enable) {
             button.className = "pointerHover";
         }
+        button.id = "menuOk";
 
         return button;
     }
