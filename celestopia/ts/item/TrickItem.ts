@@ -1,0 +1,15 @@
+import { DiceEvent } from "../event/DiceEvent.js";
+import { Player } from "../Player.js";
+import { initChannel, Sender } from "../util/channel.js";
+import { Item } from "./Item.js";
+
+export class TrickItem extends Item {
+    constructor(p: Player) {
+        super(p, 100, "trick", ()=>{
+            const {tx, rx} = initChannel<number>();
+            new DiceEvent(tx, 1, true);
+
+            rx.recv().then((n) => p.pendingCaseId = p.caseId + n);
+        })
+    }
+}

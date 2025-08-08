@@ -97,9 +97,6 @@ function main() {
     const q = new Player(3, "New Quark", "hat");
     const cas = new Player(4, "Casyaks", "hat");
 
-    frisk.addItem(new DiceItem(frisk));
-    frisk.addItem(new DiceItem(frisk));
-
     players.push(frisk);
     players.push(dokueki);
     players.push(q);

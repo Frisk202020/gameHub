@@ -511,7 +511,7 @@ export class Player {
         box.style.alignItems = "center";
         box.appendChild(this.#createAction("dice.png", "Lancez le dé quand c'est votre tour.", () => { 
             const {tx, rx} = initChannel<number>();
-            new DiceEvent(tx, this.diceNumber);
+            new DiceEvent(tx, this.diceNumber, false);
             rx.recv().then((n) => this.pendingCaseId = this.caseId + n); 
         }));
         box.appendChild(this.#createAction("mail.png", "Payez vos courriers en avance.",  () => {

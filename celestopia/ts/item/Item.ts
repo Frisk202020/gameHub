@@ -50,10 +50,8 @@ export abstract class Item {
         this.#holder.removeItem(this);
     }
     //TODO
-    // dice
-    // tricked dice
-    // ressource thief
-    // aq tief
-    // pocket seller
-    // pipe
+        // ressource thief
+        // aq tief
+        // pocket seller
+        // pipe
 }
