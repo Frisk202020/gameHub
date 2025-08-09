@@ -6,7 +6,7 @@ import { BoardElement } from "./BoardElement.js";
 const caseFolder = "get_file/celestopia/assets/cases/";
 export type caseType = "blueCoin" | "redCoin" | "greenEvent" |
     "mail" | "3Mail" | "5Mail" | "furnace" | "postBox" | "ladder" | "teleporter" | "dice" | "duel" |
-    "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start";
+    "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start" | "item";
 
 const descriptions = {
     "start": "Le début d'un long voyage...",
@@ -28,6 +28,7 @@ const descriptions = {
     "saleRibbon": "Vendez une aquisition. Les aquisitions de type 'rubban' rapporteront plus gros.",
     "saleStar": "Vendez une aquisition. Les aquisitions de type 'étoile' rapporteront plus gros.",
     "wonder": "Achetez une merveille si vous en avez les moyens !",
+    "item": "Obtenez un objet aléatoire."
 }
 
 type WalkWay = "straight" | "backwards" | "vertical" | "vertiacal-backwards";

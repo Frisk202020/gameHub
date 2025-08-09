@@ -209,8 +209,13 @@ export class Player {
             rx.recv().then((t) => {
                 this.#removeAquisition(t.first, t.second);
             });
+        } else if (type === "item") {
+            Item.getRandomItem(this).then((i) => { 
+                new Popup(`Vous obtenez un ${i.name}`, "Objet obtenu !");
+                this.addItem(i); 
+            });
         } else {
-            console.log(type);
+            console.log(`unhandled case type: ${type}`);
         }
     }
 

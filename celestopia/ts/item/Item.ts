@@ -1,8 +1,7 @@
 import { Popup } from "../event/Popup.js";
 import { Player } from "../Player.js";
-import { createHelperBox, vwToPx } from "../util/functions.js";
-import { Position } from "../util/Position.js";
-import { Tuple } from "../util/tuple.js";
+import { vwToPx } from "../util/functions.js";
+import { DiceItem } from "./DiceItem.js";
 
 export abstract class Item<T = void> {
     protected holder: Player;
@@ -15,7 +14,7 @@ export abstract class Item<T = void> {
     constructor(p: Player, name: string, description: string,  imgId: string, event: (param: T)=>void, padding: boolean) {
         this.holder = p;
         this.#imgEvent = ()=>{};
-        this.#name = `-- ${name} --`;
+        this.#name = name;
         this.#description = description;
 
         const img = document.createElement("img");
@@ -32,7 +31,9 @@ export abstract class Item<T = void> {
         this.#event = event;
     }
 
-    get imgStyle() {
+    get name() {
+        return this.#name;
+    } get imgStyle() {
         return this.#img.style;
     }
 
@@ -75,6 +76,34 @@ export abstract class Item<T = void> {
         parent.appendChild(button);
     }
 
-    //TODO
-        // pipe
+    static async getRandomItem(holder: Player): Promise<Item<any>> {
+        const pick: 0 | 1 | 2| 3 | 4 | 5 = Math.floor(Math.random() * 6) as 0 | 1 | 2| 3 | 4 | 5;
+
+        switch (pick) {
+            case 0: {
+                const { DiceItem } = await import("./DiceItem.js");
+                return new DiceItem(holder);
+            }
+            case 1: {
+                const { AquisitionThief } = await import("./AquisitionThief.js");
+                return new AquisitionThief(holder);
+            }
+            case 2: {
+                const { MoneyThief } = await import("./MoneyThief.js");
+                return new MoneyThief(holder);
+            }
+            case 3: {
+                const { Pipe } = await import("./Pipe.js");
+                return new Pipe(holder);
+            }
+            case 4: {
+                const { TrickItem } = await import("./TrickItem.js");
+                return new TrickItem(holder);
+            }
+            case 5: {
+                const { Seller } = await import("./Seller.js");
+                return new Seller(holder);
+            }
+        }
+    }
 }
