@@ -1,29 +1,39 @@
+import { Popup } from "../event/Popup.js";
 import { Player } from "../Player.js";
+import { createHelperBox, vwToPx } from "../util/functions.js";
+import { Position } from "../util/Position.js";
+import { Tuple } from "../util/tuple.js";
 
 export abstract class Item<T = void> {
-    protected holder: Player
-    #price: number;
+    protected holder: Player;
+    #name: string;
+    #description: string;
     #img: HTMLImageElement;
     #imgEvent: ()=>void;
     #event: (param: T)=>void;
 
-    constructor(p: Player, price: number, name: string, event: (param: T)=>void, padding: boolean) {
+    constructor(p: Player, name: string, description: string,  imgId: string, event: (param: T)=>void, padding: boolean) {
         this.holder = p;
-        this.#price = price;
-        this.#imgEvent = ()=>{console.log("wrong")};
+        this.#imgEvent = ()=>{};
+        this.#name = `-- ${name} --`;
+        this.#description = description;
 
         const img = document.createElement("img");
-        img.src = `get_file/celestopia/assets/items/${name}.png`;
-        img.style.width = "10vw";
+        img.src = `get_file/celestopia/assets/items/${imgId}.png`;
+        img.style.width = padding ? "10vw" :"11vw";
         img.style.margin = "5vw";
         if (padding) { img.style.padding = "0.5vw"; }
         img.style.backgroundColor = `${p.color}96`; // 96(hex) = 150(dec)
         img.style.borderRadius = "15px";
         img.style.border = "solid 5px transparent";
-        img.addEventListener("click", ()=>this.#imgEvent())
+        img.addEventListener("click", ()=>this.#imgEvent());
 
         this.#img = img;
         this.#event = event;
+    }
+
+    get imgStyle() {
+        return this.#img.style;
     }
 
     getImg(event?: ()=>void) {
@@ -49,7 +59,22 @@ export abstract class Item<T = void> {
         this.#event(param);
         this.holder.removeItem(this);
     }
+
+    // Expected to be called after appending the img to the menu
+    addHelpButton(parent: HTMLDivElement) {
+        const rect = this.#img.getBoundingClientRect();
+        const button = document.createElement("img");
+        button.src = "get_file/celestopia/assets/icons/help.png";
+        button.className = "pointerHover";
+        button.style.width = "5vw";
+        button.style.position = "absolute";
+        button.style.left = `${rect.right - vwToPx(2.5)}px`;
+        button.style.top = `${rect.top - vwToPx(2.5)}px`;
+        button.addEventListener("click", ()=>new Popup(this.#description, this.#name))
+
+        parent.appendChild(button);
+    }
+
     //TODO
-        // ressource thief
         // pipe
 }

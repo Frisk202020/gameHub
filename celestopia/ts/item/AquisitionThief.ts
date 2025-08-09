@@ -9,7 +9,14 @@ import { Item } from "./Item.js";
 export class AquisitionThief extends Item<Sender<Player>> {
     constructor(p: Player) {
         const {tx, rx} = initChannel<Player>();
-        super(p, 100, "aq_thief", ()=>{ new Event(p, tx) }, true);
+        super(
+            p,
+            "Voleur d'aquisitions",
+            "Choisissez un joueur à qui vous volerez une aquisition aléatoire.",
+            "aq_thief", 
+            ()=>{ new Event(p, tx) }, 
+            true
+        );
 
         rx.recv().then((victim)=>{
             const aq = victim.removeRandomAquisition();

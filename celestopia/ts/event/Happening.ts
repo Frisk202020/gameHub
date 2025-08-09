@@ -1,5 +1,4 @@
 import { Player } from "../Player.js";
-import { appendBlurryBackground } from "../util/functions.js";
 import { BoardEvent } from "./BoardEvent.js";
 
 export abstract class Happening extends BoardEvent {

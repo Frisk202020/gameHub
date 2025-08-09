@@ -3,6 +3,13 @@ import { Item } from "./Item.js";
 
 export class DiceItem extends Item {
     constructor(p: Player) {
-        super(p, 250, "dice", ()=>{p.diceNumber++;}, true);
+        super(
+            p,
+            "Dé supplémentaire",
+            "Vous donne un tour supplémentaire jusqu'à atteindre la fin du plateau.", 
+            "dice", 
+            ()=>{p.diceNumber++;}, 
+            true
+        );
     }
 }

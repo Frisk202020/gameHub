@@ -1,4 +1,4 @@
-import { appendBlurryBackground, createHelperBox } from "../util/functions.js";
+import { appendBlurryBackground } from "../util/functions.js";
 
 interface OkSetup {
     append: boolean;

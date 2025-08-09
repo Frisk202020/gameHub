@@ -1,8 +1,5 @@
 import { boardCanvas } from "./board/Board.js";
 import { Case } from "./board/Case.js";
-import { Aquisition } from "./card/Aquisition.js";
-import { Wonder } from "./card/Wonder.js";
-import { DiceItem } from "./item/DiceItem.js";
 import { computeOnBoardPosition, Player } from "./Player.js";
 import { debugTools } from "./util/debug.js";
 import { translateAnimation, updateCounterValue } from "./util/functions.js";

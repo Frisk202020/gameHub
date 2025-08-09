@@ -5,10 +5,17 @@ import { Item } from "./Item.js";
 
 export class TrickItem extends Item {
     constructor(p: Player) {
-        super(p, 100, "trick", ()=>{
-            const {tx, rx} = initChannel<number>();
-            new DiceEvent(tx, 1, true);
-            rx.recv().then((n) => p.pendingCaseId = p.caseId + n);
-        }, true)
+        super(
+            p, 
+            "Dé pipé",
+            "Lancez un dé dont vous pouvez choisir le résultat (quelque soit votre nombre de dés, ce dé donne un résultat entre 1 et 6).",
+            "trick", 
+            ()=>{
+                const {tx, rx} = initChannel<number>();
+                new DiceEvent(tx, 1, true);
+                rx.recv().then((n) => p.pendingCaseId = p.caseId + n);
+            }, 
+            true
+        )
     }
 }

@@ -51,5 +51,9 @@ export class ItemMenu extends BoardEvent {
             BoardEvent.denySetup(true, "Retour")
         );
         this.player = p;
+
+        for (const i of p.itemIterator()) {
+            i.addHelpButton(box);
+        }
     }
 }
