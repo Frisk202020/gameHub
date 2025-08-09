@@ -7,6 +7,7 @@ export class Aquisition extends Card {
     #coinValue: number;
     #ribbonValue: number;
     #starValue: number;
+    static menuText = "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.";
 
     constructor(name: string, price: number, coin: number, ribbon: number, star: number) {
         super(name, "aquisitions")
@@ -26,6 +27,10 @@ export class Aquisition extends Card {
         return this.#ribbonValue;
     } get stars() {
         return this.#starValue;
+    }
+
+    clone() {
+        return new Aquisition(this.name, this.#price, this.#coinValue, this.#ribbonValue, this.#starValue);
     }
 
     getBoostedClone(boost: Money) {

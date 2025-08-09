@@ -1,0 +1,66 @@
+import { BoardEvent } from "../event/BoardEvent.js";
+import { ChestAccept } from "../event/Chest.js";
+import { Popup } from "../event/Popup.js";
+import { Player } from "../Player.js";
+import { initChannel, Sender } from "../util/channel.js";
+import { players } from "../util/variables.js";
+import { Item } from "./Item.js";
+
+export class AquisitionThief extends Item<Sender<Player>> {
+    constructor(p: Player) {
+        const {tx, rx} = initChannel<Player>();
+        super(p, 100, "aq_thief", ()=>{ new Event(p, tx) }, true);
+
+        rx.recv().then((victim)=>{
+            const aq = victim.removeRandomAquisition();
+            if (aq === undefined) {
+                new Popup("Dommage, ce joueur n'a pas d'aquisitions...");
+            } else {
+                new ChestAccept(aq, this.holder, true);
+            }
+        });
+    }
+}
+
+class Event extends BoardEvent {
+    constructor(holder: Player, tx: Sender<Player>) {
+        super(
+            [BoardEvent.generateTextBox("Choisissez le joueur à voler.")],
+            BoardEvent.unappendedOkSetup(),
+            BoardEvent.denySetup(false)
+        )
+
+        const box = document.createElement("div");
+        box.style.display = "flex";
+        box.style.justifyContent = "center";
+
+        for (const p of players) {
+            if (p === holder) { continue; }
+
+            box.appendChild(
+                BoardEvent.generateButton(
+                    p.name,
+                    p.color,
+                    true,
+                    ()=> {
+                        document.body.removeChild(this.menu);
+                        tx.send(p);
+                    }
+                )
+            ) 
+        }
+        this.box.appendChild(box);
+
+        this.box.appendChild(
+            BoardEvent.generateButton(
+                "Annuler",
+                "#7c0000",
+                true,
+                ()=>{
+                    document.body.removeChild(this.menu);
+                    holder.addItem(new AquisitionThief(holder));
+                }
+            )
+        )
+    }
+}

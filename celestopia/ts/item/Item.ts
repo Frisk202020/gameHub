@@ -1,14 +1,14 @@
 import { Player } from "../Player.js";
 
-export abstract class Item {
-    #holder: Player
+export abstract class Item<T = void> {
+    protected holder: Player
     #price: number;
     #img: HTMLImageElement;
     #imgEvent: ()=>void;
-    #event: ()=>void;
+    #event: (param: T)=>void;
 
-    constructor(p: Player, price: number, name: string, event: ()=>void) {
-        this.#holder = p;
+    constructor(p: Player, price: number, name: string, event: (param: T)=>void, padding: boolean) {
+        this.holder = p;
         this.#price = price;
         this.#imgEvent = ()=>{console.log("wrong")};
 
@@ -16,7 +16,7 @@ export abstract class Item {
         img.src = `get_file/celestopia/assets/items/${name}.png`;
         img.style.width = "10vw";
         img.style.margin = "5vw";
-        img.style.padding = "0.5vw";
+        if (padding) { img.style.padding = "0.5vw"; }
         img.style.backgroundColor = `${p.color}96`; // 96(hex) = 150(dec)
         img.style.borderRadius = "15px";
         img.style.border = "solid 5px transparent";
@@ -45,13 +45,11 @@ export abstract class Item {
         this.#img.style.borderColor = "transparent";
     }
 
-    event() {
-        this.#event();
-        this.#holder.removeItem(this);
+    event(param: T) {
+        this.#event(param);
+        this.holder.removeItem(this);
     }
     //TODO
         // ressource thief
-        // aq tief
-        // pocket seller
         // pipe
 }

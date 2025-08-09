@@ -8,8 +8,7 @@ export class TrickItem extends Item {
         super(p, 100, "trick", ()=>{
             const {tx, rx} = initChannel<number>();
             new DiceEvent(tx, 1, true);
-
             rx.recv().then((n) => p.pendingCaseId = p.caseId + n);
-        })
+        }, true)
     }
 }

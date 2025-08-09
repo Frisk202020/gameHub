@@ -1,8 +1,8 @@
 import { Player } from "../Player.js";
 import { Item } from "./Item.js";
 
-export class DiceItem extends Item {
+export class Seller extends Item {
     constructor(p: Player) {
-        super(p, 250, "dice", ()=>{p.diceNumber++;}, true);
+        super(p, 100, "seller", ()=>p.generateSellMenu(), false)
     }
 }

@@ -1,4 +1,6 @@
+import { AquisitionThief } from "../item/AquisitionThief.js";
 import { DiceItem } from "../item/DiceItem.js";
+import { Seller } from "../item/Seller.js";
 import { TrickItem } from "../item/TrickItem.js";
 import { currentKeyboardEventListener, pig, players, resizables } from "./variables.js";
 
@@ -24,6 +26,8 @@ export const debugTools = {
         switch(item) {
             case "dice": p.addItem(new DiceItem(p)); break;
             case "trick": p.addItem(new TrickItem(p)); break;
+            case "aq": p.addItem(new AquisitionThief(p)); break;
+            case "seller": p.addItem(new Seller(p)); break;
             default: console.log("Unrecognized item");
         }
     }

@@ -1,11 +1,10 @@
 import { Item } from "./item/Item.js";
 import { Aquisition } from "./card/Aquisition.js";
-import { Card } from "./card/Card.js";
+import { Card, ImgFolder } from "./card/Card.js";
 import { Wonder } from "./card/Wonder.js";
-import { generateMenu, ImgFolder } from "./card/menu.js";
 import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
-import { createHelperBox, removeFromBodyOrWarn } from "./util/functions.js";
+import { createHelperBox, removeFromArray, removeFromBodyOrWarn } from "./util/functions.js";
 import { MailEvent } from "./event/MailEvent.js";
 import { initChannel, Sender } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
@@ -62,7 +61,7 @@ export class Player {
     coins: number;
     ribbons: number;
     stars: number;
-    #items: Array<Item>;
+    #items: Array<Item<any>>;
     #aquisitions: Array<Aquisition>;
     #wonders: Array<Wonder>;
     #infoBox: HTMLDivElement;
@@ -136,6 +135,14 @@ export class Player {
             this.progressiveStarChange(this.stars + boostedClone.stars);
         }
     }
+    removeRandomAquisition() {
+        return removeFromArray(this.#aquisitions, Math.floor(Math.random() * this.aquisitionCount));  
+    }
+    generateSellMenu() {
+        const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
+        Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx));
+        rx.recv().then((t) => this.#removeAquisition(t.first, t.second));
+    }
 
     addWonder(w: Wonder) {
         this.#wonders.push(w);
@@ -186,19 +193,19 @@ export class Player {
             });
         } else if (type === "sale") {
             const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
-            generateMenu(this.#aquisitions, "aquisitions", "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.", this.#sellInterface(tx, "coin"));
+            Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "coin"));
             rx.recv().then((t) => {
                 this.#removeAquisition(t.first, t.second);
             });
         } else if (type === "saleRibbon") {
             const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
-            generateMenu(this.#aquisitions, "aquisitions", "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.", this.#sellInterface(tx, "ribbon"));
+            Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "ribbon"));
             rx.recv().then((t) => {
                 this.#removeAquisition(t.first, t.second);
             });
         } else if (type === "saleStar") {
             const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
-            generateMenu(this.#aquisitions, "aquisitions", "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.", this.#sellInterface(tx, "star"));
+            Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "star"));
             rx.recv().then((t) => {
                 this.#removeAquisition(t.first, t.second);
             });
@@ -211,7 +218,7 @@ export class Player {
         return this.#items.length > 0;
     }
 
-    addItem(item: Item) {
+    addItem<T=void>(item: Item<T>) {
         if (this.#items.length === 5) {
             return false;
         }
@@ -220,7 +227,7 @@ export class Player {
         return true;
     }
 
-    removeItem(item: Item) {
+    removeItem<T = void>(item: Item<T>) {
         const index = this.#items.indexOf(item);
         if (index === -1) {
             console.log("ERROR: tried to remove a item but the player didn't have it.");
@@ -499,7 +506,7 @@ export class Player {
         }
 
         element.addEventListener("click", () => {
-            generateMenu(folder, imgFolder, clickMsg);
+            Card.generateMenu(folder, imgFolder, clickMsg);
         });
     }
 
@@ -551,7 +558,7 @@ export class Player {
         return elm;
     }
 
-    #sellInterface(tx: Sender<Tuple<Aquisition, Aquisition>>, type: Money) {
+    #sellInterface(tx: Sender<Tuple<Aquisition, Aquisition>>, type?: Money) {
         return { tx, type }
     }
 }
