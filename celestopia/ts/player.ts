@@ -18,7 +18,7 @@ import { Tuple } from "./util/tuple.js";
 import { Magic } from "./event/Magic.js";
 import { ItemMenu } from "./item/ItemMenu.js";
 
-type Avatar = "hat";
+type Avatar = "hat" | "strawberry" | "crown" | "dice" | "heart";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
 type PlayerId = 1 | 2 | 3 | 4;
 
@@ -521,7 +521,7 @@ export class Player {
         box.style.display = "flex";
         box.style.justifyContent = "center";
         box.style.alignItems = "center";
-        box.appendChild(this.#createAction("dice.png", "Lancez le dé quand c'est votre tour.", () => { 
+        box.appendChild(this.#createAction("diceAction.png", "Lancez le dé quand c'est votre tour.", () => { 
             const {tx, rx} = initChannel<number>();
             new DiceEvent(tx, this.diceNumber, false);
             rx.recv().then((n) => this.pendingCaseId = this.caseId + n); 

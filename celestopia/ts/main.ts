@@ -89,9 +89,9 @@ async function gameRenderLoop() {
 function main() {
     gameRenderLoop();
 
-    const frisk = new Player(1, "Frisk", "hat");
-    const dokueki = new Player(2, "Dokueki", "hat");
-    const q = new Player(3, "New Quark", "hat");
+    const frisk = new Player(1, "Frisk", "strawberry");
+    const dokueki = new Player(2, "Dokueki", "crown");
+    const q = new Player(3, "New Quark", "dice");
     const cas = new Player(4, "Casyaks", "hat");
 
     players.push(frisk);
