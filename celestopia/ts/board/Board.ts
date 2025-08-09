@@ -21,8 +21,8 @@ class Board {
 
         switch(id) {
             case 0: board = this.#board0(); break;
-            case 1: board = this.#board2(); break;
-            case 2: board = this.#board3();
+            case 1: board = this.#board1(); break;
+            case 2: board = this.#board2();
         }
 
         this.#elements = board.elements;
@@ -35,6 +35,8 @@ class Board {
 
     get elements() {
         return this.#elements;
+    } get height() {
+        return this.#height;
     }
 
     #stylish(): void {
@@ -62,7 +64,7 @@ class Board {
             let elm = this.#elements[i];
             if (elm instanceof Case) {
                 if (i < this.#elements.length - 1) {
-                    const nextElm = this. #elements[i + 1];
+                    const nextElm = this.#elements[i + 1];
 
                     if (nextElm instanceof Case) {
                         if (nextElm.position.x === elm.position.x || nextElm.position.y === elm.position.y) {
@@ -97,7 +99,7 @@ class Board {
                 new Case(new Position(12, 3), "redCoin"),
                 new Case(new Position(13, 3), "dice"),
                 new Case(new Position(14, 3), "aquisition"),
-                new Case(new Position(15, 2), "wonder", "vertiacal-backwards", undefined, undefined, "astropy"),
+                new Case(new Position(15, 2), "wonder", "vertical-backwards", undefined, undefined, "astropy"),
                 new Case(new Position(14, 1), "duel", "backwards"),
                 new Case(new Position(13, 1), "furnace", "backwards"),
                 new Case(new Position(12, 1), "greenEvent", "backwards"),
@@ -121,22 +123,62 @@ class Board {
     }
 
     // TODO
-    #board2(): BoardConstructor {
+    #board1(): BoardConstructor {
         return {
-            elements: Array(),
-            background: "Quartier chic",
-            length: 0,
-            height: 0,
-        }
+            elements: Array(
+                new Case(new Position(0, 1), "start"),
+                new Case(new Position(1, 1), "aquisition"),
+                new Case(new Position(2, 1), "aquisition"),
+                new Case(new Position(3, 2), "blueCoin", "vertical-backwards"),
+                new Case(new Position(3, 3), "item", "vertical-backwards"),
+                new Case(new Position(3, 4), "saleRibbon", "vertical-backwards"),
+                new Case(new Position(4, 5), "ladder"),
+                new Case(new Position(5, 4), "postBox", "vertical"),
+                new Case(new Position(5, 3), "sale", "vertical"),
+                new Case(new Position(5, 2), "duel", "vertical"),
+                new Case(new Position(6, 1), "greenEvent"),
+                new Case(new Position(7, 2), "piggy", "vertical-backwards"),
+                new Case(new Position(7, 3), "3Mail", "vertical-backwards"),
+                new Case(new Position(7, 4), "redCoin", "vertical-backwards"),
+                new Case(new Position(8, 5), "redCoin"),
+                new Case(new Position(9, 5), "blueCoin"),
+                new Case(new Position(10, 5), "aquisition"),
+                new Case(new Position(11, 5), "ladder"),
+                new Case(new Position(12, 5), "ladder"),
+                new Case(new Position(11, 3), "blueCoin", "vertical-backwards"),
+                new Case(new Position(11, 2), "wonder", "vertical-backwards", undefined, undefined, "dress"),
+                new Case(new Position(11, 1), "redCoin", "vertical-backwards"),
+                new Case(new Position(13, 3), "redCoin", "vertical-backwards"),
+                new Case(new Position(13, 2), "wonder", "vertical-backwards", undefined, undefined, "bridge"),
+                new Case(new Position(13, 1), "blueCoin", "vertical-backwards"),
+                new Case(new Position(14, 0), "greenEvent"),
+                new Case(new Position(15, 0), "saleRibbon"),
+                new Case(new Position(16, 0), "furnace"),
+                new Case(new Position(17, 1), "mail", "vertical"),
+                new Case(new Position(18, 2), "5Mail", "vertical"),
+                new Case(new Position(18, 3), "postBox", "vertical"),
+                new Case(new Position(18, 4), "piggy", "vertical"),
+                new Case(new Position(19, 5), "ladder"),
+                new Case(new Position(20, 5), "teleporter"),
+                new Case(new Position(21, 4), "furnace", "vertical-backwards"),
+                new Case(new Position(21, 3), "greenEvent", "vertical-backwards"),
+                new Case(new Position(21, 2), "duel", "vertical-backwards"),
+                new Case(new Position(21, 1), "greenEvent", "vertical-backwards"),
+                new Case(new Position(21, 0), "sale", "vertical-backwards"),
+            ),
+            background: "Banlieue",
+            length: 22,
+            height: 6,
+        };
     }
 
     // TODO
-    #board3(): BoardConstructor {
+    #board2(): BoardConstructor {
         return {
             elements: Array(),
             background: "Spatioport",
             length: 0,
-            height: 0,
+            height: 0
         }
     }
 }

@@ -11,7 +11,7 @@ export function setGlobalKeyboardListener(listener: KeyboardListener) {
 
 export const resizables: DynamicPlacement[] = Array();
 export const players: Player[] = Array();
-export const board = buildBoard(0);
+export const board = buildBoard(1);
 
 export const pig = new Piggy();
 

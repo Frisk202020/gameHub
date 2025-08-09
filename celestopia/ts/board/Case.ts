@@ -31,7 +31,7 @@ const descriptions = {
     "item": "Obtenez un objet aléatoire."
 }
 
-type WalkWay = "straight" | "backwards" | "vertical" | "vertiacal-backwards";
+type WalkWay = "straight" | "backwards" | "vertical" | "vertical-backwards";
 
 export const caseSize = 100;
 const caseMargin = 50;
@@ -88,7 +88,7 @@ export class Case extends BoardElement {
             case "straight": output = this.#uiPosition.translate(this.#padding, caseSize / 2); break;
             case "backwards": output = this.#uiPosition.translate(caseSize - this.#padding, caseSize / 2); break;
             case "vertical": output = this.#uiPosition.translate(caseSize/2, caseSize - this.#padding); break;
-            case "vertiacal-backwards": output = this.#uiPosition.translate(caseSize/2, this.#padding);
+            case "vertical-backwards": output = this.#uiPosition.translate(caseSize/2, this.#padding);
         }
 
         return output;
@@ -98,7 +98,7 @@ export class Case extends BoardElement {
             case "straight": output = this.#uiPosition.translate(caseSize - this.#padding, caseSize / 2); break;
             case "backwards": output = this.#uiPosition.translate(this.#padding, caseSize / 2); break;
             case "vertical": output = this.#uiPosition.translate(caseSize/2, this.#padding); break;
-            case "vertiacal-backwards": output = this.#uiPosition.translate(caseSize/2, caseSize - 2 * this.#padding);
+            case "vertical-backwards": output = this.#uiPosition.translate(caseSize/2, caseSize - 2 * this.#padding);
         }
 
         return output;
