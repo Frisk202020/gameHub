@@ -1,7 +1,7 @@
 import { WonderName } from "../card/Wonder.js";
 import { createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
 import { Position } from "../util/Position.js";
-import { BoardElement } from "./BoardElement.js";
+import { BoardElement, WalkWay } from "./BoardElement.js";
 
 const caseFolder = "get_file/celestopia/assets/cases/";
 export type caseType = "blueCoin" | "redCoin" | "greenEvent" |
@@ -31,8 +31,6 @@ const descriptions = {
     "item": "Obtenez un objet aléatoire."
 }
 
-type WalkWay = "straight" | "backwards" | "vertical" | "vertical-backwards";
-
 export const caseSize = 100;
 const caseMargin = 50;
 export const defaultCasePadding = 48 * caseSize / 729;
@@ -42,22 +40,22 @@ export class Case extends BoardElement {
     #type: caseType;
     #position: Position;
     #uiPosition: Position;
-    #walkWay: WalkWay;
     #size: number;
     #link: string;
     #padding: number;
     #description: string;
+    #convex?: boolean;
 
-    constructor(position: Position, type: caseType, walkway?: WalkWay, padding?: number, destination?: number, wonder?: WonderName) {
-        super();
+    constructor(position: Position, type: caseType, walkway?: WalkWay, convex?: boolean, padding?: number, destination?: number, wonder?: WonderName) {
+        super(walkway);
         this.#type = type;
         this.#position = position;
         this.#uiPosition = new Position(caseMargin + position.x * (caseMargin + caseSize), caseMargin + position.y * (caseMargin + caseSize));
-        this.#walkWay = walkway === undefined ? "straight" : walkway;
         this.#size = caseSize;
         this.#link = caseFolder + type + ".png";
         this.#padding = padding === undefined ? defaultCasePadding : padding;
         this.#description = descriptions[type];
+        this.#convex = convex;
 
         if (type === "ladder") {
             if (destination ===  undefined) {
@@ -84,24 +82,26 @@ export class Case extends BoardElement {
         return this.#position;
     } get beginPos() {
         let output: Position;
-        switch (this.#walkWay) {
+        switch (this.walkWay) {
             case "straight": output = this.#uiPosition.translate(this.#padding, caseSize / 2); break;
             case "backwards": output = this.#uiPosition.translate(caseSize - this.#padding, caseSize / 2); break;
-            case "vertical": output = this.#uiPosition.translate(caseSize/2, caseSize - this.#padding); break;
-            case "vertical-backwards": output = this.#uiPosition.translate(caseSize/2, this.#padding);
+            case "downwards": output = this.#uiPosition.translate(caseSize/2, this.#padding); break;
+            case "upwards": output = this.#uiPosition.translate(caseSize/2, caseSize - this.#padding);
         }
 
         return output;
     } get endPos() {
         let output: Position;
-        switch (this.#walkWay) {
+        switch (this.walkWay) {
             case "straight": output = this.#uiPosition.translate(caseSize - this.#padding, caseSize / 2); break;
             case "backwards": output = this.#uiPosition.translate(this.#padding, caseSize / 2); break;
-            case "vertical": output = this.#uiPosition.translate(caseSize/2, this.#padding); break;
-            case "vertical-backwards": output = this.#uiPosition.translate(caseSize/2, caseSize - 2 * this.#padding);
+            case "downwards": output = this.#uiPosition.translate(caseSize/2, caseSize - this.#padding); break;
+            case "upwards": output = this.#uiPosition.translate(caseSize/2, this.#padding);
         }
 
         return output;
+    } get convex() {
+        return this.#convex;
     }
 
     createHtmlElement() {
