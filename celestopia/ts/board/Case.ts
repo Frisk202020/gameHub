@@ -45,7 +45,13 @@ export interface CaseConfig {
     convex?: boolean,
     padding?: number,
     ladderDestination?: number,
-    wonderName?: WonderName
+    wonderName?: WonderName,
+    intersectionConfig?: IntersectionConfig,
+}
+
+export interface IntersectionConfig {
+    leftId: number,
+    rightId: number,
 }
 
 export class Case {
@@ -78,6 +84,7 @@ export class Case {
         if (config.nextId !== undefined) { this.#nextId = config.nextId; }
         if (config.targetSide !== undefined) { this.#nextSide = config.targetSide; }
         if (config.padding !== undefined) { this.#padding = config.padding; }
+        if (config.intersectionConfig !== undefined) { (this as any).intersection = config.intersectionConfig; }
 
         return this;
     }
@@ -131,6 +138,8 @@ export class Case {
             case "left": return this.#leftSide;
             case "right": return this.#rightSide;
         }
+    } getDefaultRadius(other: Case) {
+        return Math.abs(other.uiPosition.y - this.uiPosition.y) - this.size/2;
     }
 
     createHtmlElement() {

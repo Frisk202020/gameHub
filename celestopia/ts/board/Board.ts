@@ -1,5 +1,6 @@
-import { Case, defaultCasePadding } from "./Case.js";
+import { Case, defaultCasePadding, IntersectionConfig } from "./Case.js";
 import { Position } from "../util/Position.js";
+import { Tuple } from "../util/tuple.js";
 
 export type BoardId = 0 | 1 | 2;
 export function buildBoard(id: BoardId) {
@@ -78,12 +79,22 @@ class Board {
                     nextPos = nextElm.getSide(elm.nextSide);
                 }
 
-                if (elm.convex === undefined) {
-                    drawLine(elm.endPos, nextPos, "#ffd700");
+                if (elm.type === "intersection") {
+                    const config = (elm as any).intersection as IntersectionConfig;
+                    drawIntersectionLines(
+                        elm, 
+                        this.#elements[config.leftId].beginPos, 
+                        this.#elements[config.rightId].beginPos, 
+                        "#ffd700", 
+                        {radius: elm.getDefaultRadius(nextElm), convex: false}
+                    );
                 } else {
-                    drawLine(elm.endPos, nextPos, "#ffd700", { radius: Math.abs(nextElm.uiPosition.y - elm.uiPosition.y) - elm.size/2, convex: elm.convex });
+                    if (elm.convex === undefined) {
+                        drawLine(elm.endPos, nextPos, "#ffd700");
+                    } else {
+                        drawLine(elm.endPos, nextPos, "#ffd700", { radius: elm.getDefaultRadius(nextElm), convex: elm.convex })
+                    }
                 }
-                
             }
             boardDiv.appendChild(elm.createHtmlElement());
         }
@@ -155,7 +166,7 @@ class Board {
                 new Case(new Position(10, 0), "aquisition"),
                 new Case(new Position(11, 0), "ladder", "straight").withCaseConfig({ladderDestination: 6}),
                 new Case(new Position(12, 0), "ladder", "straight").withCaseConfig({ladderDestination: 32, convex: false}),
-                new Case(new Position(13, 1), "intersection", "downwards"),
+                new Case(new Position(13, 1), "intersection", "downwards").withCaseConfig({intersectionConfig: {leftId: 20, rightId: 23}}),
                 new Case(new Position(12, 2), "blueCoin", "downwards"),
                 new Case(new Position(12, 3), "wonder", "downwards").withCaseConfig({wonderName: "dress"}),
                 new Case(new Position(12, 4), "redCoin", "downwards").withCaseConfig({nextId: 26, convex: true, targetSide: "left"}),
@@ -221,6 +232,37 @@ function drawLine(from: Position, to: Position, color: string, arcConfig?: ArcCo
     context.strokeStyle = color;
     context.lineWidth = 5;
     context.stroke();
+}
+
+function drawIntersectionLines(elm: Case, leftPos: Position, rightPos: Position, color: string, arcConfig: ArcConfig): void {
+    if (elm.type !== "intersection") {
+        console.log("ERROR: tried to draw intersections lines on wrong case type -- aborting");
+        return;
+    } 
+    if (boardCanvas === undefined) {
+        console.log("can't draw lines because board's canvas is undefined");
+        return;
+    }
+
+    const canvas = boardCanvas;
+    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    context.beginPath();
+
+    for (const t of [new Tuple(elm.getSide("left"), leftPos), new Tuple(elm.getSide("right"), rightPos)]) {
+        const from = t.first;
+        const to = t.second;
+
+        context.moveTo(from.x, from.y);
+        if (from.y > to.y && arcConfig.convex || from.y < to.y && !arcConfig.convex) {
+            context.arcTo(to.x, from.y, to.x, to.y, arcConfig.radius + defaultCasePadding);
+        } else {
+            context.arcTo(from.x, to.y, to.x, to.y, arcConfig.radius + defaultCasePadding);
+        }
+
+        context.strokeStyle = color;
+        context.lineWidth = 5;
+        context.stroke();
+    }
 }
 
 interface BoardConstructor {
