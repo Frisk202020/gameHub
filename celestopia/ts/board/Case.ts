@@ -1,12 +1,11 @@
 import { WonderName } from "../card/Wonder.js";
 import { createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
 import { Position } from "../util/Position.js";
-import { BoardElement, WalkWay } from "./BoardElement.js";
 
 const caseFolder = "get_file/celestopia/assets/cases/";
 export type caseType = "blueCoin" | "redCoin" | "greenEvent" |
     "mail" | "3Mail" | "5Mail" | "furnace" | "postBox" | "ladder" | "teleporter" | "dice" | "duel" |
-    "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start" | "item";
+    "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start" | "item" | "intersection";
 
 const descriptions = {
     "start": "Le début d'un long voyage...",
@@ -28,7 +27,8 @@ const descriptions = {
     "saleRibbon": "Vendez une aquisition. Les aquisitions de type 'rubban' rapporteront plus gros.",
     "saleStar": "Vendez une aquisition. Les aquisitions de type 'étoile' rapporteront plus gros.",
     "wonder": "Achetez une merveille si vous en avez les moyens !",
-    "item": "Obtenez un objet aléatoire."
+    "item": "Obtenez un objet aléatoire.",
+    "intersection": "Vous pouvez choisir quel chemin emprunter",
 }
 
 export const caseSize = 100;
@@ -36,7 +36,21 @@ const caseMargin = 50;
 export const defaultCasePadding = 48 * caseSize / 729;
 let pHelpBox: HTMLParagraphElement | undefined;
 
-export class Case extends BoardElement {
+type WalkWay = "straight" | "backwards" | "upwards" | "downwards";
+type Side = "top" | "bottom" | "right" | "left";
+
+export interface CaseConfig {
+    nextId?: number,
+    targetSide?: Side,
+    convex?: boolean,
+    padding?: number,
+    ladderDestination?: number,
+    wonderName?: WonderName
+}
+
+export class Case {
+    #nextId?: number;
+    #nextSide?: Side;
     #type: caseType;
     #position: Position;
     #uiPosition: Position;
@@ -44,35 +58,33 @@ export class Case extends BoardElement {
     #link: string;
     #padding: number;
     #description: string;
+    #walkWay: WalkWay;
     #convex?: boolean;
 
-    constructor(position: Position, type: caseType, walkway?: WalkWay, convex?: boolean, padding?: number, destination?: number, wonder?: WonderName) {
-        super(walkway);
+    constructor(position: Position, type: caseType, walkway?: WalkWay) {
         this.#type = type;
         this.#position = position;
         this.#uiPosition = new Position(caseMargin + position.x * (caseMargin + caseSize), caseMargin + position.y * (caseMargin + caseSize));
         this.#size = caseSize;
         this.#link = caseFolder + type + ".png";
-        this.#padding = padding === undefined ? defaultCasePadding : padding;
+        this.#padding = defaultCasePadding;
         this.#description = descriptions[type];
-        this.#convex = convex;
+        walkway === undefined ? this.#walkWay = "straight" : this.#walkWay = walkway
+    }
+    withCaseConfig(config: CaseConfig): Case {
+        if (config.convex !== undefined) { this.#convex = config.convex; }
+        if (config.ladderDestination !== undefined) { (this as any).destination = config.ladderDestination; }
+        if (config.wonderName !== undefined) { (this as any).wonder = config.wonderName; }
+        if (config.nextId !== undefined) { this.#nextId = config.nextId; }
+        if (config.targetSide !== undefined) { this.#nextSide = config.targetSide; }
+        if (config.padding !== undefined) { this.#padding = config.padding; }
 
-        if (type === "ladder") {
-            if (destination ===  undefined) {
-                console.log("ERROR: initiated a ladder case without a destination");
-            } else {
-                (this as any).destination = destination;
-            }
-        } else if (type === "wonder") {
-            if (wonder === undefined) {
-                console.log("ERROR: initiatedd a wonder case without a wonder name");
-            } else {
-                (this as any).wonder = wonder;
-            }
-        }
+        return this;
     }
 
-    get size() {
+    get nextSide() {
+        return this.#nextSide;
+    } get size() {
         return this.#size;
     } get type() {
         return this.#type;
@@ -82,26 +94,43 @@ export class Case extends BoardElement {
         return this.#position;
     } get beginPos() {
         let output: Position;
-        switch (this.walkWay) {
-            case "straight": output = this.#uiPosition.translate(this.#padding, caseSize / 2); break;
-            case "backwards": output = this.#uiPosition.translate(caseSize - this.#padding, caseSize / 2); break;
-            case "downwards": output = this.#uiPosition.translate(caseSize/2, this.#padding); break;
-            case "upwards": output = this.#uiPosition.translate(caseSize/2, caseSize - this.#padding);
+        switch (this.#walkWay) {
+            case "straight": output = this.#leftSide; break;
+            case "backwards": output = this.#rightSide; break;
+            case "downwards": output = this.#topSide; break;
+            case "upwards": output = this.#downSide;
         }
 
         return output;
     } get endPos() {
         let output: Position;
-        switch (this.walkWay) {
-            case "straight": output = this.#uiPosition.translate(caseSize - this.#padding, caseSize / 2); break;
-            case "backwards": output = this.#uiPosition.translate(this.#padding, caseSize / 2); break;
-            case "downwards": output = this.#uiPosition.translate(caseSize/2, caseSize - this.#padding); break;
-            case "upwards": output = this.#uiPosition.translate(caseSize/2, this.#padding);
+        switch (this.#walkWay) {
+            case "straight": output = this.#rightSide; break;
+            case "backwards": output = this.#leftSide; break;
+            case "downwards": output = this.#downSide; break;
+            case "upwards": output = this.#topSide;
         }
 
         return output;
     } get convex() {
         return this.#convex;
+    } get nextId() {
+        return this.#nextId;
+    } get #leftSide() {
+        return this.#uiPosition.translate(this.#padding, caseSize / 2);
+    } get #rightSide() {
+        return this.#uiPosition.translate(caseSize - this.#padding, caseSize / 2);
+    } get #topSide() {
+        return this.#uiPosition.translate(caseSize/2, this.#padding);;
+    } get #downSide() {
+        return this.#uiPosition.translate(caseSize/2, caseSize - this.#padding);
+    } getSide(input: Side) {
+        switch(input) {
+            case "bottom": return this.#downSide;
+            case "top": return this.#topSide;
+            case "left": return this.#leftSide;
+            case "right": return this.#rightSide;
+        }
     }
 
     createHtmlElement() {

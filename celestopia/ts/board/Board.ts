@@ -1,6 +1,5 @@
-import { Case } from "./Case.js";
+import { Case, defaultCasePadding } from "./Case.js";
 import { Position } from "../util/Position.js";
-import { BoardElement } from "./BoardElement.js";
 
 export type BoardId = 0 | 1 | 2;
 export function buildBoard(id: BoardId) {
@@ -9,9 +8,13 @@ export function buildBoard(id: BoardId) {
 export let boardCanvas: HTMLCanvasElement | undefined;
 
 type BoardBackground = "Banlieue" | "Quartier chic" | "Spatioport";
+interface ArcConfig {
+    radius: number,
+    convex: boolean,
+}
 
 class Board {
-    #elements: Array<BoardElement>;
+    #elements: Array<Case>;
     #background: BoardBackground;
     #length: number;
     #height: number;
@@ -61,20 +64,28 @@ class Board {
 
         for (let i = 0; i < this.#elements.length; i++) {
             let elm = this.#elements[i];
-            if (elm instanceof Case) {
-                if (i < this.#elements.length - 1) {
-                    const nextElm = this.#elements[i + 1];
-
-                    if (nextElm instanceof Case) {
-                        if (elm.convex === undefined) {
-                            elm.drawLine(nextElm, "#ffd700");
-                        } else {
-                            elm.drawLine(nextElm, "#ffd700", { radius: Math.abs(nextElm.uiPosition.y - elm.uiPosition.y) - elm.size/2, convex: elm.convex });
-                        }
-                    }
+            if (i < this.#elements.length - 1) {
+                let nextElm: Case;
+                if (elm.nextId === undefined) {
+                    nextElm = this.#elements[i + 1];
+                } else {
+                    nextElm = this.#elements[elm.nextId];
                 }
-                boardDiv.appendChild(elm.createHtmlElement());
-            } 
+                let nextPos: Position;
+                if (elm.nextSide === undefined) {
+                    nextPos = nextElm.beginPos;
+                } else {
+                    nextPos = nextElm.getSide(elm.nextSide);
+                }
+
+                if (elm.convex === undefined) {
+                    drawLine(elm.endPos, nextPos, "#ffd700");
+                } else {
+                    drawLine(elm.endPos, nextPos, "#ffd700", { radius: Math.abs(nextElm.uiPosition.y - elm.uiPosition.y) - elm.size/2, convex: elm.convex });
+                }
+                
+            }
+            boardDiv.appendChild(elm.createHtmlElement());
         }
 
         document.body.appendChild(boardDiv);
@@ -88,7 +99,7 @@ class Board {
                 new Case(new Position(2, 3), "greenEvent"),
                 new Case(new Position(3, 3), "3Mail"),
                 new Case(new Position(4, 3), "aquisition"),
-                new Case(new Position(5, 3), "ladder", undefined, undefined, 28),
+                new Case(new Position(5, 3), "ladder").withCaseConfig({ladderDestination: 28}),
                 new Case(new Position(6, 3), "blueCoin"),
                 new Case(new Position(7, 3), "blueCoin"),
                 new Case(new Position(8, 3), "redCoin"),
@@ -97,8 +108,8 @@ class Board {
                 new Case(new Position(11, 3), "redCoin"),
                 new Case(new Position(12, 3), "redCoin"),
                 new Case(new Position(13, 3), "dice"),
-                new Case(new Position(14, 3), "aquisition", "straight", true),
-                new Case(new Position(15, 2), "wonder", "upwards", false, undefined, undefined, "astropy"),
+                new Case(new Position(14, 3), "aquisition", "straight").withCaseConfig({convex: true}),
+                new Case(new Position(15, 2), "wonder", "upwards").withCaseConfig({convex: false, wonderName: "astropy"}),
                 new Case(new Position(14, 1), "duel", "backwards"),
                 new Case(new Position(13, 1), "furnace", "backwards"),
                 new Case(new Position(12, 1), "greenEvent", "backwards"),
@@ -111,9 +122,9 @@ class Board {
                 new Case(new Position(5, 1), "item", "backwards"),
                 new Case(new Position(4, 1), "item", "backwards"),
                 new Case(new Position(3, 1), "duel", "backwards"),
-                new Case(new Position(2, 1), "ladder", "backwards", undefined, 5),
+                new Case(new Position(2, 1), "ladder", "backwards").withCaseConfig({ladderDestination: 5}),
                 new Case(new Position(1, 1), "postBox", "backwards"),
-                new Case(new Position(0, 1), "teleporter", "backwards", undefined, 0)
+                new Case(new Position(0, 1), "teleporter", "backwards")
             ),
             background: "Banlieue",
             length: 16,
@@ -127,46 +138,50 @@ class Board {
             elements: Array(
                 new Case(new Position(0, 4), "start"),
                 new Case(new Position(1, 4), "aquisition"),
-                new Case(new Position(2, 4), "aquisition", "straight", true),
+                new Case(new Position(2, 4), "aquisition", "straight").withCaseConfig({convex: true}),
                 new Case(new Position(3, 3), "blueCoin", "upwards"),
                 new Case(new Position(3, 2), "item", "upwards"),
-                new Case(new Position(3, 1), "saleRibbon", "upwards", false),
-                new Case(new Position(4, 0), "ladder", "straight", false, undefined, 17),
+                new Case(new Position(3, 1), "saleRibbon", "upwards").withCaseConfig({convex: false}),
+                new Case(new Position(4, 0), "ladder", "straight").withCaseConfig({convex: false, ladderDestination: 17}),
                 new Case(new Position(5, 1), "postBox", "downwards"),
                 new Case(new Position(5, 2), "sale", "downwards"),
-                new Case(new Position(5, 3), "duel", "downwards", true),
-                new Case(new Position(6, 4), "greenEvent", "straight", true),
+                new Case(new Position(5, 3), "duel", "downwards").withCaseConfig({convex: true}),
+                new Case(new Position(6, 4), "greenEvent", "straight").withCaseConfig({convex: true}),
                 new Case(new Position(7, 3), "piggy", "upwards"),
                 new Case(new Position(7, 2), "3Mail", "upwards"),
-                new Case(new Position(7, 1), "redCoin", "upwards", false),
+                new Case(new Position(7, 1), "redCoin", "upwards").withCaseConfig({convex: false}),
                 new Case(new Position(8, 0), "redCoin"),
                 new Case(new Position(9, 0), "blueCoin"),
                 new Case(new Position(10, 0), "aquisition"),
-                new Case(new Position(11, 0), "ladder", "straight", undefined, undefined, 6),
-                new Case(new Position(12, 0), "ladder", "straight", undefined, undefined, 32),
-                new Case(new Position(11, 2), "blueCoin", "downwards"),
-                new Case(new Position(11, 3), "wonder", "downwards", undefined, undefined, undefined, "dress"),
-                new Case(new Position(11, 4), "redCoin", "downwards"),
-                new Case(new Position(13, 2), "redCoin", "downwards"),
-                new Case(new Position(13, 3), "wonder", "downwards", undefined, undefined, undefined, "bridge"),
-                new Case(new Position(13, 4), "blueCoin", "downwards"),
-                new Case(new Position(14, 5), "greenEvent"),
-                new Case(new Position(15, 5), "saleRibbon"),
-                new Case(new Position(16, 5), "furnace", "straight", true),
-                new Case(new Position(17, 4), "mail", "upwards"),
-                new Case(new Position(17, 3), "5Mail", "upwards"),
-                new Case(new Position(17, 2), "postBox", "upwards"),
-                new Case(new Position(17, 1), "piggy", "upwards", false),
-                new Case(new Position(18, 0), "ladder", "straight", undefined, undefined, 18),
-                new Case(new Position(19, 0), "teleporter", "straight", false),
-                new Case(new Position(20, 1), "furnace", "downwards"),
-                new Case(new Position(20, 2), "greenEvent", "downwards"),
-                new Case(new Position(20, 3), "duel", "downwards"),
-                new Case(new Position(20, 4), "greenEvent", "downwards"),
-                new Case(new Position(20, 5), "sale", "downwards"),
+                new Case(new Position(11, 0), "ladder", "straight").withCaseConfig({ladderDestination: 6}),
+                new Case(new Position(12, 0), "ladder", "straight").withCaseConfig({ladderDestination: 32, convex: false}),
+                new Case(new Position(13, 1), "intersection", "downwards"),
+                new Case(new Position(12, 2), "blueCoin", "downwards"),
+                new Case(new Position(12, 3), "wonder", "downwards").withCaseConfig({wonderName: "dress"}),
+                new Case(new Position(12, 4), "redCoin", "downwards").withCaseConfig({nextId: 26, convex: true, targetSide: "left"}),
+                new Case(new Position(14, 2), "redCoin", "downwards"),
+                new Case(new Position(14, 3), "wonder", "downwards").withCaseConfig({wonderName: "bridge"}),
+                new Case(new Position(14, 4), "blueCoin", "downwards").withCaseConfig({convex: true, targetSide: "right"}),
+                new Case(new Position(13, 5), "aquisition", "downwards").withCaseConfig({convex: true}),
+                new Case(new Position(14, 6), "greenEvent"),
+                new Case(new Position(15, 6), "greenEvent"),
+                new Case(new Position(16, 6), "saleRibbon"),
+                new Case(new Position(17, 6), "furnace", "straight").withCaseConfig({convex: true}),
+                new Case(new Position(18, 5), "item", "upwards"),
+                new Case(new Position(18, 4), "mail", "upwards"),
+                new Case(new Position(18, 3), "5Mail", "upwards"),
+                new Case(new Position(18, 2), "postBox", "upwards"),
+                new Case(new Position(18, 1), "piggy", "upwards").withCaseConfig({convex: false}),
+                new Case(new Position(19, 0), "ladder", "straight").withCaseConfig({ladderDestination: 18}),
+                new Case(new Position(20, 0), "teleporter", "straight").withCaseConfig({convex: false}),
+                new Case(new Position(21, 1), "furnace", "downwards"),
+                new Case(new Position(21, 2), "greenEvent", "downwards"),
+                new Case(new Position(21, 3), "duel", "downwards"),
+                new Case(new Position(21, 4), "greenEvent", "downwards"),
+                new Case(new Position(21, 5), "sale", "downwards"),
             ),
             background: "Banlieue",
-            length: 21,
+            length: 22,
             height: 6,
         };
     }
@@ -182,8 +197,34 @@ class Board {
     }
 }
 
+function drawLine(from: Position, to: Position, color: string, arcConfig?: ArcConfig): void {
+    if (boardCanvas === undefined) {
+        console.log("can't draw lines because board's canvas is undefined");
+        return;
+    }
+
+    const canvas = boardCanvas;
+    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+
+    context.beginPath();
+    context.moveTo(from.x, from.y);
+    
+    if (arcConfig === undefined) {
+        context.lineTo(to.x, to.y);
+    } else {    
+        if (from.y > to.y && arcConfig.convex || from.y < to.y && !arcConfig.convex) {
+            context.arcTo(to.x, from.y, to.x, to.y, arcConfig.radius + defaultCasePadding);
+        } else {
+            context.arcTo(from.x, to.y, to.x, to.y, arcConfig.radius + defaultCasePadding);
+        }
+    }
+    context.strokeStyle = color;
+    context.lineWidth = 5;
+    context.stroke();
+}
+
 interface BoardConstructor {
-    elements: Array<BoardElement>
+    elements: Array<Case>
     background: BoardBackground;
     length: number;
     height: number;
