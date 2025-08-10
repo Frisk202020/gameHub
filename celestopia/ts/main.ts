@@ -1,6 +1,7 @@
 import { boardCanvas } from "./board/Board.js";
 import { Case } from "./board/Case.js";
-import { computeOnBoardPosition, Player } from "./Player.js";
+import { Player } from "./Player.js";
+import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
 import { translateAnimation, updateCounterValue } from "./util/functions.js";
 import { board, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
@@ -42,20 +43,32 @@ async function gameRenderLoop() {
 
         if (p.teleport) {
             p.caseId = p.pendingCaseId;
-            const pos = computeOnBoardPosition(board.elements[p.caseId] as Case);
-            translateAnimation(p.pawn, pos, 60, 0.25, true).then(() => p.teleport = false);
-        } else if (p.caseId < p.pendingCaseId) {
+            p.movePawn().then(() => p.teleport = false)
+        } else if (p.caseId < p.pendingCaseId) {            
             while (p.caseId < p.pendingCaseId) {
-                p.caseId++;
-                const elm = board.elements[p.caseId];
-                if (elm instanceof Case) {
-                    if (boardCanvas !== undefined) {
-                        let pos = computeOnBoardPosition(elm);
-                        await translateAnimation(p.pawn, pos , 60, 0.25, true);
-                    }
-                } else {
-                    // TODO: manage intersections
+                const currentCase = board.elements[p.caseId];
+                if (currentCase.type === "intersection") {
+                    const {tx, rx} = initChannel<void>();
+                    p.caseResponse("intersection", tx);
+                    await rx.recv();
+                    continue;
+                } else if (currentCase.type === "item") {
+                    const {tx, rx} = initChannel<void>();
+                    p.caseResponse("item", tx);
+                    await rx.recv();
                 }
+
+                if (currentCase.nextId === undefined) {
+                     p.caseId++
+                } else {
+                    const delta = p.pendingCaseId - p.caseId;
+                    p.caseId = currentCase.nextId;
+                    p.pendingCaseId = p.caseId + delta;
+                }
+                if (boardCanvas !== undefined) {
+                    await p.movePawn();
+                }
+                
 
                 await new Promise(r => setTimeout(r, 100));
             }
@@ -65,14 +78,8 @@ async function gameRenderLoop() {
         } else if (p.caseId > p.pendingCaseId) {
             while (p.caseId > p.pendingCaseId) {
                 p.caseId--;
-                const elm = board.elements[p.caseId];
-                if (elm instanceof Case) {
-                    if (boardCanvas !== undefined) {
-                        let pos = computeOnBoardPosition(elm);
-                        await translateAnimation(p.pawn, pos , 60, 0.25, true);
-                    }
-                } else {
-                    // TODO: manage intersections
+                if (boardCanvas !== undefined) {
+                    await p.movePawn();
                 }
 
                 await new Promise(r => setTimeout(r, 100));

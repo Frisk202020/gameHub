@@ -77,32 +77,32 @@ export abstract class Item<T = void> {
     }
 
     static async getRandomItem(holder: Player): Promise<Item<any>> {
-        const pick: 0 | 1 | 2| 3 | 4 | 5 = Math.floor(Math.random() * 6) as 0 | 1 | 2| 3 | 4 | 5;
+        const pick = Math.floor(Math.random() * 10);
 
         switch (pick) {
             case 0: {
-                const { DiceItem } = await import("./DiceItem.js");
-                return new DiceItem(holder);
-            }
-            case 1: {
                 const { AquisitionThief } = await import("./AquisitionThief.js");
                 return new AquisitionThief(holder);
             }
-            case 2: {
+            case 1: {
                 const { MoneyThief } = await import("./MoneyThief.js");
                 return new MoneyThief(holder);
             }
-            case 3: {
+            case 2: {
                 const { Pipe } = await import("./Pipe.js");
                 return new Pipe(holder);
             }
-            case 4: {
+            case 3: {
                 const { TrickItem } = await import("./TrickItem.js");
                 return new TrickItem(holder);
             }
-            case 5: {
+            case 4: {
                 const { Seller } = await import("./Seller.js");
                 return new Seller(holder);
+            }
+            default: {
+                const { DiceItem } = await import("./DiceItem.js");
+                return new DiceItem(holder);
             }
         }
     }

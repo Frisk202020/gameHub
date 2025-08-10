@@ -114,7 +114,7 @@ export async function translateAnimation(element: HTMLElement, target: Position,
     const dt = 1000 / frames;
     
     const rect = element.getBoundingClientRect();
-    let currentPos = new Position(correctScrollPos ? rect.left + window.scrollX : rect.left, rect.top);
+    let currentPos = correctScrollPos ? new Position(rect.left + window.scrollX, rect.top + window.scrollY) : new Position(rect.left, rect.top);
     let dP = target.difference(currentPos);
     dP.divideMut(it);
 

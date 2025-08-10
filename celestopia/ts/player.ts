@@ -4,7 +4,7 @@ import { Card, ImgFolder } from "./card/Card.js";
 import { Wonder } from "./card/Wonder.js";
 import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
-import { createHelperBox, removeFromArray, removeFromBodyOrWarn } from "./util/functions.js";
+import { createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
 import { MailEvent } from "./event/MailEvent.js";
 import { initChannel, Sender } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
@@ -17,6 +17,7 @@ import { PigEvent } from "./event/PigEvent.js";
 import { Tuple } from "./util/tuple.js";
 import { Magic } from "./event/Magic.js";
 import { ItemMenu } from "./item/ItemMenu.js";
+import { Intersection } from "./event/Intersection.js";
 
 type Avatar = "hat" | "strawberry" | "crown" | "dice" | "heart";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -148,7 +149,7 @@ export class Player {
         this.#wonders.push(w);
     }
 
-    caseResponse(type: caseType) {
+    caseResponse(type: caseType, tx?: Sender<void>) {
         if (type === "redCoin") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
@@ -211,9 +212,11 @@ export class Player {
             });
         } else if (type === "item") {
             Item.getRandomItem(this).then((i) => { 
-                new Popup(`Vous obtenez un ${i.name}`, "Objet obtenu !");
-                this.addItem(i); 
+                new Popup(`Vous obtenez un ${i.name}`, "Objet obtenu !", tx);
+                this.addItem(i);
             });
+        } else if (type === "intersection") {
+            new Intersection(this, (board.elements[this.caseId] as any).intersection, tx);
         } else {
             console.log(`unhandled case type: ${type}`);
         }
@@ -339,6 +342,17 @@ export class Player {
         this.#infoBox.classList.remove("visible");
     }
 
+    // assumes caseId has been changed by the caller (to indicate the target)
+    async movePawn() {
+        return translateAnimation(
+            this.#pawn,
+            computePawnPosition(board.elements[this.caseId]),
+            60,
+            0.25,
+            true
+        )
+    }
+
     #createHtml() {
         const player = document.createElement("div");
         player.classList.add("player");
@@ -390,7 +404,7 @@ export class Player {
         pawn.style.height = `${caseSize/2}px`
         pawn.style.position = "absolute";
         
-        const pos = computeOnBoardPosition(board.elements[this.caseId] as Case);
+        const pos = computePawnPosition(board.elements[this.caseId] as Case);
         pawn.style.left = `${pos.x}px`;
         pawn.style.top = `${pos.y}px`;
         this.#pawn = pawn;
@@ -568,6 +582,6 @@ export class Player {
     }
 }
 
-export function computeOnBoardPosition(elm: Case) {
+function computePawnPosition(elm: Case) {
     return new Position(elm.uiPosition.x + caseSize/4, elm.uiPosition.y);
 }
