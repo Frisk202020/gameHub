@@ -20,6 +20,7 @@ import { ItemMenu } from "./item/ItemMenu.js";
 import { Intersection } from "./event/Intersection.js";
 import { BoardId } from "./board/Board.js";
 import { TeleporterEvent } from "./event/TeleporterEvent.js";
+import { DuelEvent } from "./event/DuelEvent.js";
 
 export type Avatar = "hat" | "strawberry" | "crown" | "dice" | "heart";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -185,7 +186,7 @@ export class Player {
         } else if (type === "wonder") {
             new Crown(this, (board.elements[this.caseId] as any).wonder);
         } else if (type === "duel") {
-            new Popup("Participez à un duel !");
+            new DuelEvent()
         } else if (type === "piggy") {
             new PigEvent(this);
         } else if (type === "postBox") {

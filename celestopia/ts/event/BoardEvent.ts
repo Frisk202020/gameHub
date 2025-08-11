@@ -92,6 +92,18 @@ export abstract class BoardEvent {
         button.addEventListener("click", customHandler === undefined ? ()=>document.body.removeChild(this.menu)  : customHandler);
     }
 
+    protected disableOk() {
+        const button = document.getElementById("menuOk");
+        if (button === null) {
+            console.log("WARN: called disable ok while button isn't initialized yet");
+            return;
+        }
+        const clone = button.cloneNode(true) as HTMLElement;
+        button.parentNode?.replaceChild(clone, button);
+        clone.style.backgroundColor = "#aba7a7";
+        clone.className = "";
+    }
+
     protected static denySetup(append: boolean, customLabel?: string, customHandler?: ()=>void) {
         return {append, customLabel, customHandler};
     }
