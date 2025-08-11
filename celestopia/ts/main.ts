@@ -51,18 +51,10 @@ async function gameRenderLoop() {
             while (p.caseId < p.pendingCaseId) {
                 const currentCase = board.elements[p.caseId];
                 if (currentCase.type === "intersection") {
-                    const {tx, rx} = initChannel<void>();
-                    p.caseResponse("intersection", tx);
-                    await rx.recv();
+                    await p.caseResponse("intersection");
                     continue;
-                } else if (currentCase.type === "item") {
-                    const {tx, rx} = initChannel<void>();
-                    p.caseResponse("item", tx);
-                    await rx.recv();
-                } else if (currentCase.type === "teleporter") {
-                    const {tx, rx} = initChannel<void>();
-                    p.caseResponse("teleporter", tx);
-                    await rx.recv();
+                } else if (currentCase.type === "item" || currentCase.type === "teleporter") {
+                    await p.caseResponse(currentCase.type);
                 }
 
                 if (currentCase.nextId === undefined) {
@@ -81,10 +73,11 @@ async function gameRenderLoop() {
             }
 
             const caseElm = board.elements[p.caseId] as Case;
-            p.caseResponse(caseElm.type);
+            await p.caseResponse(caseElm.type);
         } else if (p.caseId > p.pendingCaseId) {
             p.caseId = p.pendingCaseId;
-            p.movePawn().then(() => p.teleport = false)
+            await p.movePawn();
+            p.teleport = false;
         }
     } 
 

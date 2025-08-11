@@ -152,7 +152,7 @@ export class Player {
         this.#wonders.push(w);
     }
 
-    caseResponse(type: caseType, tx?: Sender<void>) {
+    async caseResponse(type: caseType) {
         if (type === "redCoin") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
@@ -214,37 +214,33 @@ export class Player {
                 this.#removeAquisition(t.first, t.second);
             });
         } else if (type === "item") {
-            Item.getRandomItem(this).then((i) => { 
-                const {tx: innerTx, rx} = initChannel<void>();
-                new Popup(`Vous obtenez un ${i.name}`, "Objet obtenu !", innerTx);
-                rx.recv().then(() => {
-                    this.addItem(i).then(()=>{
-                        if (tx !== undefined) { tx.send(); };
-                    });
-                });
-            });
+            const i = await Item.getRandomItem(this);
+            const {tx: innerTx, rx} = initChannel<void>();
+            new Popup(`Vous obtenez un ${i.name}`, "Objet obtenu !", innerTx);
+            await rx.recv();
+            await this.addItem(i);
         } else if (type === "intersection") {
+            const {tx, rx} = initChannel<void>();
             new Intersection(this, (board.elements[this.caseId] as any).intersection, tx);
+            await rx.recv();
         } else if (type === "teleporter") {
             if (boardId === 2) {
                 //TODO
             } else {
-                const {tx: telTx, rx} = initChannel<boolean>();
+                const {tx, rx} = initChannel<boolean>();
                 const newBoardId = (boardId + 1) as BoardId;
-                new TeleporterEvent(this, newBoardId, telTx);
+                new TeleporterEvent(this, newBoardId, tx);
                 
-                rx.recv().then((x) => {
-                    if (x) {
-                        const delta = this.pendingCaseId - this.caseId;
-                        this.caseId = 0;
-                        this.pendingCaseId = 0;
+                const x = await rx.recv();
+                if (x) {
+                    const delta = this.pendingCaseId - this.caseId;
+                    this.caseId = 0;
+                    this.pendingCaseId = 0;
 
-                        this.boardId = newBoardId;
-                        changeBoard(newBoardId);
-                        this.pendingCaseId = this.caseId + delta;
-                    }
-                    if (tx !== undefined) { tx.send() };
-                })
+                    this.boardId = newBoardId;
+                    changeBoard(newBoardId);
+                    this.pendingCaseId = this.caseId + delta;
+                }
             }
         } 
         else {
@@ -390,7 +386,7 @@ export class Player {
             this.#pawn,
             computePawnPosition(board.elements[this.caseId]),
             60,
-            0.05,
+            0.25,
             true,
             true
         )

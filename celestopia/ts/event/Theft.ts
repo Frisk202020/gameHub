@@ -17,7 +17,7 @@ export class Theft extends Happening {
                 index++;
             }
 
-            victim = players[playerIndex];
+            victim = players[index];
         }
 
         let text: string;
