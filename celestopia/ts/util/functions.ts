@@ -108,7 +108,7 @@ export function removeFromBodyOrWarn(element: Node | undefined) {
     }
 }
 
-export async function translateAnimation(element: HTMLElement, target: Position, frames: number, timeSeconds: number, correctScrollPos: boolean) {
+export async function translateAnimation(element: HTMLElement, target: Position, frames: number, timeSeconds: number, correctScrollPos: boolean, follow?: true) {
     // assumes the element is position: absolute or fixed
     const it = timeSeconds * frames;
     const dt = 1000 / frames;
@@ -122,9 +122,24 @@ export async function translateAnimation(element: HTMLElement, target: Position,
         currentPos.translateMut(dP);
         element.style.left = `${currentPos.x}px`;
         element.style.top = `${currentPos.y}px`;
+
+        if (follow === true) { 
+            window.scrollTo({
+                left: currentPos.x - (window.innerWidth / 2) + (element.offsetWidth / 2), // keep centered
+                top: currentPos.y - (window.innerHeight / 2) + (element.offsetHeight / 2),
+                behavior: 'instant' // no built-in scroll animation
+            }); 
+        }
         await new Promise(r => setTimeout(r, dt));
     }
 
     element.style.left = `${target.x}px`;
     element.style.top = `${target.y}px`;
+}
+
+export async function appear(elm: HTMLElement) {
+    elm.classList.add("appear");
+    await new Promise(r => setTimeout(r, 1000)); // animation set to 1s by css code
+    elm.style.opacity = "1";
+    elm.classList.remove("appear");
 }

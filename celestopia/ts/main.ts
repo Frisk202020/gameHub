@@ -1,10 +1,11 @@
 import { boardCanvas } from "./board/Board.js";
 import { Case } from "./board/Case.js";
+import { DiceItem } from "./item/DiceItem.js";
 import { Player } from "./Player.js";
 import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
-import { translateAnimation, updateCounterValue } from "./util/functions.js";
-import { board, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
+import { updateCounterValue } from "./util/functions.js";
+import { board, boardId, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -41,6 +42,8 @@ async function gameRenderLoop() {
         updateCounterValue(`bankCounter`, pig.content);
         pig.setColor();
 
+        if (p.boardId !== boardId) { continue; }
+
         if (p.teleport) {
             p.caseId = p.pendingCaseId;
             p.movePawn().then(() => p.teleport = false)
@@ -56,10 +59,14 @@ async function gameRenderLoop() {
                     const {tx, rx} = initChannel<void>();
                     p.caseResponse("item", tx);
                     await rx.recv();
+                } else if (currentCase.type === "teleporter") {
+                    const {tx, rx} = initChannel<void>();
+                    p.caseResponse("teleporter", tx);
+                    await rx.recv();
                 }
 
                 if (currentCase.nextId === undefined) {
-                     p.caseId++
+                    p.caseId++
                 } else {
                     const delta = p.pendingCaseId - p.caseId;
                     p.caseId = currentCase.nextId;
@@ -76,26 +83,15 @@ async function gameRenderLoop() {
             const caseElm = board.elements[p.caseId] as Case;
             p.caseResponse(caseElm.type);
         } else if (p.caseId > p.pendingCaseId) {
-            while (p.caseId > p.pendingCaseId) {
-                p.caseId--;
-                if (boardCanvas !== undefined) {
-                    await p.movePawn();
-                }
-
-                await new Promise(r => setTimeout(r, 100));
-            }
-
-            const caseElm = board.elements[p.caseId] as Case;
-            p.caseResponse(caseElm.type);
+            p.caseId = p.pendingCaseId;
+            p.movePawn().then(() => p.teleport = false)
         }
     } 
 
     requestAnimationFrame(gameRenderLoop);
 }
 
-function main() {
-    gameRenderLoop();
-
+function initPlayers() {
     const frisk = new Player(1, "Frisk", "strawberry");
     const dokueki = new Player(2, "Dokueki", "crown");
     const q = new Player(3, "New Quark", "dice");
@@ -105,6 +101,16 @@ function main() {
     players.push(dokueki);
     players.push(q);
     players.push(cas);
+
+    for (const p of players) {
+        document.body.appendChild(p.pawn);
+    }
+}
+
+function main() {
+    initPlayers();
+    gameRenderLoop();
+    for (let i = 0; i < 5; i++) {players[0].addItem(new DiceItem(players[0]))}
 }
 
 main();

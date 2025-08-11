@@ -8,7 +8,7 @@ import { createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimat
 import { MailEvent } from "./event/MailEvent.js";
 import { initChannel, Sender } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
-import { board, Money, pig } from "./util/variables.js";
+import { board, boardId, changeBoard, Money, pig } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
 import { Chest } from "./event/Chest.js";
@@ -18,10 +18,12 @@ import { Tuple } from "./util/tuple.js";
 import { Magic } from "./event/Magic.js";
 import { ItemMenu } from "./item/ItemMenu.js";
 import { Intersection } from "./event/Intersection.js";
+import { BoardId } from "./board/Board.js";
+import { TeleporterEvent } from "./event/TeleporterEvent.js";
 
-type Avatar = "hat" | "strawberry" | "crown" | "dice" | "heart";
+export type Avatar = "hat" | "strawberry" | "crown" | "dice" | "heart";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
-type PlayerId = 1 | 2 | 3 | 4;
+export type PlayerId = 1 | 2 | 3 | 4;
 
 const playerBox: HTMLDivElement = document.getElementById("players") as HTMLDivElement;
 const activeInfoHelp = "Cliquez pour replier.";
@@ -212,12 +214,39 @@ export class Player {
             });
         } else if (type === "item") {
             Item.getRandomItem(this).then((i) => { 
-                new Popup(`Vous obtenez un ${i.name}`, "Objet obtenu !", tx);
-                this.addItem(i);
+                const {tx: innerTx, rx} = initChannel<void>();
+                new Popup(`Vous obtenez un ${i.name}`, "Objet obtenu !", innerTx);
+                rx.recv().then(() => {
+                    this.addItem(i).then(()=>{
+                        if (tx !== undefined) { tx.send(); };
+                    });
+                });
             });
         } else if (type === "intersection") {
             new Intersection(this, (board.elements[this.caseId] as any).intersection, tx);
-        } else {
+        } else if (type === "teleporter") {
+            if (boardId === 2) {
+                //TODO
+            } else {
+                const {tx: telTx, rx} = initChannel<boolean>();
+                const newBoardId = (boardId + 1) as BoardId;
+                new TeleporterEvent(this, newBoardId, telTx);
+                
+                rx.recv().then((x) => {
+                    if (x) {
+                        const delta = this.pendingCaseId - this.caseId;
+                        this.caseId = 0;
+                        this.pendingCaseId = 0;
+
+                        this.boardId = newBoardId;
+                        changeBoard(newBoardId);
+                        this.pendingCaseId = this.caseId + delta;
+                    }
+                    if (tx !== undefined) { tx.send() };
+                })
+            }
+        } 
+        else {
             console.log(`unhandled case type: ${type}`);
         }
     }
@@ -226,13 +255,25 @@ export class Player {
         return this.#items.length > 0;
     }
 
-    addItem<T=void>(item: Item<T>) {
-        if (this.#items.length === 5) {
-            return false;
+    async addItem<T=void>(item: Item<T>) {
+        if (this.#items.length >= 5) {
+            const {tx, rx} = initChannel<void>();
+            new ItemMenu(this, {item, tx});
+
+            await rx.recv();
+            return;
         }
 
         this.#items.push(item);
-        return true;
+    }
+
+    replaceItem<T>(old: Item, newItem: Item<T>) {
+        const i = this.#items.indexOf(old);
+        if (i === -1) {
+            console.log("ERROR: tried to replace item but older one is non-existant");
+        } else {
+            this.#items[i] = newItem;
+        }
     }
 
     removeItem<T = void>(item: Item<T>) {
@@ -348,7 +389,8 @@ export class Player {
             this.#pawn,
             computePawnPosition(board.elements[this.caseId]),
             60,
-            0.25,
+            0.05,
+            true,
             true
         )
     }
@@ -407,11 +449,8 @@ export class Player {
         const pos = computePawnPosition(board.elements[this.caseId] as Case);
         pawn.style.left = `${pos.x}px`;
         pawn.style.top = `${pos.y}px`;
-        this.#pawn = pawn;
-        
         pawn.style.zIndex = "3";
-        document.body.appendChild(pawn);
-
+        this.#pawn = pawn;
     }
 
     #createBanner() {
@@ -547,7 +586,7 @@ export class Player {
                 this.progressiveCoinChange(this.coins - n);
             })
         }));
-        box.appendChild(this.#createAction("bag.png", "Utilisez un objet (avant de lancer le dé).",  () => new ItemMenu(this, true)));
+        box.appendChild(this.#createAction("bag.png", "Utilisez un objet (avant de lancer le dé).",  () => new ItemMenu(this)));
         return box;
     }
 

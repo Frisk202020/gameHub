@@ -8,7 +8,6 @@ export function buildBoard(id: BoardId) {
 }
 export let boardCanvas: HTMLCanvasElement | undefined;
 
-type BoardBackground = "Banlieue" | "Quartier chic" | "Spatioport";
 interface ArcConfig {
     radius: number,
     convex: boolean,
@@ -16,7 +15,6 @@ interface ArcConfig {
 
 class Board {
     #elements: Array<Case>;
-    #background: BoardBackground;
     #length: number;
     #height: number;
 
@@ -30,7 +28,6 @@ class Board {
         }
 
         this.#elements = board.elements;
-        this.#background = board.background;
         this.#height = board.height;
         this.#length = board.length;
 
@@ -135,9 +132,8 @@ class Board {
                 new Case(new Position(3, 1), "duel", "backwards"),
                 new Case(new Position(2, 1), "ladder", "backwards").withCaseConfig({ladderDestination: 5}),
                 new Case(new Position(1, 1), "postBox", "backwards"),
-                new Case(new Position(0, 1), "teleporter", "backwards")
+                new Case(new Position(0, 1), "teleporter", "backwards").withCaseConfig({nextId: 0})
             ),
-            background: "Banlieue",
             length: 16,
             height: 3,
         };
@@ -165,7 +161,7 @@ class Board {
                 new Case(new Position(9, 0), "blueCoin"),
                 new Case(new Position(10, 0), "aquisition"),
                 new Case(new Position(11, 0), "ladder", "straight").withCaseConfig({ladderDestination: 6}),
-                new Case(new Position(12, 0), "ladder", "straight").withCaseConfig({ladderDestination: 32, convex: false}),
+                new Case(new Position(12, 0), "ladder", "straight").withCaseConfig({ladderDestination: 36, convex: false}),
                 new Case(new Position(13, 1), "intersection", "downwards").withCaseConfig({intersectionConfig: {leftId: 20, rightId: 23}}),
                 new Case(new Position(12, 2), "blueCoin", "downwards"),
                 new Case(new Position(12, 3), "wonder", "downwards").withCaseConfig({wonderName: "dress"}),
@@ -190,8 +186,8 @@ class Board {
                 new Case(new Position(21, 3), "duel", "downwards"),
                 new Case(new Position(21, 4), "greenEvent", "downwards"),
                 new Case(new Position(21, 5), "sale", "downwards"),
+                new Case(new Position(21, 6), "ladder", "downwards").withCaseConfig({nextId: 0, ladderDestination: 0})
             ),
-            background: "Banlieue",
             length: 22,
             height: 6,
         };
@@ -201,7 +197,6 @@ class Board {
     #board2(): BoardConstructor {
         return {
             elements: Array(),
-            background: "Spatioport",
             length: 0,
             height: 0
         }
@@ -267,7 +262,6 @@ function drawIntersectionLines(elm: Case, leftPos: Position, rightPos: Position,
 
 interface BoardConstructor {
     elements: Array<Case>
-    background: BoardBackground;
     length: number;
     height: number;
 }

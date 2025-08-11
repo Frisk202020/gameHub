@@ -76,6 +76,7 @@ export class Piggy {
         box.style.display = "flex";
         box.style.alignItems = "center"
         this.#box = box;
+        box.style.zIndex = "1";
 
         const counter = document.createElement("p");
         counter.id = "bankCounter";

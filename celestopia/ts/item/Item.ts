@@ -1,7 +1,6 @@
 import { Popup } from "../event/Popup.js";
 import { Player } from "../Player.js";
 import { vwToPx } from "../util/functions.js";
-import { DiceItem } from "./DiceItem.js";
 
 export abstract class Item<T = void> {
     protected holder: Player;
