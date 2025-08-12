@@ -4,7 +4,6 @@ const MAX = 10000;
 
 export class Piggy {
     content: number;
-    #box!: HTMLDivElement;
     #counter!: HTMLParagraphElement;
     #icon!: HTMLImageElement;
     #counterRevealed: boolean;
@@ -75,7 +74,6 @@ export class Piggy {
         box.style.right = "1vw";
         box.style.display = "flex";
         box.style.alignItems = "center"
-        this.#box = box;
         box.style.zIndex = "1";
 
         const counter = document.createElement("p");

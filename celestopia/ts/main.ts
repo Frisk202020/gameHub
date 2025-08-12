@@ -1,8 +1,6 @@
 import { boardCanvas } from "./board/Board.js";
 import { Case } from "./board/Case.js";
-import { DiceItem } from "./item/DiceItem.js";
 import { Player } from "./Player.js";
-import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
 import { updateCounterValue } from "./util/functions.js";
 import { board, boardId, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
@@ -103,7 +101,6 @@ function initPlayers() {
 function main() {
     initPlayers();
     gameRenderLoop();
-    for (let i = 0; i < 5; i++) {players[0].addItem(new DiceItem(players[0]))}
 }
 
 main();

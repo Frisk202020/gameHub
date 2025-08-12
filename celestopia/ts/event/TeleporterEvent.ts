@@ -8,14 +8,8 @@ export class TeleporterEvent extends BoardEvent {
     constructor(p: Player, nextId: BoardId, tx: Sender<boolean>) {
         super(
             [BoardEvent.generateTextBox(`Emprunter le téléporter pour accéder à la prochaine zone : ${boardNames[nextId]} ?`)],
-            BoardEvent.okSetup(true, "Oui", ()=>{
-                document.body.removeChild(this.menu);
-                tx.send(true)
-            }),
-            BoardEvent.denySetup(true, "Non", ()=>{
-                document.body.removeChild(this.menu);
-                tx.send(false)
-            })
+            BoardEvent.okSetup(true, "Oui", ()=>tx.send(true)),
+            BoardEvent.denySetup(true, "Non", ()=>tx.send(false))
         )
     }
 }

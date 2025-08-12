@@ -386,7 +386,7 @@ export class Player {
             this.#pawn,
             computePawnPosition(board.elements[this.caseId]),
             60,
-            0.25,
+            0.05,
             true,
             true
         )

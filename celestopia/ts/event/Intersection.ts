@@ -11,7 +11,6 @@ export class Intersection extends BoardEvent {
                 BoardEvent.generateTextBox("Choisissez le chemin à emprunter.")
             ],
             BoardEvent.okSetup(true, "Gauche", ()=>{
-                document.body.removeChild(this.menu);
                 const delta = p.pendingCaseId - p.caseId;
                 p.caseId = config.leftId;
                 p.pendingCaseId = p.caseId;
@@ -21,7 +20,6 @@ export class Intersection extends BoardEvent {
                 });
             }),
             BoardEvent.denySetup(true, "Droite", ()=>{
-                document.body.removeChild(this.menu);
                 const delta = p.pendingCaseId - p.caseId;
                 p.caseId = config.rightId;
                 p.movePawn().then(() => {

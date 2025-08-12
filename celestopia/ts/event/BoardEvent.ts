@@ -89,7 +89,7 @@ export abstract class BoardEvent {
 
         button.style.backgroundColor = "#03a316";
         button.className = "pointerHover";
-        button.addEventListener("click", customHandler === undefined ? ()=>document.body.removeChild(this.menu)  : customHandler);
+        button.addEventListener("click", this.#handlerOrDefault(customHandler));
     }
 
     protected disableOk() {
@@ -130,10 +130,11 @@ export abstract class BoardEvent {
             config.customLabel === undefined ? "Ok" : config.customLabel,
             config.enable ? "#03a316" : "#aba7a7",
             config.enable,
-            config.enable ? config.customHandler === undefined ? () => {document.body.removeChild(this.menu);} : config.customHandler : ()=>{}
+            ()=>{}
         )
         if (config.enable) {
             button.className = "pointerHover";
+            button.addEventListener("click", this.#handlerOrDefault(config.customHandler));
         }
         button.id = "menuOk";
 
@@ -145,9 +146,11 @@ export abstract class BoardEvent {
             label === undefined ? "Refuser" : label,
             "#c10a19ff",
             true,
-            handler === undefined ? () => {
-                document.body.removeChild(this.menu);
-            } : handler
+            this.#handlerOrDefault(handler)
         );
+    }
+
+    #handlerOrDefault(handler?: ()=>void) {
+        return handler === undefined ? ()=>{ document.body.removeChild(this.menu)} : ()=>{ document.body.removeChild(this.menu); handler();}
     }
 }

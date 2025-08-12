@@ -89,18 +89,12 @@ class Event extends BoardEvent {
                 moneysBox
             ],
             BoardEvent.okSetup(false, "Voler", ()=>{}),
-            BoardEvent.denySetup(true, "Annuler", ()=> {
-                document.body.removeChild(this.menu);
-                itemHolder.addItem(new MoneyThief(itemHolder));
-            })
+            BoardEvent.denySetup(true, "Annuler", ()=>itemHolder.addItem(new MoneyThief(itemHolder)))
         );
         this.#tx = tx;
     }
 
     #enableOk() {
-        this.enableOk(()=>{
-            this.#tx.send(new Tuple(this.#selectPlayer as Player, this.#selectMoney as Money));
-            document.body.removeChild(this.menu);
-        });
+        this.enableOk(()=>this.#tx.send(new Tuple(this.#selectPlayer as Player, this.#selectMoney as Money)));
     }
 }

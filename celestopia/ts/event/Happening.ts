@@ -15,7 +15,6 @@ export abstract class Happening extends BoardEvent {
         super(
             allElements,
             BoardEvent.okSetup(!disableOk, undefined, () => {
-                document.body.removeChild(this.menu);
                 this.event();
             }),
             BoardEvent.denySetup(denyButton)
@@ -28,8 +27,8 @@ export abstract class Happening extends BoardEvent {
     protected abstract event(): void;
 
     static async pickRandomEvent(player: Player): Promise<Happening> {
-        //const pick = Math.floor(Math.random() * 100);
-        const pick = 100;
+        const pick = Math.floor(Math.random() * 100);
+        
         if (pick < 25) {
             const { GiftEvent } = await import("./Gift.js");
             return new GiftEvent(player);

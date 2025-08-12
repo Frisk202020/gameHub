@@ -13,10 +13,7 @@ export class Popup extends BoardEvent {
 
         super(
             arr, 
-            tx === undefined ? BoardEvent.okSetup(true) : BoardEvent.okSetup(true, undefined, ()=>{
-                document.body.removeChild(this.menu);
-                tx.send();
-            }), 
+            tx === undefined ? BoardEvent.okSetup(true) : BoardEvent.okSetup(true, undefined, ()=>tx.send()), 
             BoardEvent.denySetup(false)
         );
     }

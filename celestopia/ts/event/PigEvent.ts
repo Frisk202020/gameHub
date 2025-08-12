@@ -10,14 +10,8 @@ export class PigEvent extends BoardEvent {
                 BoardEvent.generateTextBox("Vous avez le choix entre briser la tirelire (et récupérer son contenu), ou doubler la somme actuelle (vous ne récupérez rien). Notez que le plafond est à 10000"),
                 BoardEvent.generateTextBox("Que souhaitez vous faire ?")
             ],
-            BoardEvent.okSetup(true, "Doubler", ()=>{
-                document.body.removeChild(this.menu);
-                pig.multiply(2);
-            }),
-            BoardEvent.denySetup(true, "Briser", ()=>{
-                document.body.removeChild(this.menu);
-                p.progressiveCoinChange(p.coins + pig.break());
-            })
+            BoardEvent.okSetup(true, "Doubler", ()=>pig.multiply(2)),
+            BoardEvent.denySetup(true, "Briser", ()=>p.progressiveCoinChange(p.coins + pig.break()))
         )
     }
 }

@@ -52,10 +52,7 @@ class Event extends BoardEvent {
         super(
             [BoardEvent.generateTextBox("Choisissez le joueur avec lequel vous allez échanger de place."), box],
             BoardEvent.unappendedOkSetup(),
-            BoardEvent.denySetup(true, "Annuler", ()=>{
-                document.body.removeChild(this.menu);
-                itemHolder.addItem(new Pipe(itemHolder));
-            })
+            BoardEvent.denySetup(true, "Annuler", ()=>itemHolder.addItem(new Pipe(itemHolder)))
         )
     }
 }

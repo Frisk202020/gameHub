@@ -32,7 +32,6 @@ export class ItemMenu<T=void> extends BoardEvent {
             box.appendChild(i.getImg(() => {
                 if (this.selectItem === undefined) {
                     this.enableOk(()=>{
-                        document.body.removeChild(this.menu);
                         if (this.selectItem === undefined) {
                             console.log("ERROR: ok button is enabled but no item is selected");
                         } else {
@@ -62,10 +61,7 @@ export class ItemMenu<T=void> extends BoardEvent {
             super(
                 [BoardEvent.generateTextBox(`Remplacer un objet par un ${overflow.item.name} ?`), box],
                 BoardEvent.okSetup(false, "Remplacer"),
-                BoardEvent.denySetup(true, "Jeter", ()=>{
-                    document.body.removeChild(this.menu);
-                    overflow.tx.send();
-                })
+                BoardEvent.denySetup(true, "Jeter", ()=>overflow.tx.send())
             );
         }
 

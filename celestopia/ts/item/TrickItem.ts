@@ -1,6 +1,6 @@
 import { DiceEvent } from "../event/DiceEvent.js";
 import { Player } from "../Player.js";
-import { initChannel, Sender } from "../util/channel.js";
+import { initChannel } from "../util/channel.js";
 import { Item } from "./Item.js";
 
 export class TrickItem extends Item {

@@ -23,7 +23,6 @@ export class DuelEvent extends BoardEvent {
                         this.#selectWinner = p;
                         if (this.#selectButton === undefined) {
                             this.enableOk(() => {
-                                document.body.removeChild(this.menu);
                                 (async () => {
                                     for (const p of players) {
                                         const {tx, rx} = initChannel<void>();
@@ -130,7 +129,6 @@ class Event extends BoardEvent {
             }
             
             this.#tx.send();
-            document.body.removeChild(this.menu);
             this.#player.progressiveCoinChange(this.#player.coins + ammount);
         });
         this.enabled = true;

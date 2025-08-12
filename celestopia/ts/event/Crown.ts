@@ -21,17 +21,13 @@ export class Crown extends BoardEvent {
                     player.coins >= w.coins && player.ribbons >= w.ribbons && player.stars >= w.stars,
                     undefined,
                     () => {
-                        document.body.removeChild(this.menu);
                         player.progressiveCoinChange(player.coins - w.coins);
                         player.progressiveRibbonChange(player.ribbons - w.ribbons);
                         player.progressiveStarChange(player.stars - w.stars);
                         player.addWonder(w);
                     }
                 ),
-                BoardEvent.denySetup(true, undefined, () => {
-                    document.body.removeChild(this.menu);
-                    Wonder.returnWonder(w);
-                }),
+                BoardEvent.denySetup(true, undefined, () => Wonder.returnWonder(w)),
             )
         }
     }

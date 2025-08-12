@@ -15,10 +15,7 @@ export class Chest extends BoardEvent {
         } else {
             super(
                 [BoardEvent.generateTextBox("Voulez vous acheter une aquisition ?")],
-                BoardEvent.okSetup(true, undefined, () => {
-                    document.body.removeChild(this.menu);
-                    new ChestAccept(pick, player, false);
-                }),
+                BoardEvent.okSetup(true, undefined, () => new ChestAccept(pick, player, false)),
                 BoardEvent.denySetup(true)
             )
         }
@@ -33,7 +30,6 @@ export class ChestAccept extends BoardEvent {
                 BoardEvent.generateImage(aq.src),
             ],
             BoardEvent.okSetup(true, undefined, () => {
-                document.body.removeChild(this.menu);
                 if (!free) { player.progressiveCoinChange(player.coins - aq.price); }
                 player.addAquisition(aq);
             }),
