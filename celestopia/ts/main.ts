@@ -44,7 +44,7 @@ async function gameRenderLoop() {
 
         if (p.teleport) {
             p.caseId = p.pendingCaseId;
-            p.movePawn().then(() => p.teleport = false)
+            p.movePawn().then(() => p.teleport = false);
         } else if (p.caseId < p.pendingCaseId) {            
             while (p.caseId < p.pendingCaseId) {
                 const currentCase = board.elements[p.caseId];
@@ -53,6 +53,9 @@ async function gameRenderLoop() {
                     continue;
                 } else if (currentCase.type === "item" || currentCase.type === "teleporter") {
                     await p.caseResponse(currentCase.type);
+                } else if (currentCase.type === "end") {
+                    await p.caseResponse("end");
+                    break;
                 }
 
                 if (currentCase.nextId === undefined) {
@@ -60,13 +63,12 @@ async function gameRenderLoop() {
                 } else {
                     const delta = p.pendingCaseId - p.caseId;
                     p.caseId = currentCase.nextId;
-                    p.pendingCaseId = p.caseId + delta;
+                    p.pendingCaseId = p.caseId + delta - 1;
                 }
                 if (boardCanvas !== undefined) {
                     await p.movePawn();
                 }
                 
-
                 await new Promise(r => setTimeout(r, 100));
             }
 

@@ -11,6 +11,12 @@ function generateMenu(double: boolean, color: string) {
     bg.style.alignItems = "center";
     bg.style.flexDirection = "column";
 
+    const p = document.createElement("p");
+    p.style.fontSize = "5vh";
+    p.style.textAlign = "center";
+    p.textContent = "Payez vos courriers.";
+    bg.appendChild(p);
+
     const box = document.createElement("div");
     box.id = "prompt";
     box.style.fontSize = "5vh";

@@ -3,9 +3,9 @@ import { createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
 import { Position } from "../util/Position.js";
 
 const caseFolder = "get_file/celestopia/assets/cases/";
-export type caseType = "blueCoin" | "redCoin" | "greenEvent" |
+export type caseType = "blueCoin" | "redCoin" | "greenEvent" | "end" |
     "mail" | "3Mail" | "5Mail" | "furnace" | "postBox" | "ladder" | "teleporter" | "dice" | "duel" |
-    "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start" | "item" | "intersection";
+    "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start" | "item" | "intersection" | "star" | "redStar";
 
 const descriptions = {
     "start": "Le début d'un long voyage...",
@@ -29,6 +29,9 @@ const descriptions = {
     "wonder": "Achetez une merveille si vous en avez les moyens !",
     "item": "Obtenez un objet aléatoire.",
     "intersection": "Vous pouvez choisir quel chemin emprunter",
+    "star": "Gagnez entre 50 et 500 étoiles",
+    "redStar": "Perdez entre 50 et 500 étoiles",
+    "end": "Réclamez votre salaire après avoir payé vos courriers et des intérêts si vous êtes à découvert."
 }
 
 export const caseSize = 100;
@@ -41,6 +44,7 @@ type Side = "top" | "bottom" | "right" | "left";
 
 export interface CaseConfig {
     nextId?: number,
+    fromSide?: Side
     targetSide?: Side,
     convex?: boolean,
     padding?: number,
@@ -56,6 +60,7 @@ export interface IntersectionConfig {
 
 export class Case {
     #nextId?: number;
+    #fromSide?: Side;
     #nextSide?: Side;
     #type: caseType;
     #position: Position;
@@ -67,10 +72,10 @@ export class Case {
     #walkWay: WalkWay;
     #convex?: boolean;
 
-    constructor(position: Position, type: caseType, walkway?: WalkWay) {
+    constructor(x: number, y: number, type: caseType, walkway?: WalkWay) {
         this.#type = type;
-        this.#position = position;
-        this.#uiPosition = new Position(caseMargin + position.x * (caseMargin + caseSize), caseMargin + position.y * (caseMargin + caseSize));
+        this.#position = new Position(x, y);
+        this.#uiPosition = new Position(caseMargin + this.#position.x * (caseMargin + caseSize), caseMargin + this.#position.y * (caseMargin + caseSize));
         this.#size = caseSize;
         this.#link = caseFolder + type + ".png";
         this.#padding = defaultCasePadding;
@@ -82,6 +87,7 @@ export class Case {
         if (config.ladderDestination !== undefined) { (this as any).destination = config.ladderDestination; }
         if (config.wonderName !== undefined) { (this as any).wonder = config.wonderName; }
         if (config.nextId !== undefined) { this.#nextId = config.nextId; }
+        if (config.fromSide !== undefined) { this.#fromSide = config.fromSide; }
         if (config.targetSide !== undefined) { this.#nextSide = config.targetSide; }
         if (config.padding !== undefined) { this.#padding = config.padding; }
         if (config.intersectionConfig !== undefined) { (this as any).intersection = config.intersectionConfig; }
@@ -89,7 +95,9 @@ export class Case {
         return this;
     }
 
-    get nextSide() {
+    get fromSide() {
+        return this.#fromSide;
+    } get nextSide() {
         return this.#nextSide;
     } get size() {
         return this.#size;

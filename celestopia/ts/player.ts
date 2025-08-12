@@ -165,6 +165,19 @@ export class Player {
             const newValue = this.coins + choices[Math.floor(Math.random() * 5)];
 
             this.progressiveCoinChange(newValue);
+        } else if (type === "redStar") {
+            const choices = [50, 100, 250, 500];
+            const chosen = choices[Math.floor(Math.random() * 4)];
+            const delta = Math.min(this.stars, chosen)
+            pig.feed(delta * 2);
+            const newValue = this.stars - delta;
+
+            this.progressiveStarChange(newValue);
+        } else if (type === "star") {
+            const choices = [50, 100, 250, 500];
+            const chosen = choices[Math.floor(Math.random() * 4)];
+
+            this.progressiveStarChange(this.stars + chosen);
         } else if (type === "greenEvent") {
             Happening.pickRandomEvent(this);
         } else if (type === "mail") {
@@ -223,27 +236,45 @@ export class Player {
             const {tx, rx} = initChannel<void>();
             new Intersection(this, (board.elements[this.caseId] as any).intersection, tx);
             await rx.recv();
-        } else if (type === "teleporter") {
-            if (boardId === 2) {
-                //TODO
-            } else {
-                const {tx, rx} = initChannel<boolean>();
-                const newBoardId = (boardId + 1) as BoardId;
-                new TeleporterEvent(this, newBoardId, tx);
-                
-                const x = await rx.recv();
-                if (x) {
-                    const delta = this.pendingCaseId - this.caseId;
-                    this.caseId = 0;
-                    this.pendingCaseId = 0;
-
-                    this.boardId = newBoardId;
-                    changeBoard(newBoardId);
-                    this.pendingCaseId = this.caseId + delta;
-                }
+            if (this.pendingCaseId === this.caseId) {
+                await this.caseResponse(board.elements[this.caseId].type);
             }
-        } 
-        else {
+        } else if (type === "teleporter") {
+            const {tx, rx} = initChannel<boolean>();
+            const newBoardId = (boardId + 1) as BoardId;
+            new TeleporterEvent(this, newBoardId, tx);
+            
+            const x = await rx.recv();
+            if (x) {
+                const delta = this.pendingCaseId - this.caseId;
+                this.caseId = 0;
+                this.pendingCaseId = 0;
+
+                this.boardId = newBoardId;
+                changeBoard(newBoardId);
+                this.pendingCaseId = this.caseId + delta;
+            }
+        } else if (type === "end") {
+            const {tx: tx1, rx: rx1} = initChannel<void>();
+            new Popup("Vous êtes arrivé à la fin du plateau. Payez vos courriers, des intérêt sur votre découvert et recevez 2500 pièces !", "Fin du mois !", tx1);
+            await rx1.recv();
+
+            const {tx, rx} = initChannel<number>();
+            new MailEvent(false, tx, this.color);
+            const n = await rx.recv();
+
+            let finalVal = 2500 + this.coins - n;
+            console.log(finalVal);
+            if (finalVal < 0) {
+                finalVal += (finalVal * 0.25);
+            }
+            this.progressiveCoinChange(finalVal);
+
+            this.caseId = 0;
+            this.pendingCaseId = 0;
+            this.boardId = 0;
+            changeBoard(0);
+        } else {
             console.log(`unhandled case type: ${type}`);
         }
     }
@@ -386,7 +417,7 @@ export class Player {
             this.#pawn,
             computePawnPosition(board.elements[this.caseId]),
             60,
-            0.05,
+            0.25,
             true,
             true
         )
