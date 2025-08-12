@@ -39,6 +39,9 @@ const caseMargin = 50;
 export const defaultCasePadding = 48 * caseSize / 729;
 let pHelpBox: HTMLParagraphElement | undefined;
 
+export let disableCaseHelpers = false;
+export function setDisableCaseHelper(value: boolean) { disableCaseHelpers = value; }
+
 type WalkWay = "straight" | "backwards" | "upwards" | "downwards";
 type Side = "top" | "bottom" | "right" | "left";
 
@@ -162,6 +165,7 @@ export class Case {
         caseStyle.left = `${this.#uiPosition.x}px`;
 
         caseImg.addEventListener("mouseenter", () => {
+            if (disableCaseHelpers) { return; }
             const helpBox = createHelperBox(this.#description, this.#uiPosition.translate(0, caseSize), caseSize);
             document.body.appendChild(helpBox);
 

@@ -81,7 +81,7 @@ export class Player {
         this.caseId = 0;
         this.pendingCaseId = 0;
         this.teleport = false;
-        this.diceNumber = 1;
+        this.diceNumber = 3;
         this.coins = 0;
         this.ribbons = 0;
         this.stars = 0;
@@ -273,6 +273,7 @@ export class Player {
             this.caseId = 0;
             this.pendingCaseId = 0;
             this.boardId = 0;
+            this.diceNumber = 1;
             changeBoard(0);
         } else {
             console.log(`unhandled case type: ${type}`);

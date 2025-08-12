@@ -15,6 +15,7 @@ export let board = buildBoard(0);
 export let boardId = 0;
 export const pig = new Piggy();
 export type Money = "coin" | "ribbon" | "star";
+
 export const boardNames = {
     0: "Banlieue",
     1: "Quartier de la mode",

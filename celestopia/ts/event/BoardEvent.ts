@@ -131,23 +131,27 @@ export abstract class BoardEvent {
             config.enable ? "#03a316" : "#aba7a7",
             config.enable,
             ()=>{}
-        )
+        );
         if (config.enable) {
             button.className = "pointerHover";
             button.addEventListener("click", this.#handlerOrDefault(config.customHandler));
         }
         button.id = "menuOk";
+        button.style.textAlign = "center";
 
         return button;
     }
 
     #denyButton(label?: string, handler?: ()=>void) {
-        return BoardEvent.generateButton(
+        const button = BoardEvent.generateButton(
             label === undefined ? "Refuser" : label,
             "#c10a19ff",
             true,
             this.#handlerOrDefault(handler)
         );
+        button.id = "menuDeny";
+        button.style.textAlign = "center";
+        return button;
     }
 
     #handlerOrDefault(handler?: ()=>void) {

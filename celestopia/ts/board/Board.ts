@@ -139,7 +139,7 @@ class Board {
                 new Case(0, 1, "teleporter", "backwards").withCaseConfig({ nextId: 0 })
             ),
             length: 16,
-            height: 3,
+            height: 4,
         };
     }
 

@@ -1,5 +1,6 @@
 import { boardCanvas } from "./board/Board.js";
-import { Case } from "./board/Case.js";
+import { Case, setDisableCaseHelper } from "./board/Case.js";
+import { ChangeBoardEvent } from "./event/ChangeBoardEvent.js";
 import { Player } from "./Player.js";
 import { debugTools } from "./util/debug.js";
 import { updateCounterValue } from "./util/functions.js";
@@ -46,16 +47,22 @@ async function gameRenderLoop() {
             p.caseId = p.pendingCaseId;
             p.movePawn().then(() => p.teleport = false);
         } else if (p.caseId < p.pendingCaseId) {            
+            setDisableCaseHelper(true);
+            let firstMove = true;
             while (p.caseId < p.pendingCaseId) {
-                const currentCase = board.elements[p.caseId];
-                if (currentCase.type === "intersection") {
-                    await p.caseResponse("intersection");
-                    continue;
-                } else if (currentCase.type === "item" || currentCase.type === "teleporter") {
-                    await p.caseResponse(currentCase.type);
-                } else if (currentCase.type === "end") {
-                    await p.caseResponse("end");
-                    break;
+                const currentCase = board.elements[p.caseId]
+                if (firstMove) {
+                    firstMove = false;
+                } else {
+                    if (currentCase.type === "intersection") {
+                        await p.caseResponse("intersection");
+                        continue;
+                    } else if (currentCase.type === "item" || currentCase.type === "teleporter") {
+                        await p.caseResponse(currentCase.type);
+                    } else if (currentCase.type === "end") {
+                        await p.caseResponse("end");
+                        break;
+                    }
                 }
 
                 if (currentCase.nextId === undefined) {
@@ -74,6 +81,7 @@ async function gameRenderLoop() {
 
             const caseElm = board.elements[p.caseId] as Case;
             await p.caseResponse(caseElm.type);
+            setDisableCaseHelper(false);
         } else if (p.caseId > p.pendingCaseId) {
             p.caseId = p.pendingCaseId;
             await p.movePawn();
@@ -100,9 +108,30 @@ function initPlayers() {
     }
 }
 
+function initBoardBtn() {
+    const p = document.createElement("p");
+    p.className = "pointerHover";
+    p.textContent = "Changer de plateau";
+    p.style.position = "fixed";
+    p.style.bottom = "0px";
+    p.style.left = "0px";
+    p.style.width = "10vw";
+    p.style.textAlign = "center";
+    p.style.fontSize = "1.5vw";
+    p.style.borderRadius = "10px";
+    p.style.backgroundColor = "#fff8cbff";
+    p.style.padding = "10px";
+    p.style.margin = "0px";
+    p.style.zIndex = "1";
+
+    p.addEventListener("click", ()=>new ChangeBoardEvent());
+    document.body.appendChild(p);
+}
+
 function main() {
     initPlayers();
     gameRenderLoop();
+    initBoardBtn();
 }
 
 main();
