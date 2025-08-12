@@ -1,14 +1,15 @@
 import { Wonder, WonderName } from "../card/Wonder.js";
 import { Player } from "../Player.js";
+import { Sender } from "../util/channel.js";
 import { BoardEvent } from "./BoardEvent.js";
 
 export class Crown extends BoardEvent {
-    constructor(player: Player, name: WonderName) {
+    constructor(player: Player, name: WonderName, tx: Sender<void>) {
         const w = Wonder.getWonder(name);
         if (w === undefined) {
             super(
                 [BoardEvent.generateTextBox("Cette merveille a déjà été achetée...")],
-                BoardEvent.okSetup(true),
+                BoardEvent.okSetup(true, undefined, ()=>tx.send()),
                 BoardEvent.denySetup(false),
             )
         } else {
@@ -21,13 +22,18 @@ export class Crown extends BoardEvent {
                     player.coins >= w.coins && player.ribbons >= w.ribbons && player.stars >= w.stars,
                     undefined,
                     () => {
-                        player.progressiveCoinChange(player.coins - w.coins);
-                        player.progressiveRibbonChange(player.ribbons - w.ribbons);
-                        player.progressiveStarChange(player.stars - w.stars);
+                        Promise.all([
+                            player.progressiveCoinChange(player.coins - w.coins),
+                            player.progressiveRibbonChange(player.ribbons - w.ribbons),
+                            player.progressiveStarChange(player.stars - w.stars)
+                        ]).then(()=>tx.send());
                         player.addWonder(w);
                     }
                 ),
-                BoardEvent.denySetup(true, undefined, () => Wonder.returnWonder(w)),
+                BoardEvent.denySetup(true, undefined, () => {
+                    Wonder.returnWonder(w);
+                    tx.send();
+                }),
             )
         }
     }

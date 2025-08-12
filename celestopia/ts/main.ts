@@ -1,10 +1,14 @@
 import { boardCanvas } from "./board/Board.js";
 import { Case, setDisableCaseHelper } from "./board/Case.js";
 import { ChangeBoardEvent } from "./event/ChangeBoardEvent.js";
+import { Popup } from "./event/Popup.js";
 import { Player } from "./Player.js";
+import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
 import { updateCounterValue } from "./util/functions.js";
 import { board, boardId, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
+
+let currentEnabledPlayer = 0;
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -31,7 +35,7 @@ window.addEventListener("resize", () => {
 });
 (window as any).debugTools = debugTools
 
-async function gameRenderLoop() {
+async function counterRenderLoop() {
     for (const p of players) {
         updateCounterValue(`${p.id}.coin`, p.coins);
         updateCounterValue(`${p.id}.ribbon`, p.ribbons);
@@ -40,12 +44,19 @@ async function gameRenderLoop() {
         updateCounterValue(`${p.id}.wonder`, p.wonderCount);
         updateCounterValue(`bankCounter`, pig.content);
         pig.setColor();
+    }
 
+    requestAnimationFrame(counterRenderLoop);
+}
+
+async function boardRenderLoop() {
+    for (const p of players) {
         if (p.boardId !== boardId) { continue; }
 
         if (p.teleport) {
+            p.teleport = false;
             p.caseId = p.pendingCaseId;
-            p.movePawn().then(() => p.teleport = false);
+            p.movePawn().then(()=>nextPlayer(p));
         } else if (p.caseId < p.pendingCaseId) {            
             setDisableCaseHelper(true);
             let firstMove = true;
@@ -82,6 +93,9 @@ async function gameRenderLoop() {
             const caseElm = board.elements[p.caseId] as Case;
             await p.caseResponse(caseElm.type);
             setDisableCaseHelper(false);
+
+            if (caseElm.type === "ladder" || caseElm.type === "dice") { continue; }
+            nextPlayer(p);
         } else if (p.caseId > p.pendingCaseId) {
             p.caseId = p.pendingCaseId;
             await p.movePawn();
@@ -89,7 +103,7 @@ async function gameRenderLoop() {
         }
     } 
 
-    requestAnimationFrame(gameRenderLoop);
+    requestAnimationFrame(boardRenderLoop);
 }
 
 function initPlayers() {
@@ -128,10 +142,25 @@ function initBoardBtn() {
     document.body.appendChild(p);
 }
 
+async function nextPlayer(p: Player) {
+    let id = p.id;
+    if (p.id === 4) {
+        id = 1;
+    }
+    const nextP = players[id];
+    const {tx, rx} = initChannel<void>();
+    new Popup(`A toi de jouer, ${nextP.name} !`, undefined, tx);
+    await rx.recv();
+    p.disable();
+    nextP.enable();
+}
+
 function main() {
     initPlayers();
-    gameRenderLoop();
+    counterRenderLoop();
+    boardRenderLoop();
     initBoardBtn();
+    players[0].enable();
 }
 
 main();

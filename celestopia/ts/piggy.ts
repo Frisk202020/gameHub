@@ -25,14 +25,14 @@ export class Piggy {
         this.#progressiveCounterIncrement(cash);
     }
 
-    multiply(factor: 2 | 3) {
+    async multiply(factor: 2 | 3) {
         if (this.content >= MAX) {
             return;
         }
         if (this.content * factor >= MAX) {
-            this.#progressiveCounterIncrement(MAX - this.content);
+            await this.#progressiveCounterIncrement(MAX - this.content);
         } else {
-            this.#progressiveCounterIncrement((factor - 1) * this.content);
+            await this.#progressiveCounterIncrement((factor - 1) * this.content);
         }
     }
 

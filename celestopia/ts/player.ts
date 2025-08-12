@@ -8,7 +8,7 @@ import { createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimat
 import { MailEvent } from "./event/MailEvent.js";
 import { initChannel, Sender } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
-import { board, boardId, changeBoard, Money, pig } from "./util/variables.js";
+import { board, boardId, changeBoard, Money, pig, players } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
 import { Chest } from "./event/Chest.js";
@@ -71,6 +71,9 @@ export class Player {
     #infoBox: HTMLDivElement;
     #infoActive: boolean;
     color: string;
+    #diceActionEnabled: boolean;
+    #mailActionEnabled: boolean;
+    #itemActionEnabled: boolean;
 
     constructor(id: PlayerId, name: string, avatar: Avatar) {
         this.#id = id;
@@ -81,7 +84,7 @@ export class Player {
         this.caseId = 0;
         this.pendingCaseId = 0;
         this.teleport = false;
-        this.diceNumber = 3;
+        this.diceNumber = 1;
         this.coins = 0;
         this.ribbons = 0;
         this.stars = 0;
@@ -90,6 +93,9 @@ export class Player {
         this.#wonders = Array();
         this.#infoBox = this.#createInfoBox();
         this.#infoActive = false;
+        this.#diceActionEnabled = false;
+        this.#mailActionEnabled = false;
+        this.#itemActionEnabled = false;
 
         this.#createHtml();
     }
@@ -109,7 +115,7 @@ export class Player {
     addAquisition(aq: Aquisition) {
         this.#aquisitions.push(aq);
     } 
-    #removeAquisition(aq: Aquisition, boostedClone: Aquisition) {
+    async #removeAquisition(aq: Aquisition, boostedClone: Aquisition) {
         if (this.#aquisitions.length === 0) {
             console.log("ERROR: tried to remove aquisition, but player didn't have one");
             return;
@@ -126,26 +132,27 @@ export class Player {
         if (aq.name === "magic") {
             const {tx, rx} = initChannel<Money>();
             new Magic(tx);
-            rx.recv().then((m) => {
-                switch(m) {
-                    case "coin": this.progressiveCoinChange(this.coins + boostedClone.coins); break;
-                    case "ribbon": this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons); break;
-                    case "star": this.progressiveStarChange(this.stars + boostedClone.stars);
-                }
-            });
+            const m = await rx.recv()
+            switch(m) {
+                case "coin": await this.progressiveCoinChange(this.coins + boostedClone.coins); break;
+                case "ribbon": await this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons); break;
+                case "star": await this.progressiveStarChange(this.stars + boostedClone.stars);
+            }
         } else {
-            this.progressiveCoinChange(this.coins + boostedClone.coins);
-            this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons);
-            this.progressiveStarChange(this.stars + boostedClone.stars);
+            await Promise.all([
+                this.progressiveCoinChange(this.coins + boostedClone.coins),
+                this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons),
+                this.progressiveStarChange(this.stars + boostedClone.stars)
+            ]);
         }
     }
     removeRandomAquisition() {
         return removeFromArray(this.#aquisitions, Math.floor(Math.random() * this.aquisitionCount));  
     }
     generateSellMenu() {
-        const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
+        const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
         Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx));
-        rx.recv().then((t) => this.#removeAquisition(t.first, t.second));
+        rx.recv().then((t) => {if (t !== undefined) { this.#removeAquisition(t.first, t.second) }});
     }
 
     addWonder(w: Wonder) {
@@ -153,18 +160,19 @@ export class Player {
     }
 
     async caseResponse(type: caseType) {
+        const {tx, rx} = initChannel<void>();
         if (type === "redCoin") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
             pig.feed(chosen);
             const newValue = this.coins - chosen;
 
-            this.progressiveCoinChange(newValue);
+            await this.progressiveCoinChange(newValue);
         } else if (type === "blueCoin") {
             const choices = [50, 100, 300, 600, 1000];
             const newValue = this.coins + choices[Math.floor(Math.random() * 5)];
 
-            this.progressiveCoinChange(newValue);
+            await this.progressiveCoinChange(newValue);
         } else if (type === "redStar") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
@@ -172,60 +180,64 @@ export class Player {
             pig.feed(delta * 2);
             const newValue = this.stars - delta;
 
-            this.progressiveStarChange(newValue);
+            await this.progressiveStarChange(newValue);
         } else if (type === "star") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
 
-            this.progressiveStarChange(this.stars + chosen);
+            await this.progressiveStarChange(this.stars + chosen);
         } else if (type === "greenEvent") {
-            Happening.pickRandomEvent(this);
+            Happening.pickRandomEvent(this, tx);
+            await rx.recv();
         } else if (type === "mail") {
-            new Popup("Vous avez reçu 1 courrier !");
+            new Popup("Vous avez reçu 1 courrier !", undefined, tx);
+            await rx.recv()
         } else if (type === "3Mail") {
-            new Popup("Vous avez reçu 3 courriers !");
+            new Popup("Vous avez reçu 3 courriers !", undefined, tx);
+            await rx.recv();
         } else if (type === "5Mail") {
-            new Popup("Vous avez reçu 5 courriers !");
+            new Popup("Vous avez reçu 5 courriers !", undefined, tx);
+            await rx.recv();
         } else if (type === "aquisition") {
-            new Chest(this);
+            new Chest(this, tx);
+            await rx.recv();
         } else if (type === "ladder") {
             this.pendingCaseId = (board.elements[this.caseId] as any).destination;
             this.teleport = true;
         } else if (type === "dice") {
             new Popup("Relancez les dés !");
-            //TODO: re-enable dices when turn system is implemented
         } else if (type === "furnace") {
-            new Popup("Brulez tous vos courriers. Vous n'avez rien à payer !");
+            new Popup("Brulez tous vos courriers. Vous n'avez rien à payer !", undefined, tx);
+            await rx.recv();
         } else if (type === "wonder") {
-            new Crown(this, (board.elements[this.caseId] as any).wonder);
+            new Crown(this, (board.elements[this.caseId] as any).wonder, tx);
+            await rx.recv();
         } else if (type === "duel") {
-            new DuelEvent()
+            new DuelEvent(tx);
+            await rx.recv();
         } else if (type === "piggy") {
-            new PigEvent(this);
+            new PigEvent(this, tx);
+            await rx.recv();
         } else if (type === "postBox") {
             const {tx, rx} = initChannel<number>();
             new MailEvent(true, tx, this.color);
-            rx.recv().then((n) => {
-                this.progressiveCoinChange(this.coins - n);
-            });
+            const n  = await rx.recv();
+            await this.progressiveCoinChange(this.coins - n);
         } else if (type === "sale") {
-            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
+            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
             Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "coin"));
-            rx.recv().then((t) => {
-                this.#removeAquisition(t.first, t.second);
-            });
+            const t = await rx.recv()
+            if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
         } else if (type === "saleRibbon") {
-            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
+            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
             Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "ribbon"));
-            rx.recv().then((t) => {
-                this.#removeAquisition(t.first, t.second);
-            });
+            const t = await rx.recv()
+            if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
         } else if (type === "saleStar") {
-            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition>>();
+            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
             Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "star"));
-            rx.recv().then((t) => {
-                this.#removeAquisition(t.first, t.second);
-            });
+            const t = await rx.recv()
+            if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
         } else if (type === "item") {
             const i = await Item.getRandomItem(this);
             const {tx: innerTx, rx} = initChannel<void>();
@@ -264,11 +276,10 @@ export class Player {
             const n = await rx.recv();
 
             let finalVal = 2500 + this.coins - n;
-            console.log(finalVal);
             if (finalVal < 0) {
                 finalVal += (finalVal * 0.25);
             }
-            this.progressiveCoinChange(finalVal);
+            await this.progressiveCoinChange(finalVal);
 
             this.caseId = 0;
             this.pendingCaseId = 0;
@@ -422,6 +433,32 @@ export class Player {
             true,
             true
         )
+    }
+
+    enable() {
+        for (const id of ["diceAction", "mailAction", "itemAction"]) {
+            const elm = document.getElementById(`${this.#id}.${id}`)  as HTMLElement;
+            elm.style.backgroundColor = actionColor[this.#id];
+        }
+
+        this.#diceActionEnabled = true;
+        this.#mailActionEnabled = true;
+        this.#itemActionEnabled = true;
+    }
+
+    disable() {
+        for (const id of ["diceAction", "mailAction", "itemAction"]) {
+            const elm = document.getElementById(`${this.#id}.${id}`)  as HTMLElement;
+            elm.style.backgroundColor = "#bebdbd";
+        }
+
+        this.#diceActionEnabled = false;
+        this.#mailActionEnabled = false;
+        this.#itemActionEnabled = false;
+    }
+
+    #disableActionBox(id: string) {
+        (document.getElementById(id) as HTMLElement).style.backgroundColor = "#bebdbd";
     }
 
     #createHtml() {
@@ -603,29 +640,42 @@ export class Player {
         box.style.display = "flex";
         box.style.justifyContent = "center";
         box.style.alignItems = "center";
-        box.appendChild(this.#createAction("diceAction.png", "Lancez le dé quand c'est votre tour.", () => { 
+        box.appendChild(this.#createAction(`${this.#id}.diceAction`, "diceAction.png", "Lancez le dé quand c'est votre tour.", () => {
+            if (!this.#diceActionEnabled) { return; }
+
             const {tx, rx} = initChannel<number>();
             new DiceEvent(tx, this.diceNumber, false);
-            rx.recv().then((n) => this.pendingCaseId = this.caseId + n); 
+            rx.recv().then((n) => {
+                this.pendingCaseId = this.caseId + n;
+            }); 
         }));
-        box.appendChild(this.#createAction("mail.png", "Payez vos courriers en avance.",  () => {
+        box.appendChild(this.#createAction(`${this.#id}.mailAction`, "mail.png", "Payez vos courriers en avance.",  () => {
+            if (!this.#mailActionEnabled) { return; }
+
             const {tx, rx} = initChannel<number>();
             new MailEvent(false, tx, this.color);
             rx.recv().then((n) => {
                 this.progressiveCoinChange(this.coins - n);
+                this.#disableActionBox(`${this.#id}.mailAction`);
+                this.#mailActionEnabled = false;
             })
         }));
-        box.appendChild(this.#createAction("bag.png", "Utilisez un objet (avant de lancer le dé).",  () => new ItemMenu(this)));
+        box.appendChild(this.#createAction(`${this.#id}.itemAction`, "bag.png", "Utilisez un objet (avant de lancer le dé).",  () => {
+            if (!this.#itemActionEnabled) { return; }
+
+            new ItemMenu(this);
+        }));
         return box;
     }
 
-    #createAction(imgSrc: string, hover: string, action: ()=>void) {
+    #createAction(id: string, imgSrc: string, hover: string, action: ()=>void) {
         const elm = document.createElement("img");
+        elm.id = id;
         elm.src = `get_file/celestopia/assets/icons/${imgSrc}`;
         elm.style.width = "25%";
         elm.style.margin = "2.5%";
         elm.style.borderRadius = "25%";
-        elm.style.backgroundColor = actionColor[this.#id];
+        elm.style.backgroundColor = "#bebdbd"
         
         elm.addEventListener("mouseenter", () => {
             if (helperBox !== undefined) {
@@ -645,7 +695,7 @@ export class Player {
         return elm;
     }
 
-    #sellInterface(tx: Sender<Tuple<Aquisition, Aquisition>>, type?: Money) {
+    #sellInterface(tx: Sender<Tuple<Aquisition, Aquisition> | undefined>, type?: Money) {
         return { tx, type }
     }
 }

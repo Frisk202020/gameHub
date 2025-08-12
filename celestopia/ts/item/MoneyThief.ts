@@ -18,7 +18,11 @@ export class MoneyThief extends Item {
             true
         );
 
-        rx.recv().then((t) => new Theft(p ,t.first, t.second));
+        rx.recv().then((t) => {
+            const {tx, rx} = initChannel<void>();
+            new Theft(p, tx, t.first, t.second);
+            rx.recv().then(()=>console.log("money thief ended"));
+        });
     }
 }
 

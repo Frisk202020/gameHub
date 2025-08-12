@@ -184,7 +184,7 @@ class Board {
                 new Case(18, 1, "piggy", "upwards").withCaseConfig({ convex: false }),
                 new Case(19, 0, "ladder", "straight").withCaseConfig({ ladderDestination: 18 }),
                 new Case(20, 0, "teleporter", "straight").withCaseConfig({ convex: false }),
-                new Case(21, 1, "furnace", "downwards"),
+                new Case(21, 1, "wonder", "downwards").withCaseConfig({wonderName: "teleporter"}),
                 new Case(21, 2, "greenEvent", "downwards"),
                 new Case(21, 3, "duel", "downwards"),
                 new Case(21, 4, "greenEvent", "downwards"),

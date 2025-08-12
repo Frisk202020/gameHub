@@ -9,7 +9,7 @@ export class DuelEvent extends BoardEvent {
     #selectWinner?: Player;
     #selectButton?: HTMLDivElement;
 
-    constructor() {
+    constructor(outerTx: Sender<void>) {
         const box = document.createElement("div");
         box.style.display = "flex";
         box.style.justifyContent = "center";
@@ -31,6 +31,7 @@ export class DuelEvent extends BoardEvent {
 
                                         await rx.recv();
                                     }
+                                    outerTx.send();
                                 })();
                             })
                         } else {

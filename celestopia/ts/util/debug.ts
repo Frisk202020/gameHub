@@ -1,11 +1,10 @@
-import { BoardId } from "../board/Board.js";
 import { AquisitionThief } from "../item/AquisitionThief.js";
 import { DiceItem } from "../item/DiceItem.js";
 import { MoneyThief } from "../item/MoneyThief.js";
 import { Pipe } from "../item/Pipe.js";
 import { Seller } from "../item/Seller.js";
 import { TrickItem } from "../item/TrickItem.js";
-import { changeBoard, currentKeyboardEventListener, pig, players, resizables } from "./variables.js";
+import { currentKeyboardEventListener, pig, players, resizables } from "./variables.js";
 
 type PlayerId = 1 | 2 |  3 | 4;
 
@@ -24,6 +23,12 @@ export const debugTools = {
     setCoins(id: PlayerId, value: number) { players[id - 1].coins = value; },
     setRibbons(id: PlayerId, value: number) { players[id - 1].ribbons = value; },
     setStars(id: PlayerId, value: number) { players[id - 1].stars = value; },
+    setRich(id: PlayerId) {
+        const p = players[id - 1];
+        p.coins = 99999;
+        p.ribbons = 99999;
+        p.stars = 99999;
+    },
     giveItem(id: PlayerId, item: string) {
         const p = players[id - 1];
         switch(item) {
@@ -43,5 +48,4 @@ export const debugTools = {
             default: console.log("Unrecognized item");
         }
     },
-    changeCurrentBoard(id: BoardId) { changeBoard(id); }
 };

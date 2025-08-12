@@ -1,4 +1,5 @@
 import { Player } from "../Player.js";
+import { Sender } from "../util/channel.js";
 import { Money, players } from "../util/variables.js";
 import { Happening } from "./Happening.js";
 
@@ -6,10 +7,10 @@ export class Theft extends Happening {
     #target: Player;
     #victim: Player;
     #ammount: number;
-    #event: ()=>void; 
+    #event: ()=>Promise<void>; 
     #currency: Money;
 
-    constructor(player: Player, victim?: Player, m?: Money) {
+    constructor(player: Player, tx: Sender<void>, victim?: Player, m?: Money) {
         if (victim === undefined) {
             const playerIndex = players.indexOf(player);
             let index = Math.floor(Math.random() * (players.length - 1));
@@ -31,7 +32,8 @@ export class Theft extends Happening {
             "Extorsion de fonds !",
             text,
             false,
-            false
+            false,
+            tx
         )
 
         this.#target = player;
@@ -46,21 +48,27 @@ export class Theft extends Happening {
     }
 
     protected event(): void {
-        this.#event();
+        this.#event().then(()=>this.tx.send());
     }
 
-    #coinEvent() {
-        this.#target.progressiveCoinChange(this.#target.coins + this.#ammount);
-        this.#victim.progressiveCoinChange(this.#victim.coins - this.#ammount);
+    async #coinEvent() {
+        await Promise.all([
+            this.#target.progressiveCoinChange(this.#target.coins + this.#ammount),
+            this.#victim.progressiveCoinChange(this.#victim.coins - this.#ammount)
+        ]);
     }
 
-    #ribbonEvent() {
-        this.#target.progressiveRibbonChange(this.#target.ribbons + this.#ammount);
-        this.#victim.progressiveRibbonChange(this.#victim.ribbons - this.#ammount);
+    async #ribbonEvent() {
+        await Promise.all([
+            this.#target.progressiveRibbonChange(this.#target.ribbons + this.#ammount),
+            this.#victim.progressiveRibbonChange(this.#victim.ribbons - this.#ammount)
+        ]);
     }
 
-    #starEvent() {
-        this.#target.progressiveStarChange(this.#target.stars + this.#ammount);
-        this.#victim.progressiveStarChange(this.#victim.stars - this.#ammount);
+    async #starEvent() {
+        await Promise.all([
+            this.#target.progressiveStarChange(this.#target.stars + this.#ammount),
+            this.#victim.progressiveStarChange(this.#victim.stars - this.#ammount)
+        ]);
     }
 }

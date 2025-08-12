@@ -15,7 +15,7 @@ export const navId = "menuNavBar";
 export type ImgFolder = "aquisitions" | "wonders";
 
 interface SellConfig {
-    tx: Sender<Tuple<Aquisition, Aquisition>>,
+    tx: Sender<Tuple<Aquisition, Aquisition> | undefined>,
     type?: Money
 }
 
@@ -75,7 +75,13 @@ export abstract class Card implements DynamicPlacement {
 
     static generateMenu(list: Card[], imgFolder: ImgFolder, helperText: string, config?: SellConfig) {
         if (list.length === 0) {
-            new Popup("Vous n'avez aucune carte...");
+            if (config !== undefined) {
+                const {tx, rx} = initChannel<void>();
+                new Popup("Vous n'avez aucune carte...", undefined, tx);
+                rx.recv().then(()=>config.tx.send(undefined))
+            } else {
+                new Popup("Vous n'avez aucune carte...")
+            }
             return;
         } 
         
