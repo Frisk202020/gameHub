@@ -172,6 +172,7 @@ export class Case {
             pHelpBox = helpBox;
         });
         caseImg.addEventListener("mouseleave", () => {
+            if (disableCaseHelpers) { return; }
             removeFromBodyOrWarn(pHelpBox);
         })
 
