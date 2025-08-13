@@ -1,7 +1,7 @@
 import { resizables } from "../util/variables.js";
 import { Card } from "./Card.js";
 
-export type WonderName = "astropy" | "bank" | "bridge" | "dress" | "comet" | "teleporter";
+export type WonderName = "statue" | "astropy" | "bank" | "bridge" | "dress" | "comet" | "teleporter";
 
 export class Wonder extends Card {
     #coinPrice: number;
@@ -26,8 +26,9 @@ export class Wonder extends Card {
     }
 
     static #bank = new Map<WonderName, Wonder>([
+        ["statue", new Wonder("statue", 25000, 0, 0)],
         ["astropy", new Wonder("astropy", 4000, 0, 20000)],
-        ["bank", new Wonder("bank", 30000, 0, 0)],
+        ["bank", new Wonder("bank", 15000, 0, 15000)],
         ["bridge", new Wonder("bridge", 1200, 30000, 0)],
         ["dress", new Wonder("dress", 7500, 20000, 0)],
         ["comet", new Wonder("comet", 0, 0, 99999)],

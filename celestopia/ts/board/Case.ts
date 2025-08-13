@@ -153,10 +153,11 @@ export class Case {
         return Math.abs(other.uiPosition.y - this.uiPosition.y) - this.size/2;
     }
 
-    createHtmlElement() {
+    createHtmlElement(id: number) {
         const caseImg = document.createElement("img");
         caseImg.classList.add("case");
         caseImg.src = this.#link;
+        caseImg.id = `case.${id}`;
 
         const caseStyle = caseImg.style;
         caseStyle.width = `${caseSize}px`;

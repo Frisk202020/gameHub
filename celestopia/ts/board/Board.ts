@@ -7,6 +7,7 @@ export function buildBoard(id: BoardId) {
     return new Board(id);
 }
 export let boardCanvas: HTMLCanvasElement | undefined;
+const bg = document.getElementById("bg") as HTMLDivElement;
 
 interface ArcConfig {
     radius: number,
@@ -20,18 +21,19 @@ class Board {
 
     constructor(id: BoardId) {
         let board: BoardConstructor;
+        let b_id: BoardId = 0;
 
         switch(id) {
             case 0: board = this.#board0(); break;
-            case 1: board = this.#board1(); break;
-            case 2: board = this.#board2();
+            case 1: board = this.#board1(); b_id = 1; break;
+            case 2: board = this.#board2(); b_id = 2;
         }
 
         this.#elements = board.elements;
         this.#height = board.height;
         this.#length = board.length;
 
-        this.#stylish();
+        this.#stylish(b_id, board.class);
     }
 
     get elements() {
@@ -40,16 +42,15 @@ class Board {
         return this.#height;
     }
 
-    #stylish(): void {
+    #stylish(id: BoardId, className: string): void {
         let boardDiv = document.createElement("div");
+        bg.className = className;
 
         let canvas = document.createElement("canvas");
         boardCanvas = canvas;
         boardDiv.appendChild(boardCanvas);
 
         boardDiv.id = "board";
-        boardDiv.style.backgroundColor = "grey";
-
         const width = 100 + 200 * this.#length;
         const height = 100 + 200 * this.#height;
         boardDiv.style.height = `${height}px`;
@@ -97,10 +98,69 @@ class Board {
                     }
                 }
             }
-            boardDiv.appendChild(elm.createHtmlElement());
+            
+            boardDiv.appendChild(elm.createHtmlElement(i));
         }
 
         document.body.appendChild(boardDiv);
+
+        switch(id) {
+            case 0:
+                const statue = createWonderImg(
+                    "case.15",
+                    "mayor.png",
+                    {
+                        heightModifier: (x)=>2*x,
+                        leftModifier: (x)=>x+100,
+                        topModifier: (x)=>x-50,
+                    }
+                );
+                statue.className = "glow";
+                boardDiv.appendChild(statue);
+                break;
+            case 2:
+                (document.getElementById("case.0") as HTMLElement).className = "rotate270";
+
+                const comet = createWonderImg(
+                    "case.33",
+                    "mother.png",
+                    {
+                        topModifier: (x)=>x-300,
+                        leftModifier: (x)=>x+50,
+                        heightModifier: (x)=>3*x,
+                    }
+                );
+                comet.id = "comet";
+
+                const trail = document.createElement("div");
+                trail.id = "comet-trail";
+                boardDiv.appendChild(comet);
+                boardDiv.appendChild(trail);
+
+                const bank = createWonderImg(
+                    "case.25",
+                    "moonBank.png",
+                    {
+                        topModifier: (x)=>x-150,
+                        leftModifier: (x)=>x-450,
+                        heightModifier: (x)=>3*x
+                    }
+                );
+                bank.id = "moon";
+                boardDiv.appendChild(bank);
+
+                const planet = createWonderImg(
+                    "case.10",
+                    "planet.png",
+                    {
+                        leftModifier: (x)=>x+200,
+                        heightModifier: (x)=>2*x
+                    }
+                );
+                planet.id = "planet";
+                planet.style.zIndex = "1";
+                boardDiv.appendChild(planet);
+        }
     }
 
     #board0(): BoardConstructor {
@@ -121,7 +181,7 @@ class Board {
                 new Case(12, 3, "redCoin"),
                 new Case(13, 3, "dice"),
                 new Case(14, 3, "aquisition", "straight").withCaseConfig({ convex: true }),
-                new Case(15, 2, "wonder", "upwards").withCaseConfig({ convex: false, wonderName: "astropy" }),
+                new Case(15, 2, "wonder", "upwards").withCaseConfig({ convex: false, wonderName: "statue" }),
                 new Case(14, 1, "duel", "backwards"),
                 new Case(13, 1, "furnace", "backwards"),
                 new Case(12, 1, "greenEvent", "backwards"),
@@ -140,6 +200,7 @@ class Board {
             ),
             length: 16,
             height: 4,
+            class: "cityBG",
         };
     }
 
@@ -193,6 +254,7 @@ class Board {
             ),
             length: 22,
             height: 7,
+            class: "ribbonBG",
         };
     }
 
@@ -241,7 +303,8 @@ class Board {
                 new Case(3, 2, "end", "upwards")
             ),
             length: 9,
-            height: 16
+            height: 16,
+            class: "spaceBG"
         }
     }
 }
@@ -307,4 +370,39 @@ interface BoardConstructor {
     elements: Array<Case>
     length: number;
     height: number;
+    class: string;
+}
+
+interface ImgStyle {
+    widthModifier?: (width: number)=>number;
+    heightModifier?: (height: number)=>number;
+    leftModifier?: (left: number)=>number;
+    topModifier?: (top: number)=>number;
+}
+
+function createWonderImg(refElmId: string, name: string, style: ImgStyle) {
+    const elmStyle = getComputedStyle(document.getElementById(refElmId) as HTMLElement);
+    const elm = document.createElement("img");
+    elm.src = `get_file/celestopia/assets/wonders/${name}`;
+
+    let height = parseInt(elmStyle.width);
+    let width = height;
+    if (style.heightModifier !== undefined) { height = style.heightModifier(height); }
+
+    if (style.widthModifier !== undefined) { width = style.widthModifier(width); }
+
+    let left = parseInt(elmStyle.left);
+    if (style.leftModifier !== undefined) { left = style.leftModifier(left); }
+
+    let top = parseInt(elmStyle.top);
+    if (style.topModifier !== undefined) { top = style.topModifier(top); }
+
+    elm.style.height = `${height}px`;
+    if (style.widthModifier !== undefined) { elm.style.width = `${width}px`; }
+    elm.style.position = "absolute";
+    elm.style.left = `${left}px`;
+    elm.style.top = `${top}px`;
+    elm.style.zIndex = "2";
+
+    return elm; 
 }
