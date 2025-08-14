@@ -18,7 +18,7 @@ const descriptions = {
     "furnace": "Brulez tous vos courriers : vous n'aurez rien à payer !",
     "postBox": "Payez tous vos courriers. Chaque courrier vaut deux fois la somme indiquée sur la carte !",
     "ladder": "Déplacez vous à l'autre extremité de l'échelle.",
-    "teleporter": "Empruntez ce téléporteur pour passer à la prochaine zone. Vous pouvez ne pas l'emprunter à ce tour.",
+    "teleporter": "Empruntez ce téléporteur pour passer à la prochaine zone. Vous pouvez ne pas l'emprunter à ce tour. Vous recevrez une gratifcation de 1500 pièces.",
     "dice": "Relancez les dés !",
     "duel": "Participez à un mini-jeu pour gagner des pièces ! Le joueur qui tombe sur cette case sera légèrement avantagé.",
     "piggy": "Récuperez la cagnotte ou doublez la somme contenue.",
@@ -31,7 +31,7 @@ const descriptions = {
     "intersection": "Vous pouvez choisir quel chemin emprunter",
     "star": "Gagnez entre 50 et 500 étoiles",
     "redStar": "Perdez entre 50 et 500 étoiles",
-    "end": "Réclamez votre salaire après avoir payé vos courriers et des intérêts si vous êtes à découvert."
+    "end": "Réclamez votre salaire de 5000 pièces après avoir payé vos courriers et des intérêts si vous êtes à découvert."
 }
 
 export const caseSize = 100;

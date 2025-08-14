@@ -1,7 +1,7 @@
 import { setGlobalKeyboardListener } from "./variables.js";
 
 export abstract class KeyboardListener {
-    protected element: HTMLElement;
+    element: HTMLElement;
     protected enabled: boolean;
 
     constructor(element: HTMLElement) {

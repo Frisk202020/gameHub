@@ -18,8 +18,8 @@ export class ChangeBoardEvent extends BoardEvent {
 
         super(
             [BoardEvent.generateTextBox("Choisissez le plateau.")],
-            BoardEvent.okSetup(true, left.toString(), ()=>changeBoard(left as BoardId)),
-            BoardEvent.denySetup(true, right.toString(), ()=>changeBoard(right as BoardId))
+            BoardEvent.okSetup(true, (left+1).toString(), ()=>changeBoard(left as BoardId)),
+            BoardEvent.denySetup(true, (right+1).toString(), ()=>changeBoard(right as BoardId))
         )
 
         appendCross(["menu"], this.menu);

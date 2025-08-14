@@ -6,9 +6,7 @@ import { Player } from "./Player.js";
 import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
 import { updateCounterValue } from "./util/functions.js";
-import { board, boardId, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
-
-let currentEnabledPlayer = 0;
+import { board, boardId, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables, setGlobalKeyboardListener } from "./util/variables.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -44,6 +42,11 @@ async function counterRenderLoop() {
         updateCounterValue(`${p.id}.wonder`, p.wonderCount);
         updateCounterValue(`bankCounter`, pig.content);
         pig.setColor();
+    }
+    if (currentKeyboardEventListener !== undefined) {
+        if (!document.body.contains(currentKeyboardEventListener.element)) {
+            clearGlobalKeyboardListener();
+        }
     }
 
     requestAnimationFrame(counterRenderLoop);
@@ -107,15 +110,24 @@ async function boardRenderLoop() {
 }
 
 function initPlayers() {
+    /*
     const frisk = new Player(1, "Frisk", "strawberry");
     const dokueki = new Player(2, "Dokueki", "crown");
     const q = new Player(3, "New Quark", "dice");
     const cas = new Player(4, "Casyaks", "hat");
+    
 
     players.push(frisk);
     players.push(dokueki);
     players.push(q);
     players.push(cas);
+    */
+
+    const clem = new Player(1, "Clem", "strawberry");
+    const eve = new Player(2, "Eve", "heart");
+
+    players.push(clem);
+    players.push(eve);
 
     for (const p of players) {
         document.body.appendChild(p.pawn);
@@ -143,9 +155,9 @@ function initBoardBtn() {
 }
 
 async function nextPlayer(p: Player) {
-    let id = p.id;
-    if (p.id === 4) {
-        id = 1;
+    let id: number = p.id;
+    if (p.id === players.length) {
+        id = 0;
     }
     const nextP = players[id];
     const {tx, rx} = initChannel<void>();

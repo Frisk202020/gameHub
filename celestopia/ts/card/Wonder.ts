@@ -31,7 +31,7 @@ export class Wonder extends Card {
         ["bank", new Wonder("bank", 15000, 0, 15000)],
         ["bridge", new Wonder("bridge", 1200, 30000, 0)],
         ["dress", new Wonder("dress", 7500, 20000, 0)],
-        ["comet", new Wonder("comet", 0, 0, 99999)],
+        ["comet", new Wonder("comet", 0, 0, 40000)],
         ["teleporter", new Wonder("teleporter", 10000, 10000, 0)]
     ]);
 

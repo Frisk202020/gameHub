@@ -31,25 +31,27 @@ const activeInfoHelp = "Cliquez pour replier.";
 const inactiveInfoHelp = "Cliquez pour voir les ressources du joueur.";
 let helperBox: HTMLDivElement | undefined = undefined;
 
+const startingCoins = 3000;
+
 const playerColor = {
-    1: "#29b0ff",
-    2: "#fa2714",
-    3: "#4ac75e",
-    4: "#ebdf3f"
+    1: "#fa2714",
+    2: "#4ac75e",
+    3: "#ebdf3f",
+    4: "#29b0ff",
 }
 
 const actionColor = {
-    1: "#0063ae",
-    2: "#c40202",
-    3: "#04890d",
-    4: "#b39803",
+    1: "#c40202",
+    2: "#04890d",
+    3: "#b39803",
+    4: "#0063ae",
 }
 
 const infoColor ={
-    1: "#29b1ff3d",
-    2: "#fa271448",
-    3: "#4ac75f3a",
-    4: "#ebe03f3a"
+    1: "#fa271448",
+    2: "#4ac75f3a",
+    3: "#ebe03f3a",
+    4: "#29b1ff3d",
 }
 
 export class Player {
@@ -85,7 +87,7 @@ export class Player {
         this.pendingCaseId = 0;
         this.teleport = false;
         this.diceNumber = 1;
-        this.coins = 0;
+        this.coins = startingCoins;
         this.ribbons = 0;
         this.stars = 0;
         this.#items = Array();
@@ -266,6 +268,7 @@ export class Player {
                 changeBoard(newBoardId);
                 this.pendingCaseId = this.caseId + delta;
             }
+            await this.progressiveCoinChange(this.coins + 1500);
         } else if (type === "end") {
             const {tx: tx1, rx: rx1} = initChannel<void>();
             new Popup("Vous êtes arrivé à la fin du plateau. Payez vos courriers, des intérêt sur votre découvert et recevez 2500 pièces !", "Fin du mois !", tx1);
@@ -275,7 +278,7 @@ export class Player {
             new MailEvent(false, tx, this.color);
             const n = await rx.recv();
 
-            let finalVal = 2500 + this.coins - n;
+            let finalVal = 5000 + this.coins - n;
             if (finalVal < 0) {
                 finalVal += (finalVal * 0.25);
             }

@@ -9,6 +9,10 @@ export let currentKeyboardEventListener: KeyboardListener | undefined;
 export function setGlobalKeyboardListener(listener: KeyboardListener) {
     currentKeyboardEventListener = listener;
 }
+export function clearGlobalKeyboardListener() {
+    currentKeyboardEventListener = undefined;
+}
+
 export const resizables: DynamicPlacement[] = Array();
 export const players: Player[] = Array();
 export let board = buildBoard(0);

@@ -101,7 +101,11 @@ export function vhToPx(vh: number) {
 
 export function removeFromBodyOrWarn(element: Node | undefined) {
     if (element !== undefined) {
-        document.body.removeChild(element);
+        if (document.body.contains(element)) {
+            document.body.removeChild(element);
+        } else {
+            console.log("WARN: element is not in body");
+        }
         element = undefined;
     } else {
         console.log("WARN: helper box is null before proper removal");

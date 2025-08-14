@@ -35,6 +35,20 @@
                     drop-shadow(0 0 5px rgba(255, 255, 143, 0.8));
             }
         }
+        @keyframes glow-teleporter {
+            0% {
+                filter: drop-shadow(0 0 2px rgb(54, 236, 249))
+                    drop-shadow(0 0 5px rgba(126, 251, 255, 0.8));
+            }
+            50% {
+                filter: drop-shadow(0 0 10px rgb(54, 236, 249))
+                    drop-shadow(0 0 20px rgba(126, 251, 255, 0.8));
+            }
+            100% {
+                filter: drop-shadow(0 0 2px rgb(54, 236, 249))
+                    drop-shadow(0 0 5px rgba(126, 251, 255, 0.8));
+            }
+        }
         @keyframes comet-trail {
             0%   { filter: hue-rotate(0deg); }
             50%  { filter: hue-rotate(114deg); }
@@ -76,8 +90,8 @@
             padding: none;
             background-color: transparent;
         }
-        #canvas {
-            z-index: 1;
+        canvas {
+            z-index: 2;
             left: 0px;
             top: 0px;
             position: absolute;
@@ -140,6 +154,9 @@
         #moon{
             transform-origin: 50% 60%;
             animation: rotate 30s linear infinite;
+        }
+        #teleporter {
+            animation: glow-teleporter 5s infinite linear;
         }
 
         /* animation utility classes */
