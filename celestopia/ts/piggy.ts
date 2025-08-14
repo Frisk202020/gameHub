@@ -1,4 +1,4 @@
-import { vhToPx, vwToPx } from "./util/functions.js";
+import { assets_link, vhToPx, vwToPx } from "./util/functions.js";
 
 const MAX = 10000;
 
@@ -39,13 +39,13 @@ export class Piggy {
     break() {
         const rect = this.#icon.getBoundingClientRect();
         const boom = document.createElement("img");
-        boom.src = `get_file/celestopia/assets/boom.gif?t=${Date.now()}`;
+        boom.src = assets_link(`boom.gif?t=${Date.now()}`);
         boom.style.left = `${rect.left - vwToPx(1)}px`;
         boom.style.top = `${rect.top - vhToPx(5)}px`;
         boom.style.width = "10vw";
         boom.style.zIndex = "5";
         boom.style.position = "fixed";
-        new Audio("get_file/celestopia/assets/boom.mp3").play();
+        new Audio(assets_link("boom.mp3")).play();
 
         document.body.appendChild(boom);
         new Promise(r => setTimeout(r, 1800)).then(() => {
@@ -92,7 +92,7 @@ export class Piggy {
         box.appendChild(counter);
 
         const icon = document.createElement("img");
-        icon.src = "get_file/celestopia/assets/icons/pig.png";
+        icon.src = assets_link("icons/pig.png");
         icon.style.height = "8vw";
         icon.style.width = "8vw";
         icon.style.marginLeft = "2vw";
@@ -101,8 +101,8 @@ export class Piggy {
         box.appendChild(icon);
 
         icon.addEventListener("click", () => {
-            icon.src = "get_file/celestopia/assets/icons/pigHappy.png";
-            new Promise(r => setTimeout(r, 500)).then(() => icon.src = "get_file/celestopia/assets/icons/pig.png");
+            icon.src = assets_link("icons/pigHappy.png");
+            new Promise(r => setTimeout(r, 500)).then(() => icon.src = assets_link("icons/pig.png"));
             if (this.#counterRevealed) {
                 counter.classList.remove("visible");
             } else {

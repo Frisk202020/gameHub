@@ -1,6 +1,7 @@
 import { Case, defaultCasePadding, IntersectionConfig } from "./Case.js";
 import { Position } from "../util/Position.js";
 import { Tuple } from "../util/tuple.js";
+import { assets_link } from "../util/functions.js";
 
 export type BoardId = 0 | 1 | 2;
 export function buildBoard(id: BoardId) {
@@ -117,6 +118,15 @@ class Board {
                 );
                 statue.className = "glow";
                 boardDiv.appendChild(statue);
+                statue.onload = ()=>wonderHelpBox(
+                    statue,
+                    boardDiv,
+                    "Statue de la mairesse",
+                    25000,
+                    0,
+                    0
+                );
+                
                 break;
             case 1:
                 const bridge = createWonderImg(
@@ -130,6 +140,14 @@ class Board {
                 )
                 bridge.style.zIndex = "1";
                 boardDiv.appendChild(bridge);
+                bridge.onload = ()=>wonderHelpBox(
+                    bridge,
+                    boardDiv,
+                    "Pont de tissu",
+                    1200,
+                    30000,
+                    0
+                );
 
                 const teleporter = createWonderImg(
                     "case.37",
@@ -142,6 +160,14 @@ class Board {
                 )
                 teleporter.id = "teleporter";
                 boardDiv.appendChild(teleporter);
+                teleporter.onload = ()=>wonderHelpBox(
+                    teleporter,
+                    boardDiv,
+                    "Téléporteur de tissu",
+                    10000,
+                    10000,
+                    0
+                );
 
                 const dress = createWonderImg(
                     "case.21",
@@ -154,6 +180,14 @@ class Board {
                 )
                 dress.className = "glow";
                 boardDiv.appendChild(dress);
+                dress.onload = ()=>wonderHelpBox(
+                    dress,
+                    boardDiv,
+                    "Robe maitresse",
+                    7500,
+                    20000,
+                    0
+                );
                 break;
             case 2:
                 (document.getElementById("case.0") as HTMLElement).className = "rotate270";
@@ -168,6 +202,14 @@ class Board {
                     }
                 );
                 comet.id = "comet";
+                comet.onload = ()=>wonderHelpBox(
+                    comet,
+                    boardDiv,
+                    "Comète mère",
+                    0,
+                    0,
+                    40000
+                );
 
                 const trail = document.createElement("div");
                 trail.id = "comet-trail";
@@ -185,6 +227,14 @@ class Board {
                 );
                 bank.id = "moon";
                 boardDiv.appendChild(bank);
+                bank.onload = ()=>wonderHelpBox(
+                    bank,
+                    boardDiv,
+                    "Banque municipale",
+                    15000,
+                    0,
+                    15000
+                );
 
                 const planet = createWonderImg(
                     "case.10",
@@ -197,6 +247,14 @@ class Board {
                 planet.id = "planet";
                 planet.style.zIndex = "1";
                 boardDiv.appendChild(planet);
+                planet.onload = ()=>wonderHelpBox(
+                    planet,
+                    boardDiv,
+                    "Astropy",
+                    4000,
+                    0,
+                    20000
+                );
         }
     }
 
@@ -420,7 +478,7 @@ interface ImgStyle {
 function createWonderImg(refElmId: string, name: string, style: ImgStyle) {
     const elmStyle = getComputedStyle(document.getElementById(refElmId) as HTMLElement);
     const elm = document.createElement("img");
-    elm.src = `get_file/celestopia/assets/wonders/${name}`;
+    elm.src = assets_link(`wonders/${name}`);
 
     let height = parseInt(elmStyle.width);
     let width = height;
@@ -442,4 +500,40 @@ function createWonderImg(refElmId: string, name: string, style: ImgStyle) {
     elm.style.zIndex = "2";
 
     return elm; 
+}
+
+function wonderHelpBox(refElm: HTMLElement, boardDiv: HTMLDivElement, name: string, coins: number, ribbons: number, stars: number) {
+    const box = document.createElement("div");
+    box.style.padding = "10px";
+    box.style.borderRadius = "10px";
+    box.style.position = "absolute";
+
+    const style = getComputedStyle(refElm);
+    console.log(`${parseInt(style.left) + 50}px`);
+    box.style.left = `${parseInt(style.left) + refElm.offsetWidth + 50}px`;
+    box.style.top = refElm.style.top;
+    box.style.backgroundColor = "#ffec7d";
+    box.style.zIndex = "5";
+    box.innerHTML = boxInnerHtml(name, coins, ribbons, stars);
+
+    refElm.addEventListener("mouseenter", ()=>boardDiv.appendChild(box));
+    refElm.addEventListener("mouseleave", ()=>boardDiv.removeChild(box));
+}
+
+function boxInnerHtml(name: string, coin: number, ribbon: number, star: number) {
+    return `
+        <p style="font-size: 20px; text-align: center">${name}</p>
+        <div style="display: flex; justify-content: center; align-items: center">
+            <img src=${assets_link("icons/coin.png")} style="width: 2vw; margin: 1vw;">
+            <p style="font-size: 15px">${coin}</p>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center">
+            <img src=${assets_link("icons/ribbon.png")} style="width: 2vw; margin: 1vw;">
+            <p style="font-size: 15px">${ribbon}</p>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center">
+            <img src=${assets_link("icons/star.png")} style="width: 2vw; margin: 1vw;">
+            <p style="font-size: 15px">${star}</p>
+        </div>
+    `;
 }

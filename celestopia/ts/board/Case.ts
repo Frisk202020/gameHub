@@ -1,8 +1,8 @@
 import { WonderName } from "../card/Wonder.js";
-import { createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
+import { assets_link, createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
 import { Position } from "../util/Position.js";
 
-const caseFolder = "get_file/celestopia/assets/cases/";
+const caseFolder = assets_link("cases/");
 export type caseType = "blueCoin" | "redCoin" | "greenEvent" | "end" |
     "mail" | "3Mail" | "5Mail" | "furnace" | "postBox" | "ladder" | "teleporter" | "dice" | "duel" |
     "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start" | "item" | "intersection" | "star" | "redStar";

@@ -1,6 +1,6 @@
 import { Popup } from "../event/Popup.js";
 import { Player } from "../Player.js";
-import { vwToPx } from "../util/functions.js";
+import { assets_link, vwToPx } from "../util/functions.js";
 
 export abstract class Item<T = void> {
     protected holder: Player;
@@ -17,7 +17,7 @@ export abstract class Item<T = void> {
         this.#description = description;
 
         const img = document.createElement("img");
-        img.src = `get_file/celestopia/assets/items/${imgId}.png`;
+        img.src = assets_link(`items/${imgId}.png`);
         img.style.width = padding ? "10vw" :"11vw";
         img.style.margin = "5vw";
         if (padding) { img.style.padding = "0.5vw"; }
@@ -64,7 +64,7 @@ export abstract class Item<T = void> {
     addHelpButton(parent: HTMLDivElement) {
         const rect = this.#img.getBoundingClientRect();
         const button = document.createElement("img");
-        button.src = "get_file/celestopia/assets/icons/help.png";
+        button.src = assets_link("icons/help.png");
         button.className = "pointerHover";
         button.style.width = "5vw";
         button.style.position = "absolute";

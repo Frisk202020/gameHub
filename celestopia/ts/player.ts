@@ -4,7 +4,7 @@ import { Card, ImgFolder } from "./card/Card.js";
 import { Wonder } from "./card/Wonder.js";
 import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
-import { createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
+import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
 import { MailEvent } from "./event/MailEvent.js";
 import { initChannel, Sender } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
@@ -271,7 +271,7 @@ export class Player {
             await this.progressiveCoinChange(this.coins + 1500);
         } else if (type === "end") {
             const {tx: tx1, rx: rx1} = initChannel<void>();
-            new Popup("Vous êtes arrivé à la fin du plateau. Payez vos courriers, des intérêt sur votre découvert et recevez 2500 pièces !", "Fin du mois !", tx1);
+            new Popup("Vous êtes arrivé à la fin du plateau. Payez vos courriers, des intérêt sur votre découvert et recevez 5000 pièces !", "Fin du mois !", tx1);
             await rx1.recv();
 
             const {tx, rx} = initChannel<number>();
@@ -509,7 +509,7 @@ export class Player {
         })
 
         const pawn = document.createElement("img");
-        pawn.src = `get_file/celestopia/assets/icons/${this.#avatar}.png`;
+        pawn.src = assets_link(`icons/${this.#avatar}.png`);
         pawn.id = `${this.#id}.pawn`;
         pawn.style.width = `${caseSize/2}px`;
         pawn.style.height = `${caseSize/2}px`
@@ -543,7 +543,7 @@ export class Player {
         name.style.marginRight = "5px";
 
         const icon = document.createElement("img");
-        icon.src = `get_file/celestopia/assets/icons/${this.#avatar}.png`;
+        icon.src = assets_link(`icons/${this.#avatar}.png`);
         icon.style.height = "5vh";
         icon.style.marginLeft = "5px";
 
@@ -597,7 +597,7 @@ export class Player {
         box.style.alignItems = "center";
 
         const img = document.createElement("img");
-        img.src = `get_file/celestopia/assets/icons/${imgName}.png`;
+        img.src = assets_link(`icons/${imgName}.png`);
         img.style.width  = "2vw";
         img.style.marginLeft = "0.5vw";
 
@@ -674,7 +674,7 @@ export class Player {
     #createAction(id: string, imgSrc: string, hover: string, action: ()=>void) {
         const elm = document.createElement("img");
         elm.id = id;
-        elm.src = `get_file/celestopia/assets/icons/${imgSrc}`;
+        elm.src = assets_link(`icons/${imgSrc}`);
         elm.style.width = "25%";
         elm.style.margin = "2.5%";
         elm.style.borderRadius = "25%";

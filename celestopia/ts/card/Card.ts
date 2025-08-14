@@ -1,7 +1,7 @@
 import { DynamicPlacement } from "../util/DynamicPlacement.js";
 import { Popup } from "../event/Popup.js";
 import { initChannel, Sender } from "../util/channel.js";
-import { appendBlurryBackground, appendCross, createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
+import { appendBlurryBackground, appendCross, assets_link, createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";
 import { Position } from "../util/Position.js";
 import { Tuple } from "../util/tuple.js";
@@ -35,7 +35,7 @@ export abstract class Card implements DynamicPlacement {
 
     constructor(name: string, folder: "aquisitions" | "wonders") {
         this.#name = name;
-        this.#src = `get_file/celestopia/assets/${folder}/${name}.png`
+        this.#src = assets_link(`${folder}/${name}.png`);
     }
 
     get name() {
@@ -211,7 +211,7 @@ function createGainDiv(type: Money, value: number) {
     box.style.margin = "1vh";
 
     const img = document.createElement("img");
-    img.src = `get_file/celestopia/assets/icons/${type}.png`;
+    img.src = assets_link(`icons/${type}.png`);
     img.style.marginRight = "10px";
     box.appendChild(img);
 

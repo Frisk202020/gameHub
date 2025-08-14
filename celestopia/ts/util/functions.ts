@@ -1,6 +1,8 @@
 import { Sender } from "./channel.js";
 import { Position } from "./Position.js";
 
+export function assets_link(x: string) { return `get_file/celestopia/assets/${x}`; }
+
 export function updateCounterValue(elementId: string, value: number) {
     const element = document.getElementById(elementId);
     if (element === null) {
@@ -63,7 +65,7 @@ export function appendBlurryBackground() {
     bgStyle.position = "fixed";
     bgStyle.left = "0px";
     bgStyle.top = "0px";
-    bgStyle.backgroundColor = "#d4d4cba1";
+    bgStyle.backgroundColor = "#858582d2";
     bgStyle.width = "100vw";
     bgStyle.height = "100vh";
     bgStyle.zIndex = "5";
