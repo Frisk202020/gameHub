@@ -76,33 +76,31 @@ export abstract class Item<T = void> {
     }
 
     static async getRandomItem(holder: Player): Promise<Item<any>> {
-        const pick = Math.floor(Math.random() * 10);
+        const pick = Math.floor(Math.random() * 130);
 
-        switch (pick) {
-            case 0: {
-                const { AquisitionThief } = await import("./AquisitionThief.js");
-                return new AquisitionThief(holder);
-            }
-            case 1: {
-                const { MoneyThief } = await import("./MoneyThief.js");
-                return new MoneyThief(holder);
-            }
-            case 2: {
-                const { Pipe } = await import("./Pipe.js");
-                return new Pipe(holder);
-            }
-            case 3: {
-                const { TrickItem } = await import("./TrickItem.js");
-                return new TrickItem(holder);
-            }
-            case 4: {
-                const { Seller } = await import("./Seller.js");
-                return new Seller(holder);
-            }
-            default: {
-                const { DiceItem } = await import("./DiceItem.js");
-                return new DiceItem(holder);
-            }
+        if (pick < 5) {
+            const { AquisitionThief } = await import("./AquisitionThief.js");
+            return new AquisitionThief(holder);
+        }
+        else if (pick < 20) {
+            const { MoneyThief } = await import("./MoneyThief.js");
+            return new MoneyThief(holder);
+        }
+        else if (pick < 35) {
+            const { Pipe } = await import("./Pipe.js");
+            return new Pipe(holder);
+        }
+        else if (pick < 50) {
+            const { TrickItem } = await import("./TrickItem.js");
+            return new TrickItem(holder);
+        }
+        else if (pick < 65) {
+            const { Seller } = await import("./Seller.js");
+            return new Seller(holder);
+        }
+        else {
+            const { DiceItem } = await import("./DiceItem.js");
+            return new DiceItem(holder);
         }
     }
 }
