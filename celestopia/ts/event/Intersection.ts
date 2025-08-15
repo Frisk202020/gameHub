@@ -8,7 +8,8 @@ export class Intersection extends BoardEvent {
         super(
             [
                 BoardEvent.generateTextBox("Intersection !"),
-                BoardEvent.generateTextBox("Choisissez le chemin à emprunter.")
+                BoardEvent.generateTextBox("Choisissez le chemin à emprunter."),
+                BoardEvent.generateTextBox(`Chemin restant à parcourir: ${p.pendingCaseId - p.caseId} cases.`)
             ],
             BoardEvent.okSetup(true, "Gauche", ()=>{
                 const delta = p.pendingCaseId - p.caseId;
