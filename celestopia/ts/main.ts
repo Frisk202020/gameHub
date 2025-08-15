@@ -6,7 +6,7 @@ import { Player } from "./Player.js";
 import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
 import { updateCounterValue } from "./util/functions.js";
-import { board, boardId, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables, setGlobalKeyboardListener } from "./util/variables.js";
+import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables, setGlobalKeyboardListener } from "./util/variables.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -59,7 +59,14 @@ async function boardRenderLoop() {
         if (p.teleport) {
             p.teleport = false;
             p.caseId = p.pendingCaseId;
-            p.movePawn().then(()=>nextPlayer(p));
+            p.movePawn().then(()=>{
+                if ((p as any).ignoreTurnSystem) {
+                    (p as any).ignoreTurnSystem = false;
+                } else {
+                    console.log("calling next player");
+                    nextPlayer(p);
+                }
+            });
         } else if (p.caseId < p.pendingCaseId) {            
             setDisableCaseHelper(true);
             let firstMove = true;
@@ -165,6 +172,7 @@ async function nextPlayer(p: Player) {
     await rx.recv();
     p.disable();
     nextP.enable();
+    if (nextP.boardId !== boardId) { changeBoard(nextP.boardId); }  
 }
 
 function main() {
