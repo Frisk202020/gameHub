@@ -21,6 +21,7 @@ import { Intersection } from "./event/Intersection.js";
 import { BoardId } from "./board/Board.js";
 import { TeleporterEvent } from "./event/TeleporterEvent.js";
 import { DuelEvent } from "./event/DuelEvent.js";
+import { Convert } from "./event/Convert.js";
 
 export type Avatar = "hat" | "strawberry" | "crown" | "dice" | "heart";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -256,6 +257,7 @@ export class Player {
         } else if (type === "teleporter") {
             const {tx, rx} = initChannel<boolean>();
             const newBoardId = (boardId + 1) as BoardId;
+            this.progressiveCoinChange(this.coins + 1500);
             new TeleporterEvent(this, newBoardId, tx);
             
             const x = await rx.recv();
@@ -267,8 +269,24 @@ export class Player {
                 this.boardId = newBoardId;
                 changeBoard(newBoardId);
                 this.pendingCaseId = this.caseId + delta;
+
+                switch(this.boardId) {
+                    case 0: return;
+                    case 1:
+                        const {tx, rx} = initChannel<number>();
+                        new Convert(tx, "ribbon");
+                        const x = await rx.recv();
+                        this.progressiveCoinChange(this.coins - x);
+                        this.progressiveRibbonChange(this.ribbons + Math.floor(x / 3));
+                        return;
+                    case 2: 
+                        const {tx: tx2, rx: rx2} = initChannel<number>();
+                        new Convert(tx2, "star");
+                        const x2 = await rx2.recv();
+                        this.progressiveCoinChange(this.coins - x2);
+                        this.progressiveStarChange(this.ribbons + Math.floor(x2 / 3));
+                }
             }
-            await this.progressiveCoinChange(this.coins + 1500);
         } else if (type === "end") {
             const {tx: tx1, rx: rx1} = initChannel<void>();
             new Popup("Vous êtes arrivé à la fin du plateau. Payez vos courriers, des intérêt sur votre découvert et recevez 5000 pièces !", "Fin du mois !", tx1);

@@ -509,7 +509,6 @@ function wonderHelpBox(refElm: HTMLElement, boardDiv: HTMLDivElement, name: stri
     box.style.position = "absolute";
 
     const style = getComputedStyle(refElm);
-    console.log(`${parseInt(style.left) + 50}px`);
     box.style.left = `${parseInt(style.left) + refElm.offsetWidth + 50}px`;
     box.style.top = refElm.style.top;
     box.style.backgroundColor = "#ffec7d";
