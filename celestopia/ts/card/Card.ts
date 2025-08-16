@@ -373,12 +373,13 @@ class CardKeyboardListener extends KeyboardListener {
             default: console.log("Unhandled img folder");
         }
 
-        const cardObj = this.cards[this.currentIndex];
+        const cardObj = this.cards[this.currentIndex] as Aquisition;
         card.src = cardObj.src;
         card.id = newCardId;
-        if (sellingAq !== undefined && boost !== undefined) {
-            sellingAq = cardObj as Aquisition;
-            boostedClone = (cardObj as Aquisition).getBoostedClone(boost)
+        if (sellingAq !== undefined) {
+            sellingAq = cardObj;
+            if (boost !== undefined) { boostedClone = cardObj.getBoostedClone(boost) }
+            else { boostedClone = cardObj.clone(); }
         }
 
         this.bg.appendChild(card);

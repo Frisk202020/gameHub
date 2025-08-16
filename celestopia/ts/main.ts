@@ -1,7 +1,9 @@
 import { boardCanvas } from "./board/Board.js";
 import { Case, setDisableCaseHelper } from "./board/Case.js";
+import { Aquisition } from "./card/Aquisition.js";
 import { ChangeBoardEvent } from "./event/ChangeBoardEvent.js";
 import { Popup } from "./event/Popup.js";
+import { Seller } from "./item/Seller.js";
 import { Player } from "./Player.js";
 import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
@@ -63,7 +65,6 @@ async function boardRenderLoop() {
                 if ((p as any).ignoreTurnSystem) {
                     (p as any).ignoreTurnSystem = false;
                 } else {
-                    console.log("calling next player");
                     nextPlayer(p);
                 }
             });
@@ -130,7 +131,7 @@ function initPlayers() {
     players.push(cas);
     */
 
-    const clem = new Player(1, "Clem", "strawberry");
+    const clem = new Player(1, "Clem", "strawberry");clem.addItem(new Seller(clem));clem.addAquisition(Aquisition.getRandomAquisition() as Aquisition); clem.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
     const eve = new Player(2, "Eve", "heart");
 
     players.push(clem);

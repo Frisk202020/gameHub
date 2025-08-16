@@ -22,6 +22,7 @@ import { BoardId } from "./board/Board.js";
 import { TeleporterEvent } from "./event/TeleporterEvent.js";
 import { DuelEvent } from "./event/DuelEvent.js";
 import { Convert } from "./event/Convert.js";
+import { Seller } from "./item/Seller.js";
 
 export type Avatar = "hat" | "strawberry" | "crown" | "dice" | "heart";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -155,7 +156,10 @@ export class Player {
     generateSellMenu() {
         const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
         Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx));
-        rx.recv().then((t) => {if (t !== undefined) { this.#removeAquisition(t.first, t.second) }});
+        rx.recv().then((t) => {
+            if (t !== undefined) { this.#removeAquisition(t.first, t.second) } 
+            else { this.addItem(new Seller(this))}
+        });
     }
 
     addWonder(w: Wonder) {

@@ -1,3 +1,4 @@
+import { Aquisition } from "../card/Aquisition.js";
 import { AquisitionThief } from "../item/AquisitionThief.js";
 import { DiceItem } from "../item/DiceItem.js";
 import { MoneyThief } from "../item/MoneyThief.js";
@@ -48,4 +49,9 @@ export const debugTools = {
             default: console.log("Unrecognized item");
         }
     },
+    giveAquisition(id: PlayerId, name: string) {
+        const aq = Aquisition.DEBUG_get_aquisition(name);
+        if (aq === undefined) { return "unrecognized aquisition"; }
+        players[id-1].addAquisition(aq);
+    }
 };

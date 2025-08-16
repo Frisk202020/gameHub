@@ -64,6 +64,15 @@ export class Aquisition extends Card {
         new Aquisition("wine", 3000, 4500, 100, 0),
     ];
 
+    static DEBUG_get_aquisition(name: string) {
+        for (let i = 0; i < this.#bank.length; i++) {
+            const a = this.#bank[i];
+            if (a.name === name) { return removeFromArray(this.#bank, i); }
+        }
+
+        return undefined;
+    }
+
     static getRandomAquisition() {
         const i = Math.floor(Math.random() * Aquisition.#bank.length);
         return removeFromArray(Aquisition.#bank, i);
