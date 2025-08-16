@@ -131,7 +131,7 @@ function initPlayers() {
     players.push(cas);
     */
 
-    const clem = new Player(1, "Clem", "strawberry");clem.addItem(new Seller(clem));clem.addAquisition(Aquisition.getRandomAquisition() as Aquisition); clem.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
+    const clem = new Player(1, "Clem", "strawberry");
     const eve = new Player(2, "Eve", "heart");
 
     players.push(clem);
