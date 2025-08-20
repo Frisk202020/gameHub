@@ -23,9 +23,9 @@ export class Crown extends BoardEvent {
                     undefined,
                     () => {
                         Promise.all([
-                            player.progressiveCoinChange(player.coins - w.coins),
-                            player.progressiveRibbonChange(player.ribbons - w.ribbons),
-                            player.progressiveStarChange(player.stars - w.stars)
+                            player.progressiveCoinChange(-w.coins),
+                            player.progressiveRibbonChange(-w.ribbons),
+                            player.progressiveStarChange(-w.stars)
                         ]).then(()=>tx.send());
                         player.addWonder(w);
                     }

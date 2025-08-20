@@ -65,9 +65,12 @@ export class Player {
     pendingCaseId: number;
     teleport: boolean;
     diceNumber: 1 | 2 | 3;
-    coins: number;
-    ribbons: number;
-    stars: number;
+    #coins: number;
+    uiCoins: number;
+    #ribbons: number;
+    uiRibbons: number;
+    #stars: number;
+    uiStars: number;
     #items: Array<Item<any>>;
     #aquisitions: Array<Aquisition>;
     #wonders: Array<Wonder>;
@@ -88,9 +91,12 @@ export class Player {
         this.pendingCaseId = 0;
         this.teleport = false;
         this.diceNumber = 1;
-        this.coins = startingCoins;
-        this.ribbons = 0;
-        this.stars = 0;
+        this.#coins = startingCoins;
+        this.uiCoins = this.#coins;
+        this.#ribbons = 0;
+        this.uiRibbons = this.#ribbons;
+        this.#stars = 0;
+        this.uiStars = this.#stars;
         this.#items = Array();
         this.#aquisitions = Array();
         this.#wonders = Array();
@@ -103,6 +109,30 @@ export class Player {
         this.#createHtml();
     }
 
+    private moneyMap = {
+        coin: {
+            get: ()=>this.#coins,
+            set: (v: number)=>this.#coins=v,
+            getUi: ()=>this.uiCoins,
+            setUi: (v: number)=>this.uiCoins=v,
+            html: "coin",
+        },
+        ribbon: {
+            get: ()=>this.#ribbons,
+            set: (v: number)=>this.#ribbons=v,
+            getUi: ()=>this.uiRibbons,
+            setUi: (v: number)=>this.uiRibbons=v,
+            html: "ribbon",
+        },
+        star: {
+            get: ()=>this.#stars,
+            set: (v: number)=>this.#stars=v,
+            getUi: ()=>this.uiStars,
+            setUi: (v: number)=>this.uiStars=v,
+            html: "star",
+        }
+    } as const;
+
     get name() {
         return this.#name;
     } get id() {
@@ -113,6 +143,12 @@ export class Player {
         return this.#aquisitions.length;
     } get wonderCount() {
         return this.#wonders.length;
+    } get coins(): number {
+        return this.#coins;
+    } get ribbons(): number {
+        return this.#ribbons;
+    } get stars(): number {
+        return this.#stars;
     }
 
     addAquisition(aq: Aquisition) {
@@ -137,15 +173,15 @@ export class Player {
             new Magic(tx);
             const m = await rx.recv()
             switch(m) {
-                case "coin": await this.progressiveCoinChange(this.coins + boostedClone.coins); break;
-                case "ribbon": await this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons); break;
-                case "star": await this.progressiveStarChange(this.stars + boostedClone.stars);
+                case "coin": await this.progressiveCoinChange(boostedClone.coins); break;
+                case "ribbon": await this.progressiveRibbonChange(boostedClone.ribbons); break;
+                case "star": await this.progressiveStarChange(boostedClone.stars);
             }
         } else {
             await Promise.all([
-                this.progressiveCoinChange(this.coins + boostedClone.coins),
-                this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons),
-                this.progressiveStarChange(this.stars + boostedClone.stars)
+                this.progressiveCoinChange(boostedClone.coins),
+                this.progressiveRibbonChange(boostedClone.ribbons),
+                this.progressiveStarChange(boostedClone.stars)
             ]);
         }
     }
@@ -171,27 +207,25 @@ export class Player {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
             pig.feed(chosen);
-            const newValue = this.coins - chosen;
 
-            await this.progressiveCoinChange(newValue);
+            await this.progressiveCoinChange(-chosen);
         } else if (type === "blueCoin") {
             const choices = [50, 100, 300, 600, 1000];
-            const newValue = this.coins + choices[Math.floor(Math.random() * 5)];
+            const chosen = choices[Math.floor(Math.random() * 5)];
 
-            await this.progressiveCoinChange(newValue);
+            await this.progressiveCoinChange(chosen);
         } else if (type === "redStar") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
-            const delta = Math.min(this.stars, chosen)
+            const delta = Math.min(this.#stars, chosen)
             pig.feed(delta * 2);
-            const newValue = this.stars - delta;
 
-            await this.progressiveStarChange(newValue);
+            await this.progressiveStarChange(delta);
         } else if (type === "star") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
 
-            await this.progressiveStarChange(this.stars + chosen);
+            await this.progressiveStarChange(chosen);
         } else if (type === "greenEvent") {
             Happening.pickRandomEvent(this, tx);
             await rx.recv();
@@ -228,7 +262,7 @@ export class Player {
             const {tx, rx} = initChannel<number>();
             new MailEvent(true, tx, this.color);
             const n  = await rx.recv();
-            await this.progressiveCoinChange(this.coins - n);
+            await this.progressiveCoinChange(-n);
         } else if (type === "sale") {
             const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
             Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "coin"));
@@ -259,7 +293,7 @@ export class Player {
             }
         } else if (type === "teleporter") {
             const {tx, rx} = initChannel<boolean>();
-            this.progressiveCoinChange(this.coins + 1500);
+            this.progressiveCoinChange(1500);
             new TeleporterEvent(this, tx);
             
             const x = await rx.recv();
@@ -277,15 +311,15 @@ export class Player {
                         const {tx, rx} = initChannel<number>();
                         new Convert(tx, "ribbon");
                         const x = await rx.recv();
-                        this.progressiveCoinChange(this.coins - x);
-                        this.progressiveRibbonChange(this.ribbons + Math.floor(x / 3));
+                        this.progressiveCoinChange(-x);
+                        this.progressiveRibbonChange(Math.floor(x / 3));
                         return;
                     case 2: 
                         const {tx: tx2, rx: rx2} = initChannel<number>();
                         new Convert(tx2, "star");
                         const x2 = await rx2.recv();
-                        this.progressiveCoinChange(this.coins - x2);
-                        this.progressiveStarChange(this.stars + Math.floor(x2 / 3));
+                        this.progressiveCoinChange(-x2);
+                        this.progressiveStarChange(Math.floor(x2 / 3));
                 }
             }
         } else if (type === "end") {
@@ -297,11 +331,11 @@ export class Player {
             new MailEvent(false, tx, this.color);
             const n = await rx.recv();
 
-            let finalVal = 5000 + this.coins - n;
+            let finalVal = 5000 + this.#coins - n;
             if (finalVal < 0) {
                 finalVal += (finalVal * 0.25);
             }
-            await this.progressiveCoinChange(finalVal);
+            await this.progressiveCoinChange(finalVal - this.#coins);
 
             this.caseId = 0;
             this.pendingCaseId = 0;
@@ -366,83 +400,49 @@ export class Player {
         };
     }
 
-    async progressiveCoinChange(target: number) {
+    async #progressiveChange(
+        kind: keyof typeof this.moneyMap,
+        delta: number
+    ) {
+        const c = this.moneyMap[kind];
         if (!this.#infoActive) {
-            this.#infoBox.classList.add("visible");
+        this.#infoBox.classList.add("visible");
         }
-        const dN = (target - this.coins) / 120;
-        const current = this.coins;
-        this.coins = target - this.coins;
-        const elm = document.getElementById(`${this.#id}.coin`) as HTMLElement;
-        if (this.coins < 0) {
-            elm.style.color = "#b70808";
+        c.set(c.get() + delta);
+
+        const dN = delta / 120;
+        const current = c.getUi();
+
+        c.setUi(delta);
+
+        const elm = document.getElementById(`${this.#id}.${c.html}`) as HTMLElement;
+        if (c.getUi() < 0) {
+        elm.style.color = "#b70808";
         } else {
-            elm.style.color = "#009220";
+        elm.style.color = "#009220";
         }
 
         await new Promise(r => setTimeout(r, 2000));
-        this.coins = current;
+        c.setUi(current);
         elm.style.color = "black";
 
         for (let i = 0; i < 120; i++) {
-            this.coins += dN;
-            await new Promise(r => setTimeout(r, 100/6));
+        c.setUi(c.getUi() + dN);
+        await new Promise(r => setTimeout(r, 100 / 6));
         }
 
-        this.coins = target;
+        c.setUi(c.get());
         this.#infoBox.classList.remove("visible");
     }
-    async progressiveRibbonChange(target: number) {
-        if (!this.#infoActive) {
-            this.#infoBox.classList.add("visible");
-        }
-        const dN = (target - this.ribbons) / 120;
-        const current = this.ribbons;
-        this.ribbons = target - this.ribbons;
-        const elm = document.getElementById(`${this.#id}.ribbon`) as HTMLElement;
-        if (this.ribbons < 0) {
-            elm.style.color = "#b70808";
-        } else {
-            elm.style.color = "#009220";
-        }
 
-        await new Promise(r => setTimeout(r, 2000));
-        this.ribbons = current;
-        elm.style.color = "black";
-
-        for (let i = 0; i < 120; i++) {
-            this.ribbons += dN;
-            await new Promise(r => setTimeout(r, 100/6));
-        }
-
-        this.ribbons = target;
-        this.#infoBox.classList.remove("visible");
+    async progressiveCoinChange(delta: number) {
+        return this.#progressiveChange("coin", delta);
     }
-    async progressiveStarChange(target: number) {
-        if (!this.#infoActive) {
-            this.#infoBox.classList.add("visible");
-        }
-        const dN = (target - this.stars) / 120;
-        const current = this.stars;
-        this.stars = target - this.stars;
-        const elm = document.getElementById(`${this.#id}.star`) as HTMLElement;
-        if (this.stars < 0) {
-            elm.style.color = "#b70808";
-        } else {
-            elm.style.color = "#009220";
-        }
-
-        await new Promise(r => setTimeout(r, 2000));
-        this.stars = current;
-        elm.style.color = "black";
-
-        for (let i = 0; i < 120; i++) {
-            this.stars += dN;
-            await new Promise(r => setTimeout(r, 100/6));
-        }
-
-        this.stars = target;
-        this.#infoBox.classList.remove("visible");
+    async progressiveRibbonChange(delta: number) {
+        return this.#progressiveChange("ribbon", delta);
+    }
+    async progressiveStarChange(delta: number) {
+        return this.#progressiveChange("star", delta);
     }
 
     // assumes caseId has been changed by the caller (to indicate the target)
@@ -581,9 +581,9 @@ export class Player {
         infoStyle.pointerEvents = "none";
 
         info.className = "reveal-vertical";
-        info.appendChild(this.#createSubInfoBox("coin", this.coins, false));
-        info.appendChild(this.#createSubInfoBox("ribbon", this.ribbons, false));
-        info.appendChild(this.#createSubInfoBox("star", this.stars, false));
+        info.appendChild(this.#createSubInfoBox("coin", this.#coins, false));
+        info.appendChild(this.#createSubInfoBox("ribbon", this.#ribbons, false));
+        info.appendChild(this.#createSubInfoBox("star", this.#stars, false));
 
         const aq = this.#createSubInfoBox("chest", this.#aquisitions.length, true);
         this.#addCardEventListeners(
@@ -677,7 +677,7 @@ export class Player {
             const {tx, rx} = initChannel<number>();
             new MailEvent(false, tx, this.color);
             rx.recv().then((n) => {
-                this.progressiveCoinChange(this.coins - n);
+                this.progressiveCoinChange(-n);
                 this.#disableActionBox(`${this.#id}.mailAction`);
                 this.#mailActionEnabled = false;
             })

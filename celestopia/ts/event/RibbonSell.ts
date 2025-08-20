@@ -28,8 +28,8 @@ export class RibbonSell extends Happening {
 
     protected event(): void {
         const promises = Array();
-        promises.push(this.#target.progressiveCoinChange(this.#target.coins + this.#coins));
-        promises.push(this.#target.progressiveRibbonChange(this.#target.ribbons - this.#ribbons));
+        promises.push(this.#target.progressiveCoinChange(this.#coins));
+        promises.push(this.#target.progressiveRibbonChange(-this.#ribbons));
         Promise.all(promises).then(()=>this.tx.send());
     }
 }

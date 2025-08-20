@@ -23,14 +23,14 @@ export const debugTools = {
     },
     showPig() { console.log(pig); },
     setPigAmmount(ammount: number) { pig.content = ammount; },
-    setCoins(id: PlayerId, value: number) { players[id - 1].coins = value; },
-    setRibbons(id: PlayerId, value: number) { players[id - 1].ribbons = value; },
-    setStars(id: PlayerId, value: number) { players[id - 1].stars = value; },
+    addCoins(id: PlayerId, value: number) { players[id - 1].progressiveCoinChange(value); },
+    addRibbons(id: PlayerId, value: number) { players[id - 1].progressiveRibbonChange(value); },
+    addStars(id: PlayerId, value: number) { players[id - 1].progressiveStarChange(value); },
     setRich(id: PlayerId) {
         const p = players[id - 1];
-        p.coins = 99999;
-        p.ribbons = 99999;
-        p.stars = 99999;
+        p.progressiveCoinChange(99999);
+        p.progressiveRibbonChange(99999);
+        p.progressiveStarChange(99999);
     },
     giveItem(id: PlayerId, item: string) {
         const p = players[id - 1];

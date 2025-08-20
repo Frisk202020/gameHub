@@ -130,7 +130,7 @@ class Event extends BoardEvent {
             }
             
             this.#tx.send();
-            this.#player.progressiveCoinChange(this.#player.coins + ammount);
+            this.#player.progressiveCoinChange(ammount);
         });
         this.enabled = true;
     }

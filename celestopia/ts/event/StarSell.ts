@@ -28,8 +28,8 @@ export class StarSell extends Happening {
 
     protected event(): void {
         const promises = Array();
-        promises.push(this.#target.progressiveCoinChange(this.#target.coins + this.#coins));
-        promises.push(this.#target.progressiveStarChange(this.#target.stars - this.#stars));
+        promises.push(this.#target.progressiveCoinChange(this.#coins));
+        promises.push(this.#target.progressiveStarChange(-this.#stars));
         Promise.all(promises).then(()=>this.tx.send());
     }
 }

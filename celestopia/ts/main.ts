@@ -35,9 +35,9 @@ window.addEventListener("resize", () => {
 
 async function counterRenderLoop() {
     for (const p of players) {
-        updateCounterValue(`${p.id}.coin`, p.coins);
-        updateCounterValue(`${p.id}.ribbon`, p.ribbons);
-        updateCounterValue(`${p.id}.star`, p.stars);
+        updateCounterValue(`${p.id}.coin`, p.uiCoins);
+        updateCounterValue(`${p.id}.ribbon`, p.uiRibbons);
+        updateCounterValue(`${p.id}.star`, p.uiStars);
         updateCounterValue(`${p.id}.chest`, p.aquisitionCount);
         updateCounterValue(`${p.id}.wonder`, p.wonderCount);
         updateCounterValue(`bankCounter`, pig.content);
