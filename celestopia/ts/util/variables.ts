@@ -1,7 +1,7 @@
 import { BoardId, buildBoard } from "../board/Board.js";
 import { Piggy } from "../piggy.js";
 import { Player } from "../Player.js";
-import { DynamicPlacement } from "./DynamicPlacement.js";
+import type { DynamicPlacement } from "./DynamicPlacement.js";
 import { appear } from "./functions.js";
 import { KeyboardListener } from "./KeyboardListener.js";
 

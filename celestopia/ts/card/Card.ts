@@ -1,11 +1,11 @@
-import { DynamicPlacement } from "../util/DynamicPlacement.js";
+import type { DynamicPlacement } from "../util/DynamicPlacement.js";
+import type { Money } from "../util/variables.js";
 import { Popup } from "../event/Popup.js";
 import { initChannel, Sender } from "../util/channel.js";
 import { appendBlurryBackground, appendCross, assets_link, createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";
 import { Position } from "../util/Position.js";
 import { Tuple } from "../util/tuple.js";
-import { Money } from "../util/variables.js";
 import { Aquisition } from "./Aquisition.js";
 
 export const cardId = "activeCard";

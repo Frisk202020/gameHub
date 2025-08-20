@@ -8,7 +8,7 @@ import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn, tr
 import { MailEvent } from "./event/MailEvent.js";
 import { initChannel, Sender } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
-import { board, boardId, changeBoard, Money, pig, players } from "./util/variables.js";
+import { board, changeBoard, Money, pig } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
 import { Chest } from "./event/Chest.js";
@@ -18,7 +18,6 @@ import { Tuple } from "./util/tuple.js";
 import { Magic } from "./event/Magic.js";
 import { ItemMenu } from "./item/ItemMenu.js";
 import { Intersection } from "./event/Intersection.js";
-import { BoardId } from "./board/Board.js";
 import { TeleporterEvent } from "./event/TeleporterEvent.js";
 import { DuelEvent } from "./event/DuelEvent.js";
 import { Convert } from "./event/Convert.js";
@@ -260,19 +259,17 @@ export class Player {
             }
         } else if (type === "teleporter") {
             const {tx, rx} = initChannel<boolean>();
-            const newBoardId = (boardId + 1) as BoardId;
             this.progressiveCoinChange(this.coins + 1500);
-            new TeleporterEvent(this, newBoardId, tx);
+            new TeleporterEvent(this, tx);
             
             const x = await rx.recv();
             if (x) {
                 const delta = this.pendingCaseId - this.caseId;
                 this.caseId = 0;
                 this.pendingCaseId = 0;
-
-                this.boardId = newBoardId;
-                changeBoard(newBoardId);
-                this.pendingCaseId = this.caseId + delta;
+                console.log(this.boardId)
+                changeBoard(this.boardId);
+                this.pendingCaseId = this.caseId + delta + 1;
 
                 switch(this.boardId) {
                     case 0: return;

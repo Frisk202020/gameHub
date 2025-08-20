@@ -1,9 +1,7 @@
 import { boardCanvas } from "./board/Board.js";
 import { Case, setDisableCaseHelper } from "./board/Case.js";
-import { Aquisition } from "./card/Aquisition.js";
 import { ChangeBoardEvent } from "./event/ChangeBoardEvent.js";
 import { Popup } from "./event/Popup.js";
-import { Seller } from "./item/Seller.js";
 import { Player } from "./Player.js";
 import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";

@@ -1,4 +1,4 @@
-import { WonderName } from "../card/Wonder.js";
+import type { WonderName } from "../card/Wonder.js";
 import { assets_link, createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
 import { Position } from "../util/Position.js";
 
