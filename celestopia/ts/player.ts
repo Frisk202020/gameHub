@@ -1,7 +1,7 @@
-import { Item } from "./item/Item.js";
-import { Aquisition } from "./card/Aquisition.js";
+import { Item, ItemName } from "./item/Item.js";
+import { Aquisition, AquisitionName } from "./card/Aquisition.js";
 import { Card, ImgFolder } from "./card/Card.js";
-import { Wonder } from "./card/Wonder.js";
+import { Wonder, WonderName } from "./card/Wonder.js";
 import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
 import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
@@ -149,11 +149,16 @@ export class Player {
         return this.#ribbons;
     } get stars(): number {
         return this.#stars;
+    } get avatar() {
+        return this.#avatar;
     }
 
     addAquisition(aq: Aquisition) {
         this.#aquisitions.push(aq);
     } 
+    listAquisitions(): AquisitionName[] {
+        return this.#aquisitions.map((aq) => aq.name);
+    }
     async #removeAquisition(aq: Aquisition, boostedClone: Aquisition) {
         if (this.#aquisitions.length === 0) {
             console.log("ERROR: tried to remove aquisition, but player didn't have one");
@@ -199,6 +204,9 @@ export class Player {
 
     addWonder(w: Wonder) {
         this.#wonders.push(w);
+    }
+    listWonders() {
+        return this.#wonders.map((w)=>w.name);
     }
 
     async caseResponse(type: caseType) {
@@ -362,7 +370,6 @@ export class Player {
 
         this.#items.push(item);
     }
-
     replaceItem<T>(old: Item, newItem: Item<T>) {
         const i = this.#items.indexOf(old);
         if (i === -1) {
@@ -371,7 +378,6 @@ export class Player {
             this.#items[i] = newItem;
         }
     }
-
     removeItem<T = void>(item: Item<T>) {
         const index = this.#items.indexOf(item);
         if (index === -1) {
@@ -381,7 +387,6 @@ export class Player {
             this.#items.splice(index, 1);
         }
     }
-
     itemIterator(): IterableIterator<Item> {
         let index = 0;
         const data = this.#items;
@@ -398,6 +403,9 @@ export class Player {
                 }
             }
         };
+    }
+    stringifyItems() {
+        return this.#items.map((i)=>(i as any).constructor.name as ItemName);
     }
 
     async #progressiveChange(

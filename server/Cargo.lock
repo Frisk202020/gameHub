@@ -518,6 +518,7 @@ dependencies = [
  "anyhow",
  "axum",
  "mime_guess",
+ "serde",
  "tokio",
  "tower",
  "tower-http",

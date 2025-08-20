@@ -2,6 +2,8 @@ import { Popup } from "../event/Popup.js";
 import { Player } from "../Player.js";
 import { assets_link, vwToPx } from "../util/functions.js";
 
+export type ItemName = "Dice" | "TrickDice" | "Seller" | "AquisitionThief" | "MoneyThief" | "Pipe"
+
 export abstract class Item<T = void> {
     protected holder: Player;
     #name: string;

@@ -25,7 +25,7 @@ let boostedClone: Aquisition | undefined = undefined;
 let boost: Money | undefined = undefined;
 
 export abstract class Card implements DynamicPlacement {
-    #name: string;
+    protected _name: string;
     #src: string;
     static #cardWidth = 30;
 
@@ -34,13 +34,11 @@ export abstract class Card implements DynamicPlacement {
     }
 
     constructor(name: string, folder: "aquisitions" | "wonders") {
-        this.#name = name;
+        this._name = name;
         this.#src = assets_link(`${folder}/${name}.png`);
     }
 
-    get name() {
-        return this.#name;
-    } get src() {
+    get src() {
         return this.#src;
     }
 

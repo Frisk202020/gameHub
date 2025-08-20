@@ -1,4 +1,5 @@
 mod util;
+mod celestopia;
 
 use std::net::SocketAddr;
 

@@ -23,6 +23,8 @@ export class Wonder extends Card {
         return this.#ribbonPrice;
     } get stars() {
         return this.#starPrice;
+    } get name() {
+        return this._name as WonderName;
     }
 
     static #bank = new Map<WonderName, Wonder>([

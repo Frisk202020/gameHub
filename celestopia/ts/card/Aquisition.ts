@@ -2,6 +2,9 @@ import { removeFromArray } from "../util/functions.js";
 import { Money, resizables } from "../util/variables.js";
 import { Card } from "./Card.js";
 
+export type AquisitionName = "astropy" | "baloon" | "bd" | "beauty" | "camping" | "car" | "castle" | "chest" | "horse" | "magic" | "moto"
+    | "necklace" | "picasso" | "pool" | "post" | "tractor" | "vase" | "wine";
+
 export class Aquisition extends Card {
     #price: number;
     #coinValue: number;
@@ -19,6 +22,9 @@ export class Aquisition extends Card {
         resizables.push(this);
     }
 
+    get name() {
+        return this._name as AquisitionName;
+    }
     get price() {
         return this.#price;
     } get coins() {

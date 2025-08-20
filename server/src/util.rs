@@ -1,4 +1,4 @@
-use axum::{extract::Path, http::{header, HeaderMap, StatusCode}, response::IntoResponse};
+use axum::{extract::Path, http::{header, HeaderMap, StatusCode}, response::IntoResponse, Json};
 use tokio::{fs::File, io::AsyncReadExt};
 use tower::ServiceBuilder;
 use tower_http::services::ServeDir;
@@ -24,3 +24,21 @@ pub async fn get_file(Path(path): Path<String>) -> impl IntoResponse {
         Err(_) => StatusCode::NOT_FOUND.into_response(),
     }
 }   
+
+pub async fn save_celestopia(Json(body): Json<String>) -> impl IntoResponse {
+
+}
+
+struct CelestopiaData {
+    name: String,
+    icon: String,
+    coins: i64,
+    ribbons: u64,
+    stars: u64,
+    aquisitions: Vec<String>,
+    wonders: Vec<String>,
+}
+
+struct CelestopiaPlayerData {
+
+}
