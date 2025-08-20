@@ -1,4 +1,6 @@
+import { BoardId } from "../board/Board.js";
 import { Aquisition } from "../card/Aquisition.js";
+import { Wonder, WonderName } from "../card/Wonder.js";
 import { AquisitionThief } from "../item/AquisitionThief.js";
 import { DiceItem } from "../item/DiceItem.js";
 import { MoneyThief } from "../item/MoneyThief.js";
@@ -53,5 +55,16 @@ export const debugTools = {
         const aq = Aquisition.DEBUG_get_aquisition(name);
         if (aq === undefined) { return "unrecognized aquisition"; }
         players[id-1].addAquisition(aq);
+    },
+    giveWonder(id: PlayerId, name: WonderName) {
+        const aq = Wonder.getWonder(name);
+        if (aq === undefined) { return "unrecognized aquisition"; }
+        players[id-1].addWonder(aq);
+    },
+    setBoardId(id: PlayerId, board: BoardId) {players[id-1].boardId = board;},
+    setCaseId(id: PlayerId, n: number) {
+        const p = players[id-1];
+        p.pendingCaseId = n;
+        p.teleport = true;
     }
 };

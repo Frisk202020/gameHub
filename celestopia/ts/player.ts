@@ -288,7 +288,7 @@ export class Player {
                         new Convert(tx2, "star");
                         const x2 = await rx2.recv();
                         this.progressiveCoinChange(this.coins - x2);
-                        this.progressiveStarChange(this.ribbons + Math.floor(x2 / 3));
+                        this.progressiveStarChange(this.stars + Math.floor(x2 / 3));
                 }
             }
         } else if (type === "end") {
