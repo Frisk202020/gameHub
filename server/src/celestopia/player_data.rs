@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::celestopia::{aquisition::Aquisition, avatar::Avatar, item::Item, wonder::Wonder};
 
 #[derive(Serialize, Deserialize)]
-pub struct PlayerData {
+pub(crate) struct PlayerData {
     name: String,
     icon: Avatar,
     coins: i64,
@@ -35,8 +35,8 @@ impl From<&InputPlayerData> for PlayerData {
     pub(crate) fn items_count(&self) -> usize { self.items.len() }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct InputPlayerData {
+#[derive(Serialize, Deserialize, Debug)]
+pub(crate) struct InputPlayerData {
     name: String,
     icon: String,
     coins: i64,
