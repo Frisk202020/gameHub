@@ -17,7 +17,8 @@ pub(crate) struct InputGameData {
     pub(crate) fn name(&self) -> &str { &self.name }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct GameData {
     key: String,
     players: Vec<PlayerData>,
@@ -53,4 +54,20 @@ pub(crate) struct GameData {
         (data, errors)
     }
     pub(crate) fn set_key(&mut self, key: &str) { self.key = key.to_string(); }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct OutputGameData {
+    players: Vec<PlayerData>,
+    pig: u16,
+    turn_holder: u8
+} impl From<GameData> for OutputGameData {
+    fn from(value: GameData) -> Self {
+        Self {
+            players: value.players,
+            pig: value.pig,
+            turn_holder: value.turn_holder
+        }
+    }
 }

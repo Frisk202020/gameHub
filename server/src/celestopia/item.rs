@@ -1,9 +1,9 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub(crate) enum Item {
-    Dice,
-    TrickDice,
+    DiceItem,
+    TrickItem,
     Seller,
     AquisitionThief,
     MoneyThief,
@@ -18,8 +18,8 @@ impl Item {
 impl From<&str> for Item {
     fn from(value: &str) -> Self {
         match value {
-            "Dice" => Self::Dice,
-            "TrickDice" => Self::TrickDice,
+            "DiceItem" => Self::DiceItem,
+            "TrickItem" => Self::TrickItem,
             "Seller" => Self::Seller,
             "AquisitionThief" => Self::AquisitionThief,
             "MoneyThief" => Self::MoneyThief,

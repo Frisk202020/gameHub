@@ -8,7 +8,7 @@ import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn, tr
 import { MailEvent } from "./event/MailEvent.js";
 import { initChannel, Sender } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
-import { board, changeBoard, Money, pig } from "./util/variables.js";
+import { board, boardId, changeBoard, Money, pig } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
 import { Chest } from "./event/Chest.js";
@@ -22,6 +22,7 @@ import { TeleporterEvent } from "./event/TeleporterEvent.js";
 import { DuelEvent } from "./event/DuelEvent.js";
 import { Convert } from "./event/Convert.js";
 import { Seller } from "./item/Seller.js";
+import type { BoardId } from "./board/Board.js";
 
 export type Avatar = "hat" | "strawberry" | "crown" | "dice" | "heart";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -654,14 +655,13 @@ export class Player {
             }
         });
 
-        let folder: Card[];
-        switch(imgFolder) {
-            case "aquisitions" : folder = this.#aquisitions; break;
-            case "wonders": folder = this.#wonders; break;
-            default: console.log("unhandled img folder");
-        }
-
         element.addEventListener("click", () => {
+            let folder: Card[];
+            switch(imgFolder) {
+                case "aquisitions" : folder = this.#aquisitions; break;
+                case "wonders": folder = this.#wonders; break;
+                default: console.log("unhandled img folder"); return;
+            }
             Card.generateMenu(folder, imgFolder, clickMsg);
         });
     }
@@ -730,8 +730,50 @@ export class Player {
     #sellInterface(tx: Sender<Tuple<Aquisition, Aquisition> | undefined>, type?: Money) {
         return { tx, type }
     }
+
+    loadData(data: PlayerData, enabled: boolean) {
+        this.#name = data.name;
+        this.#avatar = data.icon;
+        this.#coins = data.coins;
+        this.uiCoins = data.coins;
+        this.#ribbons = data.ribbons;
+        this.uiRibbons = data.ribbons;
+        this.#stars = data.stars;
+        this.uiStars = data.stars;
+        this.#aquisitions = data.aquisitions.map((aq) => Aquisition.getByName(aq)).filter((aq) => aq !== undefined);
+        this.#wonders = data.wonders.map((w) => Wonder.getWonder(w, true)).filter((w) => w !== undefined);
+        Promise.all(data.items.map((i) => Item.getByName(i, this))).then((items) => this.#items = items);
+        this.pendingCaseId = data.caseId;
+        this.teleport = true;
+        (this as any).ignoreTurnSystem = true;
+        this.boardId = data.boardId;
+        this.diceNumber = data.diceNumber;
+        if (boardId !== this.boardId) {
+            this.#pawn.style.opacity = "0";
+        }
+
+        if (enabled) {
+            this.enable();
+        } else {
+            this.disable();
+        }
+    }
 }
 
 function computePawnPosition(elm: Case) {
     return new Position(elm.uiPosition.x + caseSize/4, elm.uiPosition.y);
+}
+
+export interface PlayerData {
+    name: string,
+    icon: Avatar,
+    coins: number,
+    ribbons: number,
+    stars: number,
+    aquisitions: AquisitionName[],
+    wonders: WonderName[],
+    items: ItemName[],
+    caseId: number,
+    boardId: BoardId,
+    diceNumber: 1 | 2 | 3,
 }

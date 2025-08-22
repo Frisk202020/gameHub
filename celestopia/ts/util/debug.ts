@@ -7,7 +7,7 @@ import { MoneyThief } from "../item/MoneyThief.js";
 import { Pipe } from "../item/Pipe.js";
 import { Seller } from "../item/Seller.js";
 import { TrickItem } from "../item/TrickItem.js";
-import { sendSaveRequest } from "./save.js";
+import { sendLoadRequest, sendSaveRequest } from "./save.js";
 import { currentKeyboardEventListener, pig, players, resizables } from "./variables.js";
 
 type PlayerId = 1 | 2 |  3 | 4;
@@ -53,13 +53,13 @@ export const debugTools = {
         }
     },
     giveAquisition(id: PlayerId, name: string) {
-        const aq = Aquisition.DEBUG_get_aquisition(name);
+        const aq = Aquisition.getByName(name);
         if (aq === undefined) { return "unrecognized aquisition"; }
         players[id-1].addAquisition(aq);
     },
     giveWonder(id: PlayerId, name: WonderName) {
-        const aq = Wonder.getWonder(name);
-        if (aq === undefined) { return "unrecognized aquisition"; }
+        const aq = Wonder.getWonder(name, false);
+        if (aq === undefined) { return "unrecognized wonder"; }
         players[id-1].addWonder(aq);
     },
     setBoardId(id: PlayerId, board: BoardId) {players[id-1].boardId = board;},
@@ -68,5 +68,6 @@ export const debugTools = {
         p.pendingCaseId = n;
         p.teleport = true;
     },
-    save(name: string) { sendSaveRequest(name); }
+    save(name: string) { sendSaveRequest(name); },
+    load(name: string) { sendLoadRequest(name); }
 };

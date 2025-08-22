@@ -2,13 +2,12 @@ mod util;
 mod celestopia;
 
 use std::net::SocketAddr;
-
 use axum::{routing, Router};
 use util::*;
 use anyhow::Result;
 use tower_http::cors::{Any, CorsLayer};
 
-use crate::celestopia::save;
+use crate::celestopia::{load, save};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -18,7 +17,8 @@ async fn main() -> Result<()> {
             .route("/get_file/{*path}", routing::get(get_file))
             .nest_service("/naval", service("../naval/code"))
             .nest_service("/celestopia", service("../celestopia"))  
-            .route("/celestopia/save", routing::post(save))  
+            .route("/celestopia/save", routing::post(save))
+            .route("/celestopia/load/{name}", routing::get(load))
             .layer(
                 CorsLayer::new()
                     .allow_headers(Any)

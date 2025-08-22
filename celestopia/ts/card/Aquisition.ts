@@ -70,12 +70,13 @@ export class Aquisition extends Card {
         new Aquisition("wine", 3000, 4500, 100, 0),
     ];
 
-    static DEBUG_get_aquisition(name: string) {
+    static getByName(name: string) {
         for (let i = 0; i < this.#bank.length; i++) {
             const a = this.#bank[i];
             if (a.name === name) { return removeFromArray(this.#bank, i); }
         }
 
+        console.log(`WARN: can't found ${name}`)
         return undefined;
     }
 

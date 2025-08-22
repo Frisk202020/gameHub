@@ -13,8 +13,8 @@ export function clearGlobalKeyboardListener() {
     currentKeyboardEventListener = undefined;
 }
 
-export const resizables: DynamicPlacement[] = Array();
 export const players: Player[] = Array();
+export const resizables: DynamicPlacement[] = Array();
 export let board = buildBoard(0);
 export let boardId = 0;
 export const pig = new Piggy();

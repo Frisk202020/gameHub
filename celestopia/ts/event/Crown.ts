@@ -5,7 +5,7 @@ import { BoardEvent } from "./BoardEvent.js";
 
 export class Crown extends BoardEvent {
     constructor(player: Player, name: WonderName, tx: Sender<void>) {
-        const w = Wonder.getWonder(name);
+        const w = Wonder.getWonder(name, false);
         if (w === undefined) {
             super(
                 [BoardEvent.generateTextBox("Cette merveille a déjà été achetée...")],

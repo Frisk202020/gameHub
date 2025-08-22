@@ -57,6 +57,8 @@ export class Piggy {
         return content;
     }
 
+    loadContent(n: number) { this.content = n;}
+
     //gold: 255,215,0
     setColor() {
         const ratio = this.content / MAX;

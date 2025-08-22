@@ -2,7 +2,7 @@ import { Popup } from "../event/Popup.js";
 import { Player } from "../Player.js";
 import { assets_link, vwToPx } from "../util/functions.js";
 
-export type ItemName = "Dice" | "TrickDice" | "Seller" | "AquisitionThief" | "MoneyThief" | "Pipe"
+export type ItemName = "DiceItem" | "TrickItem" | "Seller" | "AquisitionThief" | "MoneyThief" | "Pipe"
 
 export abstract class Item<T = void> {
     protected holder: Player;
@@ -79,30 +79,54 @@ export abstract class Item<T = void> {
 
     static async getRandomItem(holder: Player): Promise<Item<any>> {
         const pick = Math.floor(Math.random() * 130);
+        let name: ItemName;
 
         if (pick < 5) {
-            const { AquisitionThief } = await import("./AquisitionThief.js");
-            return new AquisitionThief(holder);
+            name = "AquisitionThief";
         }
         else if (pick < 20) {
-            const { MoneyThief } = await import("./MoneyThief.js");
-            return new MoneyThief(holder);
+            name = "MoneyThief";
         }
         else if (pick < 35) {
-            const { Pipe } = await import("./Pipe.js");
-            return new Pipe(holder);
+            name = "Pipe";
         }
         else if (pick < 50) {
-            const { TrickItem } = await import("./TrickItem.js");
-            return new TrickItem(holder);
+            name = "TrickItem";
         }
         else if (pick < 65) {
-            const { Seller } = await import("./Seller.js");
-            return new Seller(holder);
+            name = "Seller";
         }
         else {
+            name = "DiceItem";
+        }
+
+        return await itemFactory(name, holder);
+    }
+    
+    static async getByName(name: ItemName, holder: Player): Promise<Item<any>> {
+        return await itemFactory(name, holder)
+    }
+}
+
+async function itemFactory(name: ItemName, holder: Player) {
+    switch(name) {
+        case "DiceItem": 
             const { DiceItem } = await import("./DiceItem.js");
             return new DiceItem(holder);
-        }
+        case "AquisitionThief":
+            const { AquisitionThief } = await import("./AquisitionThief.js");
+            return new AquisitionThief(holder);
+        case "MoneyThief":
+            const { MoneyThief } = await import("./MoneyThief.js");
+            return new MoneyThief(holder);
+        case "Pipe":
+            const { Pipe } = await import("./Pipe.js");
+            return new Pipe(holder);
+        case "Seller":
+            const { Seller } = await import("./Seller.js");
+            return new Seller(holder);
+        case "TrickItem":
+            const { TrickItem } = await import("./TrickItem.js");
+            return new TrickItem(holder);
     }
 }
