@@ -151,6 +151,8 @@ export class Player {
         return this.#stars;
     } get avatar() {
         return this.#avatar;
+    } get enabled() {
+        return this.#diceActionEnabled;
     }
 
     addAquisition(aq: Aquisition) {

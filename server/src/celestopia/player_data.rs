@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::celestopia::{aquisition::Aquisition, avatar::Avatar, item::Item, wonder::Wonder};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub(crate) struct PlayerData {
     name: String,
     icon: Avatar,
@@ -11,8 +11,8 @@ pub(crate) struct PlayerData {
     stars: u64,
     aquisitions: Vec<Aquisition>,
     wonders: Vec<Wonder>,
-    items:  Vec<Item>,
-    case_id: u64,   
+    items: Vec<Item>,
+    case_id: u8,   
 }
 impl From<&InputPlayerData> for PlayerData {
     fn from(value: &InputPlayerData) -> Self {
@@ -35,7 +35,7 @@ impl From<&InputPlayerData> for PlayerData {
     pub(crate) fn items_count(&self) -> usize { self.items.len() }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize)]
 pub(crate) struct InputPlayerData {
     name: String,
     icon: String,
@@ -45,7 +45,8 @@ pub(crate) struct InputPlayerData {
     aquisitions: Vec<String>,
     wonders: Vec<String>,
     items:  Vec<String>,
-    case_id: u64, 
+    #[serde(alias = "caseId")]
+    case_id: u8, 
 }
 impl InputPlayerData {
     pub(crate) fn aquisitions_count(&self) -> usize { self.aquisitions.len() }

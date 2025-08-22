@@ -2,11 +2,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::celestopia::player_data::{InputPlayerData, PlayerData};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize)]
 pub(crate) struct InputGameData {
     name: String,
     key: String,
     players: Vec<InputPlayerData>,
+    pig: u16,
+    #[serde(alias = "turnHolder")]
     turn_holder: u8,
 } impl InputGameData {
     pub(crate) fn key(&self) -> &str {
@@ -15,14 +17,20 @@ pub(crate) struct InputGameData {
     pub(crate) fn name(&self) -> &str { &self.name }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub(crate) struct GameData {
     key: String,
     players: Vec<PlayerData>,
+    pig: u16,
     turn_holder: u8
 } impl GameData {
     pub(crate) fn analyze_input(input: InputGameData) -> (GameData, Vec<String>) {
-        let data = Self { key: input.key, players: input.players.iter().map(|p| PlayerData::from(p)).collect(), turn_holder: input.turn_holder};
+        let data = Self { 
+            key: input.key, 
+            players: input.players.iter().map(|p| PlayerData::from(p)).collect(), 
+            pig: input.pig,
+            turn_holder: input.turn_holder
+        };
         let mut errors: Vec<String> = Vec::new();
         data.players.iter().enumerate().zip(input.players).for_each(
             |((i, output), input)| {

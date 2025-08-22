@@ -1,14 +1,21 @@
-import type { AquisitionName } from "../card/Aquisition"
-import type { WonderName } from "../card/Wonder"
-import type { ItemName } from "../item/Item";
-import type { Avatar } from "../Player"
-import { pig, players } from "./variables";
+import type { AquisitionName } from "../card/Aquisition.js"
+import type { WonderName } from "../card/Wonder.js"
+import type { ItemName } from "../item/Item.js";
+import type { Avatar, PlayerId } from "../Player.js"
+import { pig, players } from "./variables.js";
 
-export async function sendSaveRequest() {
+let registeredKey = "";
+
+export async function sendSaveRequest(name: string) {
     try {
+        const {players, turnHolder} = getPlayersData();
+
         const body: GameData = {
-            players: getPlayersData(),
-            pig: pig.content
+            name,
+            key: registeredKey,
+            players,
+            pig: pig.content,
+            turnHolder
         }
         const res = await fetch(
             "celestopia/save", 
@@ -18,15 +25,21 @@ export async function sendSaveRequest() {
                 body: JSON.stringify(body)
             }
         )
-
-        const result = await res.blob();
+       
+        const result: Response = await res.json();
+        if (result.authentification.length > 0) {
+            registeredKey = result.authentification;
+        }
+        console.log(result);
     } catch(err) {
         console.error("Save request failed:", err);
     }
 }
 
-function getPlayersData(): PlayerData[] {
-    return players.map((p) => {
+function getPlayersData(): {players: PlayerData[], turnHolder: PlayerId } {
+    let turnHolder: PlayerId = 1;
+    const playersData = players.map((p) => {
+        if (p.enabled) { turnHolder = p.id; }
         return {
             name: p.name,
             icon: p.avatar,
@@ -38,7 +51,9 @@ function getPlayersData(): PlayerData[] {
             items: p.stringifyItems(),
             caseId: p.caseId
         }
-    })
+    });
+
+    return { players: playersData, turnHolder }
 }
 
 interface PlayerData {
@@ -54,6 +69,14 @@ interface PlayerData {
 }
 
 interface GameData {
+    name: string,
+    key: string,
     players: PlayerData[],
     pig: number,
+    turnHolder: PlayerId
+}
+interface Response {
+    message: string,
+    authentification: string,
+    errors: string[]
 }

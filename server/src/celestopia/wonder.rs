@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub(crate) enum Wonder {
     Statue,
     Astropy,
