@@ -7,7 +7,6 @@ import { MoneyThief } from "../item/MoneyThief.js";
 import { Pipe } from "../item/Pipe.js";
 import { Seller } from "../item/Seller.js";
 import { TrickItem } from "../item/TrickItem.js";
-import { sendLoadRequest, sendSaveRequest } from "./save.js";
 import { currentKeyboardEventListener, pig, players, resizables } from "./variables.js";
 
 type PlayerId = 1 | 2 |  3 | 4;
@@ -68,6 +67,4 @@ export const debugTools = {
         p.pendingCaseId = n;
         p.teleport = true;
     },
-    save(name: string) { sendSaveRequest(name); },
-    load(name: string) { sendLoadRequest(name); }
 };

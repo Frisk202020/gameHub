@@ -2,10 +2,11 @@ import { boardCanvas } from "./board/Board.js";
 import { Case, setDisableCaseHelper } from "./board/Case.js";
 import { ChangeBoardEvent } from "./event/ChangeBoardEvent.js";
 import { Popup } from "./event/Popup.js";
+import { FileEvent } from "./event/FileEvent.js";
 import { Player } from "./Player.js";
 import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
-import { updateCounterValue } from "./util/functions.js";
+import { assets_link, updateCounterValue } from "./util/functions.js";
 import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables, setGlobalKeyboardListener } from "./util/variables.js";
 
 document.addEventListener("keydown", (event) => {
@@ -16,6 +17,7 @@ document.addEventListener("keydown", (event) => {
     } else {
         switch (event.key) {
             case "Enter": 
+                event.preventDefault();
                 if (document.fullscreenElement) {
                     document.exitFullscreen();
                 } else {
@@ -140,7 +142,7 @@ function initPlayers() {
     }
 }
 
-function initBoardBtn() {
+function initBoardBtns() {
     const p = document.createElement("p");
     p.className = "pointerHover";
     p.textContent = "Changer de plateau";
@@ -158,6 +160,18 @@ function initBoardBtn() {
 
     p.addEventListener("click", ()=>new ChangeBoardEvent());
     document.body.appendChild(p);
+
+    const img = document.createElement("img");
+    img.src = assets_link("icons/save.png");
+    img.style.height = "3vw";
+    img.style.position = "fixed";
+    img.style.bottom = "0px";
+    img.style.left = "48.5vw";
+    img.className = "pointerHover";
+    img.addEventListener("click", ()=>new FileEvent());
+
+    document.body.appendChild(img);
+
 }
 
 async function nextPlayer(p: Player) {
@@ -178,7 +192,7 @@ function main() {
     initPlayers();
     counterRenderLoop();
     boardRenderLoop();
-    initBoardBtn();
+    initBoardBtns();
     players[0].enable();
 }
 

@@ -17,6 +17,7 @@ async fn main() -> Result<()> {
             .route("/get_file/{*path}", routing::get(get_file))
             .nest_service("/naval", service("../naval/code"))
             .nest_service("/celestopia", service("../celestopia"))  
+            .nest_service("/test", service("../test"))
             .route("/celestopia/save", routing::post(save))
             .route("/celestopia/load/{name}", routing::get(load))
             .layer(

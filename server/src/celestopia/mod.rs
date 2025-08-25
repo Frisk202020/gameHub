@@ -1,7 +1,7 @@
 use axum::{extract::Path, http::StatusCode, response::IntoResponse, Json};
 use serde::Serialize;
 use serde_json::Value;
-use std::{fs::{File, OpenOptions}, io::{ErrorKind::AlreadyExists, Read, Write}};
+use std::{fs::{File, OpenOptions}, io::{ErrorKind::AlreadyExists, Read, Write}, path::{Component, PathBuf}};
 use rand::{Rng, distr::Alphanumeric};
 
 use crate::celestopia::game_data::{GameData, InputGameData, OutputGameData};
@@ -14,9 +14,16 @@ mod player_data;
 mod game_data;
 
 pub async fn save(Json(data): Json<InputGameData>) -> Result<Response<SaveResponseBody>, Response<SaveResponseBody>> {
-    let path = format!("data/celestopia/{}.json", data.name());
+    let path = correct_path(
+        std::env::current_exe().map_err(|e| 
+            Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to get target directory path: {e}"))
+        )?, 
+        data.name()
+    );
+
     let mut key = String::new();
     let rng = rand::rng();
+    println!("{}", path.display());
 
     let mut file = match OpenOptions::new()
         .write(true)
@@ -26,25 +33,28 @@ pub async fn save(Json(data): Json<InputGameData>) -> Result<Response<SaveRespon
                 key = rng.sample_iter(Alphanumeric).take(8).map(char::from).collect();
                 Ok(file)
             },
-            Err(e) 
-                if e.kind() == AlreadyExists => {
-                    match check_authentification(&path, data.key()) {
-                        Ok(true) => File::create(&path).map_err(
-                            |e| Response::new(
-                                StatusCode::BAD_REQUEST,
-                                format!("Failed to create save file: {e}")
-                            )
-                        ),
-                        Ok(false) => Err(Response::new(
-                            StatusCode::CONFLICT, 
-                            "Provided authentification key is invalid".to_string()
-                        )),
-                        Err(e) => Err(e)
+            Err(e) if e.kind() == AlreadyExists => {
+                    if let Some(path) = path.to_str() {
+                            match check_authentification(path, data.key()) {
+                            Ok(true) => File::create(&path).map_err(
+                                |e| Response::new(
+                                    StatusCode::BAD_REQUEST,
+                                    format!("Failed to create save file: {e}")
+                                )
+                            ),
+                            Ok(false) => Err(Response::new(
+                                StatusCode::CONFLICT, 
+                                "Provided authentification key is invalid".to_string()
+                            )),
+                            Err(e) => Err(e)
+                        }
+                    } else {
+                        Err(Response::new(StatusCode::INTERNAL_SERVER_ERROR, "Invalid file path".to_string()))
                     }
                 },
             Err(e) => Err(Response::new(
                 StatusCode::BAD_REQUEST, 
-                format!("Failed to create save file: {e}")
+                format!("Failed to create save file: {e} {}", path.display())
             ))
         }?;
 
@@ -68,7 +78,14 @@ pub async fn save(Json(data): Json<InputGameData>) -> Result<Response<SaveRespon
 }
 
 pub async fn load(Path(name): Path<String>) -> Result<Response<OutputGameData>, Response<String>> {
-    let mut file = File::open(format!("data/celestopia/{name}.json"))
+    let path = correct_path(
+        std::env::current_exe().map_err(|e| 
+            Response::new_load_error(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to build directory path: {e}"))
+        )?, 
+        &name
+    );
+
+    let mut file = File::open(path)
         .map_err(|e| Response::new_load_error(StatusCode::BAD_REQUEST, format!("Failed to open save file: {e}")))?;
 
     let mut buf = String::new();
@@ -80,6 +97,17 @@ pub async fn load(Path(name): Path<String>) -> Result<Response<OutputGameData>, 
         .map_err(|e| Response::new_load_error(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to parse save file as json: {e}")))?;
     
     Ok(Response::new_load(data))   
+}
+
+fn correct_path(path: PathBuf, filename: &str) -> PathBuf {
+    let mut path = path.components().take_while(|x|  *x != Component::Normal("gameHub".as_ref())).collect::<PathBuf>();
+    path.push("gameHub");
+    path.push("server");
+    path.push("data");
+    path.push(filename);
+    path.set_extension("json");
+
+    path
 }
 
 fn check_authentification(path: &str, key: &str) -> Result<bool, Response<SaveResponseBody>> {

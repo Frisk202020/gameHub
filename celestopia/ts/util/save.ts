@@ -1,18 +1,15 @@
-import type { AquisitionName } from "../card/Aquisition.js"
-import type { WonderName } from "../card/Wonder.js"
-import type { ItemName } from "../item/Item.js";
-import { Player, type Avatar, type PlayerData, type PlayerId } from "../Player.js"
-import { boardId, pig, players } from "./variables.js";
+import { Player, type PlayerData, type PlayerId } from "../Player.js"
+import { pig, players } from "./variables.js";
 
 let registeredKey = "";
 
-export async function sendSaveRequest(name: string) {
+export async function sendSaveRequest(name: string, key?: string): Promise<OutputResponse> {
     try {
         const {players, turnHolder} = getPlayersData();
 
         const body: GameData = {
             name,
-            key: registeredKey,
+            key: key === undefined ? registeredKey : key,
             players,
             pig: pig.content,
             turnHolder
@@ -26,33 +23,78 @@ export async function sendSaveRequest(name: string) {
             }
         )
        
-        const result: Response = await res.json();
-        if (result.authentification.length > 0) {
-            registeredKey = result.authentification;
+        const json: Response = await res.json();
+        if (!res.ok) {
+            if (res.status == 409) {
+                if (key === undefined) {
+                    return {
+                        success: false,
+                        authentification_error: true,
+                        message: "Erreur d'authentification: veuillez entrer la clé.",
+                        key: "",
+                        errors: []
+                    }
+                } else {
+                    return {
+                        success: false,
+                        authentification_error: true,
+                        message: "Clé invalide. Réesayez.",
+                        key: "",
+                        errors: []
+                    }
+                }
+            } else {
+                return {
+                    success: false,
+                    authentification_error: false,
+                    message: `Message du serveur: ${json.message}`,
+                    key: "",
+                    errors: []
+                }
+            }
         }
-        console.log(result);
+        if (json.authentification !== "") { registeredKey = json.authentification; }
+
+        return {
+            success: true,
+            authentification_error: false,
+            message: json.message,
+            key: json.authentification,
+            errors: json.errors
+        };
     } catch(err) {
-        console.error("Save request failed:", err);
+        return {
+            success: false,
+            authentification_error: false,
+            message: `caught error: ${err}`,
+            key: "",
+            errors: []
+        }
     }
 }
 
-export async function sendLoadRequest(name: string) {
-    const res = await fetch(`celestopia/load/${name}`);
-    const result: GameData = await res.json();
-    console.log(result);
+export async function sendLoadRequest(name: string): Promise<boolean> {
+    try {
+        const res = await fetch(`celestopia/load/${name}`);
+        const result: GameData = await res.json();
 
-    for (let i = 0; i < players.length; i++) {
-        const p = players[i];
-        p.loadData(result.players[i], result.turnHolder === p.id);
-    }
-    for (let i = players.length; i < result.players.length; i++) {
-        const data = result.players[i];
-        const p = new Player((i + 1) as PlayerId, data.name, data.icon);
-        p.loadData(data, result.turnHolder === p.id);
+        for (let i = 0; i < players.length; i++) {
+            const p = players[i];
+            p.loadData(result.players[i], result.turnHolder === p.id);
+        }
+        for (let i = players.length; i < result.players.length; i++) {
+            const data = result.players[i];
+            const p = new Player((i + 1) as PlayerId, data.name, data.icon);
+            p.loadData(data, result.turnHolder === p.id);
 
-        players.push(p);
+            players.push(p);
+        }
+        pig.loadContent(result.pig);
+        return true;
+    } catch(err) {
+        console.log(`Load error: ${err}`);
+        return false;
     }
-    pig.loadContent(result.pig);
 }
 
 function getPlayersData(): {players: PlayerData[], turnHolder: PlayerId } {
@@ -88,5 +130,13 @@ interface GameData {
 interface Response {
     message: string,
     authentification: string,
+    errors: string[]
+}
+
+interface OutputResponse {
+    success: boolean,
+    authentification_error: boolean
+    message: string,
+    key: string,
     errors: string[]
 }
