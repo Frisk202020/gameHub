@@ -58,6 +58,11 @@
             0% { offset-distance: 0%; }
             100% { offset-distance: 100%; }
         }
+        @keyframes hue {
+            0% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(360deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
 
         /* specific properties */
         body {
@@ -186,6 +191,9 @@
         }
 
         /* utility classes */
+        .hue {
+            animation: hue 5s linear infinite;
+        }
         .pointerHover:hover {
             cursor: pointer;
         }

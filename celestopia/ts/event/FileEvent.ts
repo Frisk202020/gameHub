@@ -4,11 +4,15 @@ import { BoardEvent } from "./BoardEvent.js";
 
 export class FileEvent extends BoardEvent {
     constructor() {
+        const buttons = [{0: "Sauvegarder",1: ()=>new SaveEvent()}, {0: "Charger", 1: ()=>new LoadEvent()}].map((x)=>{
+            const b = BoardEvent.generateButton(x[0], "#ffd700", true, x[1]);
+            b.className = "pointerHover";
+            b.addEventListener("mouseenter", ()=>b.classList.add("hue"));
+            b.addEventListener("mouseleave", ()=>b.classList.remove("hue"));
+            return b;
+        });
         super(
-            [
-                BoardEvent.generateButton("Sauvegarder", "#ffd700", true, ()=>{new SaveEvent()}), 
-                BoardEvent.generateButton("Charger", "#ffd700", true, ()=>{new LoadEvent()})
-            ],
+            buttons,
             BoardEvent.unappendedOkSetup(),
             BoardEvent.denySetup(false)
         )

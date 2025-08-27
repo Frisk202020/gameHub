@@ -2,6 +2,7 @@ use axum::{extract::Path, http::{header, HeaderMap, StatusCode}, response::IntoR
 use tokio::{fs::File, io::AsyncReadExt};
 use tower::ServiceBuilder;
 use tower_http::services::ServeDir;
+use tracing::trace;
 
 pub fn service(path: &str) -> ServeDir {
     ServiceBuilder::new().service(ServeDir::new(path))
@@ -9,7 +10,7 @@ pub fn service(path: &str) -> ServeDir {
 
 pub async fn get_file(Path(path): Path<String>) -> impl IntoResponse {
     let path = format!("../{path}");
-    println!("Asking for file {path}");
+    trace!("Asking for file {path}");
 
     match File::open(&path).await {
         Ok(mut file) => {
