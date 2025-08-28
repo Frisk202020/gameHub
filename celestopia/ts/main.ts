@@ -118,7 +118,6 @@ async function boardRenderLoop() {
 }
 
 function initPlayers() {
-    /*
     const frisk = new Player(1, "Frisk", "strawberry");
     const dokueki = new Player(2, "Dokueki", "crown");
     const q = new Player(3, "New Quark", "dice");
@@ -129,13 +128,6 @@ function initPlayers() {
     players.push(dokueki);
     players.push(q);
     players.push(cas);
-    */
-
-    const clem = new Player(1, "Clem", "strawberry");
-    const eve = new Player(2, "Eve", "heart");
-
-    players.push(clem);
-    players.push(eve);
 
     for (const p of players) {
         document.body.appendChild(p.pawn);

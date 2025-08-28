@@ -49,13 +49,6 @@ const actionColor = {
     4: "#0063ae",
 }
 
-const infoColor ={
-    1: "#fa271448",
-    2: "#4ac75f3a",
-    3: "#ebe03f3a",
-    4: "#29b1ff3d",
-}
-
 export class Player {
     #id: PlayerId;
     #name: string;
@@ -108,6 +101,13 @@ export class Player {
         this.#itemActionEnabled = false;
 
         this.#createHtml();
+    }
+
+    static infoColor = {
+        1: "#fa271448",
+        2: "#4ac75f3a",
+        3: "#ebe03f3a",
+        4: "#29b1ff3d",
     }
 
     private moneyMap = {
@@ -586,7 +586,7 @@ export class Player {
         const info = document.createElement("div");
         const infoStyle = info.style;
         infoStyle.width = "10vw";
-        infoStyle.background = `linear-gradient(to bottom, ${this.color}, ${infoColor[this.#id]})`;
+        infoStyle.background = `linear-gradient(to bottom, ${this.color}, ${Player.infoColor[this.#id]})`;
         infoStyle.padding = "0.5vw";
         infoStyle.borderRadius = "10px";
         infoStyle.pointerEvents = "none";
@@ -732,8 +732,6 @@ export class Player {
     }
 
     loadData(data: PlayerData, enabled: boolean) {
-        this.#name = data.name;
-        this.#avatar = data.icon;
         this.#coins = data.coins;
         this.uiCoins = data.coins;
         this.#ribbons = data.ribbons;
