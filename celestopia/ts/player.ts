@@ -5,7 +5,6 @@ import { Wonder, WonderName } from "./card/Wonder.js";
 import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
 import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
-import { MailEvent } from "./event/MailEvent.js";
 import { initChannel, Sender } from "./util/channel.js";
 import { Case, caseSize, caseType } from "./board/Case.js";
 import { board, boardId, changeBoard, Money, pig } from "./util/variables.js";
@@ -72,7 +71,6 @@ export class Player {
     #infoActive: boolean;
     color: string;
     #diceActionEnabled: boolean;
-    #mailActionEnabled: boolean;
     #itemActionEnabled: boolean;
 
     constructor(id: PlayerId, name: string, avatar: Avatar) {
@@ -97,7 +95,6 @@ export class Player {
         this.#infoBox = this.#createInfoBox();
         this.#infoActive = false;
         this.#diceActionEnabled = false;
-        this.#mailActionEnabled = false;
         this.#itemActionEnabled = false;
 
         this.#createHtml();
@@ -237,17 +234,20 @@ export class Player {
             const chosen = choices[Math.floor(Math.random() * 4)];
 
             await this.progressiveStarChange(chosen);
+        } else if (type === "redRibbon") {
+            const choices = [50, 100, 250, 500];
+            const chosen = choices[Math.floor(Math.random() * 4)];
+            const delta = Math.min(this.#ribbons, chosen)
+            pig.feed(delta * 2);
+
+            await this.progressiveRibbonChange(delta);
+        } else if (type === "blueRibbon") {
+            const choices = [50, 100, 250, 500];
+            const chosen = choices[Math.floor(Math.random() * 4)];
+
+            await this.progressiveRibbonChange(chosen);
         } else if (type === "greenEvent") {
             Happening.pickRandomEvent(this, tx);
-            await rx.recv();
-        } else if (type === "mail") {
-            new Popup("Vous avez reçu 1 courrier !", undefined, tx);
-            await rx.recv()
-        } else if (type === "3Mail") {
-            new Popup("Vous avez reçu 3 courriers !", undefined, tx);
-            await rx.recv();
-        } else if (type === "5Mail") {
-            new Popup("Vous avez reçu 5 courriers !", undefined, tx);
             await rx.recv();
         } else if (type === "aquisition") {
             new Chest(this, tx);
@@ -257,9 +257,6 @@ export class Player {
             this.teleport = true;
         } else if (type === "dice") {
             new Popup("Relancez les dés !");
-        } else if (type === "furnace") {
-            new Popup("Brulez tous vos courriers. Vous n'avez rien à payer !", undefined, tx);
-            await rx.recv();
         } else if (type === "wonder") {
             new Crown(this, (board.elements[this.caseId] as any).wonder, tx);
             await rx.recv();
@@ -269,11 +266,6 @@ export class Player {
         } else if (type === "piggy") {
             new PigEvent(this, tx);
             await rx.recv();
-        } else if (type === "postBox") {
-            const {tx, rx} = initChannel<number>();
-            new MailEvent(true, tx, this.color);
-            const n  = await rx.recv();
-            await this.progressiveCoinChange(-n);
         } else if (type === "sale") {
             const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
             Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "coin"));
@@ -338,11 +330,7 @@ export class Player {
             new Popup("Vous êtes arrivé à la fin du plateau. Payez vos courriers, des intérêt sur votre découvert et recevez 5000 pièces !", "Fin du mois !", tx1);
             await rx1.recv();
 
-            const {tx, rx} = initChannel<number>();
-            new MailEvent(false, tx, this.color);
-            const n = await rx.recv();
-
-            let finalVal = 5000 + this.#coins - n;
+            let finalVal = 5000 + this.#coins;
             if (finalVal < 0) {
                 finalVal += (finalVal * 0.25);
             }
@@ -469,29 +457,23 @@ export class Player {
     }
 
     enable() {
-        for (const id of ["diceAction", "mailAction", "itemAction"]) {
+        for (const id of ["diceAction", "itemAction"]) {
             const elm = document.getElementById(`${this.#id}.${id}`)  as HTMLElement;
             elm.style.backgroundColor = actionColor[this.#id];
         }
 
         this.#diceActionEnabled = true;
-        this.#mailActionEnabled = true;
         this.#itemActionEnabled = true;
     }
 
     disable() {
-        for (const id of ["diceAction", "mailAction", "itemAction"]) {
+        for (const id of ["diceAction", "itemAction"]) {
             const elm = document.getElementById(`${this.#id}.${id}`)  as HTMLElement;
             elm.style.backgroundColor = "#bebdbd";
         }
 
         this.#diceActionEnabled = false;
-        this.#mailActionEnabled = false;
         this.#itemActionEnabled = false;
-    }
-
-    #disableActionBox(id: string) {
-        (document.getElementById(id) as HTMLElement).style.backgroundColor = "#bebdbd";
     }
 
     #createHtml() {
@@ -680,18 +662,7 @@ export class Player {
             rx.recv().then((n) => {
                 this.pendingCaseId = this.caseId + n;
             }); 
-        }));
-        box.appendChild(this.#createAction(`${this.#id}.mailAction`, "mail.png", "Payez vos courriers en avance.",  () => {
-            if (!this.#mailActionEnabled) { return; }
-
-            const {tx, rx} = initChannel<number>();
-            new MailEvent(false, tx, this.color);
-            rx.recv().then((n) => {
-                this.progressiveCoinChange(-n);
-                this.#disableActionBox(`${this.#id}.mailAction`);
-                this.#mailActionEnabled = false;
-            })
-        }));
+        }))
         box.appendChild(this.#createAction(`${this.#id}.itemAction`, "bag.png", "Utilisez un objet (avant de lancer le dé).",  () => {
             if (!this.#itemActionEnabled) { return; }
 
