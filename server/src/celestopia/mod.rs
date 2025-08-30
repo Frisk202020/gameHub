@@ -13,6 +13,7 @@ mod item;
 mod avatar;
 mod player_data;
 mod game_data;
+mod color;
 
 pub async fn save(Json(data): Json<InputGameData>) -> Result<Response<SaveResponseBody>, Response<SaveResponseBody>> {
     let path = correct_path(

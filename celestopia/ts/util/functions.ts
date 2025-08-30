@@ -1,6 +1,18 @@
 import { Sender } from "./channel.js";
 import { Position } from "./Position.js";
 
+export function unwrap_or_default<T>(x: T | undefined, default_value: T) {
+    return x === undefined ? default_value : x;
+}
+
+export function isCharAlphanumeric(c: string) {
+    if (c.length > 1) {
+        return false;
+    } else {
+        return c[0] >= "0" &&  c[0] <= "9" || c[0] >= "a" && c[0] <= "z" || c[0] >= "A" && c[0] <= "Z";
+    }
+}
+
 export function assets_link(x: string) { return `get_file/celestopia/assets/${x}`; }
 
 export function updateCounterValue(elementId: string, value: number) {
@@ -11,6 +23,17 @@ export function updateCounterValue(elementId: string, value: number) {
     }
 
     element.textContent = Math.round(value).toString();
+}
+
+export function removeFromArrayByValue<T>(array: T[], value: T) {
+    const index = array.indexOf(value);
+    if (index === undefined) {
+        console.log("ERROR: value is not in array");
+        return;
+    }
+
+    array[index] = array[array.length - 1];
+    array.pop();
 }
 
 export function removeFromArray<T>(array: T[], index: number): T | undefined {

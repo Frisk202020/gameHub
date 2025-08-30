@@ -45,7 +45,7 @@ class Event extends BoardEvent {
             box.appendChild(
                 BoardEvent.generateButton(
                     p.name,
-                    p.color,
+                    p.color.base,
                     true,
                     ()=> {
                         document.body.removeChild(this.menu);

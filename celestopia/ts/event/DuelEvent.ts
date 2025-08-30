@@ -17,7 +17,7 @@ export class DuelEvent extends BoardEvent {
         for (const p of players) {
             const b = BoardEvent.generateButton(
                     p.name,
-                    p.color,
+                    p.color.base,
                     true,
                     ()=> {
                         this.#selectWinner = p;
@@ -90,7 +90,6 @@ class Listener extends KeyboardListener {
 }
 
 class Event extends BoardEvent {
-    #player: Player;
     #tx: Sender<number>;
     promptText: string;
     enabled: boolean;
@@ -118,7 +117,6 @@ class Event extends BoardEvent {
             BoardEvent.okSetup(false),
             BoardEvent.denySetup(false)
         );
-        this.#player = p;
         this.#tx = tx;
         this.promptText = "";
         this.enabled = false;

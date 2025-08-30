@@ -8,6 +8,7 @@ import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
 import { assets_link, updateCounterValue } from "./util/functions.js";
 import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables, setGlobalKeyboardListener } from "./util/variables.js";
+import { initPlayersLocal } from "./event/PlayerCreate.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -118,20 +119,13 @@ async function boardRenderLoop() {
 }
 
 function initPlayers() {
-    const frisk = new Player(1, "Frisk", "strawberry");
-    const dokueki = new Player(2, "Dokueki", "crown");
-    const q = new Player(3, "New Quark", "dice");
-    const cas = new Player(4, "Casyaks", "hat");
-    
-
-    players.push(frisk);
-    players.push(dokueki);
-    players.push(q);
-    players.push(cas);
-
-    for (const p of players) {
-        document.body.appendChild(p.pawn);
-    }
+    initPlayersLocal().then((x)=>{
+        x.forEach((x)=>{
+            players.push(x);
+            document.body.appendChild(x.pawn);
+        });
+        players[0].enable();
+    });
 }
 
 function initBoardBtns() {
@@ -180,12 +174,11 @@ async function nextPlayer(p: Player) {
     if (nextP.boardId !== boardId) { changeBoard(nextP.boardId); }  
 }
 
-function main() {
+async function main() {
     initPlayers();
     counterRenderLoop();
     boardRenderLoop();
     initBoardBtns();
-    players[0].enable();
 }
 
 main();

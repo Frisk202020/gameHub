@@ -41,7 +41,7 @@ class Event extends BoardEvent {
             if (p === itemHolder) { continue; }
             const b = BoardEvent.generateButton(
                     p.name,
-                    p.color,
+                    p.color.base,
                     true,
                     ()=> {
                         if (this.#selectPlayer !== undefined) {
@@ -66,7 +66,7 @@ class Event extends BoardEvent {
         for (const t of new Array<Tuple<Money, string>>(new Tuple("coin", "pièces"), new Tuple("ribbon", "rubans"), new Tuple("star", "étoiles"))) {
             const b = BoardEvent.generateButton(
                     t.second,
-                    itemHolder.color,
+                    itemHolder.color.base,
                     true,
                     ()=> {
                         if (this.#selectMoney !== undefined) {

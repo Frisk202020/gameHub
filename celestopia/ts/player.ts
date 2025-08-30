@@ -34,19 +34,14 @@ let helperBox: HTMLDivElement | undefined = undefined;
 
 const startingCoins = 3000;
 
-const playerColor = {
-    1: "#fa2714",
-    2: "#4ac75e",
-    3: "#ebdf3f",
-    4: "#29b0ff",
+interface ColorPalette {
+    name: PlayerColor,
+    base: string,
+    action: string,
+    info: string,
 }
 
-const actionColor = {
-    1: "#c40202",
-    2: "#04890d",
-    3: "#b39803",
-    4: "#0063ae",
-}
+export type PlayerColor = "red" | "orange" | "yellow" | "green" | "cyan" | "blue" | "purple" | "pink";
 
 export class Player {
     #id: PlayerId;
@@ -69,13 +64,23 @@ export class Player {
     #wonders: Array<Wonder>;
     #infoBox: HTMLDivElement;
     #infoActive: boolean;
-    color: string;
+    color: ColorPalette;
     #diceActionEnabled: boolean;
     #itemActionEnabled: boolean;
+    static readonly #palette: Map<PlayerColor, ColorPalette> = new Map([
+        ["red",    { name: "red", base: "#fa2714", action: "#c40202", info: "#fa271448" }],
+        ["orange", { name: "orange", base: "#fa9214", action: "#c46c02", info: "#fa921448" }],
+        ["yellow", { name: "yellow", base: "#ebdf3f", action: "#c4b902", info: "#ebdf3f48" }],
+        ["green",  { name: "green", base: "#4ac75e", action: "#029c20", info: "#4ac75e48" }],
+        ["blue",   { name: "blue", base: "#4a4aff", action: "#0202c4", info: "#4a4aff48" }],
+        ["cyan",   { name: "cyan", base: "#45f6ed", action: "#02c4b9", info: "#45f6ed48" }],
+        ["purple", { name: "purple", base: "#f645f0", action: "#c402c0", info: "#f645f048" }],
+        ["pink",   { name: "pink", base: "#f64583", action: "#c4023c", info: "#f6458348" }],
+    ]);
 
-    constructor(id: PlayerId, name: string, avatar: Avatar) {
+    constructor(id: PlayerId, name: string, avatar: Avatar, color: PlayerColor) {
         this.#id = id;
-        this.color = playerColor[id];
+        this.color = Player.palette(color);
         this.#name = name;
         this.#avatar = avatar;
         this.boardId = 0;
@@ -98,13 +103,6 @@ export class Player {
         this.#itemActionEnabled = false;
 
         this.#createHtml();
-    }
-
-    static infoColor = {
-        1: "#fa271448",
-        2: "#4ac75f3a",
-        3: "#ebe03f3a",
-        4: "#29b1ff3d",
     }
 
     private moneyMap = {
@@ -151,6 +149,16 @@ export class Player {
         return this.#avatar;
     } get enabled() {
         return this.#diceActionEnabled;
+    } static palette(color: PlayerColor): Readonly<ColorPalette> {
+        const v = this.#palette.get(color);
+        if (v === undefined) {
+            console.log(`ERROR: unhandled color - ${color}`);
+            return this.#palette.get("red") as ColorPalette;
+        } else {
+            return v;
+        }
+    } static colors(): PlayerColor[] {
+        return [...this.#palette.keys()]
     }
 
     addAquisition(aq: Aquisition) {
@@ -459,7 +467,7 @@ export class Player {
     enable() {
         for (const id of ["diceAction", "itemAction"]) {
             const elm = document.getElementById(`${this.#id}.${id}`)  as HTMLElement;
-            elm.style.backgroundColor = actionColor[this.#id];
+            elm.style.backgroundColor = this.color.action;
         }
 
         this.#diceActionEnabled = true;
@@ -541,7 +549,7 @@ export class Player {
         style.display = "flex";
         style.flexDirection = "row";
         style.padding = "0.5vw";
-        style.backgroundColor = this.color;
+        style.backgroundColor = this.color.base;
         style.width = "10vw";
         style.justifyContent = "space-between";
         style.borderRadius = "10px";
@@ -568,7 +576,7 @@ export class Player {
         const info = document.createElement("div");
         const infoStyle = info.style;
         infoStyle.width = "10vw";
-        infoStyle.background = `linear-gradient(to bottom, ${this.color}, ${Player.infoColor[this.#id]})`;
+        infoStyle.background = `linear-gradient(to bottom, ${this.color.base}, ${this.color.info})`;
         infoStyle.padding = "0.5vw";
         infoStyle.borderRadius = "10px";
         infoStyle.pointerEvents = "none";
@@ -736,6 +744,7 @@ function computePawnPosition(elm: Case) {
 export interface PlayerData {
     name: string,
     icon: Avatar,
+    color: PlayerColor,
     coins: number,
     ribbons: number,
     stars: number,

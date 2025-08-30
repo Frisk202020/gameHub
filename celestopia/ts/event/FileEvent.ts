@@ -265,14 +265,14 @@ function loadData(data: GameData) {
     if (players.length <= data.players.length) {
         for (let i = 0; i < players.length; i++) {
             const pData = data.players[i];
-            const p = new Player(i+1 as PlayerId, pData.name, pData.icon);
+            const p = new Player(i+1 as PlayerId, pData.name, pData.icon, pData.color);
             p.loadData(pData, data.turnHolder === p.id);
 
             players[i] = p;
         }
         for (let i = players.length; i < data.players.length; i++) {
             const pData = data.players[i];
-            const p = new Player((i + 1) as PlayerId, pData.name, pData.icon);
+            const p = new Player((i + 1) as PlayerId, pData.name, pData.icon, pData.color);
             p.loadData(pData, data.turnHolder === p.id);
 
             players.push(p);
@@ -280,7 +280,7 @@ function loadData(data: GameData) {
     } else {
         for (let i = 0; i < data.players.length; i++) {
             const pData = data.players[i];
-            const p = new Player(i+1 as PlayerId, pData.name, pData.icon);
+            const p = new Player(i+1 as PlayerId, pData.name, pData.icon, "red");
             p.loadData(pData, data.turnHolder === p.id);
 
             players[i] = p;
@@ -419,6 +419,7 @@ function getPlayersData(): {players: PlayerData[], turnHolder: PlayerId } {
         return {
             name: p.name,
             icon: p.avatar,
+            color: p.color.name,
             coins: p.coins,
             ribbons: p.ribbons,
             stars: p.stars,
@@ -459,7 +460,7 @@ function createSaveFileBox(data: GameData, filename: string) {
     for (let i = 0; i < data.players.length; i++) {
         const p = data.players[i];
         const pBox = document.createElement("div");
-        pBox.style.backgroundColor = Player.infoColor[i+1 as PlayerId];
+        pBox.style.backgroundColor = Player.palette(p.color).base;
         pBox.style.width = "50vw";
         pBox.style.borderRadius = "10px";
         pBox.style.margin = "2vh";

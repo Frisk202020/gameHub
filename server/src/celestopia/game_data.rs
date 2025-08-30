@@ -36,6 +36,7 @@ pub(crate) struct GameData {
         data.players.iter().enumerate().zip(input.players).for_each(
             |((i, output), input)| {
                 if !output.avatar_ok() { errors.push(format!("Invalid avatar for player {i}")) }
+                if !output.color_ok() { errors.push(format!("Invalid color for player {i}")) }
                 if output.aquisitions_count() < input.aquisitions_count() { 
                     let c = input.aquisitions_count() - output.aquisitions_count(); 
                     errors.push(format!("Player {i} had {c} invalid aquisitions"));   

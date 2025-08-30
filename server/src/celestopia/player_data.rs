@@ -1,12 +1,13 @@
 use serde::{Deserialize, Serialize};
 
-use crate::celestopia::{aquisition::Aquisition, avatar::Avatar, item::Item, wonder::Wonder};
+use crate::celestopia::{aquisition::Aquisition, avatar::Avatar, color::Color, item::Item, wonder::Wonder};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct PlayerData {
     name: String,
     icon: Avatar,
+    color: Color,
     coins: i64,
     ribbons: u64,
     stars: u64,
@@ -22,6 +23,7 @@ impl From<&InputPlayerData> for PlayerData {
         Self {
             name: value.name.clone(),
             icon: Avatar::from(value.icon.as_str()),
+            color: Color::from(value.color.as_str()),
             coins: value.coins,
             ribbons: value.ribbons,
             stars: value.stars,
@@ -35,6 +37,7 @@ impl From<&InputPlayerData> for PlayerData {
     }
 } impl PlayerData {
     pub(crate) fn avatar_ok(&self) -> bool { !self.icon.is_none() }
+    pub(crate) fn color_ok(&self) -> bool { !self.color.is_none() }
     pub(crate) fn aquisitions_count(&self) -> usize { self.aquisitions.len() }
     pub(crate) fn wonders_count(&self) -> usize { self.wonders.len() }
     pub(crate) fn items_count(&self) -> usize { self.items.len() }
@@ -44,6 +47,7 @@ impl From<&InputPlayerData> for PlayerData {
 pub(crate) struct InputPlayerData {
     name: String,
     icon: String,
+    color: String,
     coins: i64,
     ribbons: u64,
     stars: u64,
