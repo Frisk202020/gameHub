@@ -1,4 +1,4 @@
-import { Wonder, WonderName } from "../card/Wonder.js";
+import { Wonder, type WonderName } from "../card/Wonder.js";
 import { Player } from "../Player.js";
 import { Sender } from "../util/channel.js";
 import { BoardEvent } from "./BoardEvent.js";

@@ -1,6 +1,6 @@
 import type { BoardId } from "../board/Board.js";
 import { Aquisition } from "../card/Aquisition.js";
-import { Wonder, WonderName } from "../card/Wonder.js";
+import { Wonder, type WonderName } from "../card/Wonder.js";
 import { AquisitionThief } from "../item/AquisitionThief.js";
 import { DiceItem } from "../item/DiceItem.js";
 import { MoneyThief } from "../item/MoneyThief.js";

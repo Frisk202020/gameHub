@@ -1,4 +1,4 @@
-import { Avatar, Player, PlayerColor, PlayerId } from "../Player.js";
+import { type Avatar, Player, type PlayerColor, type PlayerId } from "../Player.js";
 import { initChannel, Sender } from "../util/channel.js";
 import { assets_link, isCharAlphanumeric, removeFromArrayByValue } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";

@@ -1,4 +1,4 @@
-import { IntersectionConfig } from "../board/Case.js";
+import type { IntersectionConfig } from "../board/Case.js";
 import { Player } from "../Player.js";
 import { Sender } from "../util/channel.js";
 import { BoardEvent } from "./BoardEvent.js";

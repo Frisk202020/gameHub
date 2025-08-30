@@ -1,4 +1,4 @@
-import { Case, defaultCasePadding, IntersectionConfig } from "./Case.js";
+import { Case, defaultCasePadding, type IntersectionConfig } from "./Case.js";
 import { Position } from "../util/Position.js";
 import { Tuple } from "../util/tuple.js";
 import { assets_link } from "../util/functions.js";

@@ -1,5 +1,5 @@
 import { removeFromArray } from "../util/functions.js";
-import { Money, resizables } from "../util/variables.js";
+import { type Money, resizables } from "../util/variables.js";
 import { Card } from "./Card.js";
 
 export type AquisitionName = "astropy" | "baloon" | "bd" | "beauty" | "camping" | "car" | "castle" | "chest" | "horse" | "magic" | "moto"

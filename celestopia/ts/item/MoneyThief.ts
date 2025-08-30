@@ -3,7 +3,7 @@ import { Theft } from "../event/Theft.js";
 import { Player } from "../Player.js";
 import { initChannel, Sender } from "../util/channel.js";
 import { Tuple } from "../util/tuple.js";
-import { Money, players } from "../util/variables.js";
+import { type Money, players } from "../util/variables.js";
 import { Item } from "./Item.js";
 
 export class MoneyThief extends Item {
