@@ -24,13 +24,18 @@ export class DuelEvent extends BoardEvent {
                         if (this.#selectButton === undefined) {
                             this.enableOk(() => {
                                 (async () => {
+                                    let pot = 1000;
                                     for (const p of players) {
-                                        const {tx, rx} = initChannel<void>();
-                                        const event = new Event(p, p === this.#selectWinner, tx);
+                                        const {tx, rx} = initChannel<number>();
+                                        const event = new Event(p, tx);
                                         new Listener(event);
 
-                                        await rx.recv();
+                                        const bet_ammount = await rx.recv();
+                                        pot += bet_ammount;
+                                        if (p !== this.#selectWinner) { p.progressiveCoinChange(-bet_ammount); }
                                     }
+
+                                    this.#selectWinner?.progressiveCoinChange(pot);
                                     outerTx.send();
                                 })();
                             })
@@ -86,13 +91,12 @@ class Listener extends KeyboardListener {
 
 class Event extends BoardEvent {
     #player: Player;
-    #win: boolean;
-    #tx: Sender<void>;
+    #tx: Sender<number>;
     promptText: string;
     enabled: boolean;
     text: HTMLParagraphElement;
 
-    constructor(p: Player, win: boolean, tx: Sender<void>) {
+    constructor(p: Player, tx: Sender<number>) {
         const box = document.createElement("div");
         box.id = "prompt";
         box.style.fontSize = "5vh";
@@ -110,12 +114,11 @@ class Event extends BoardEvent {
         box.appendChild(text);
 
         super(
-            [BoardEvent.generateTextBox(`Entrez la somme ${win ? "gagnée" : "perdue"} par ${p.name}`),box],
+            [BoardEvent.generateTextBox(`Entrez la somme pariée par ${p.name}`),box],
             BoardEvent.okSetup(false),
             BoardEvent.denySetup(false)
         );
         this.#player = p;
-        this.#win = win;
         this.#tx = tx;
         this.promptText = "";
         this.enabled = false;
@@ -125,12 +128,8 @@ class Event extends BoardEvent {
     enable() {
         this.enableOk(()=>{
             let ammount = Number(this.promptText);
-            if (!this.#win) {
-                ammount *= -1;
-            }
-            
-            this.#tx.send();
-            this.#player.progressiveCoinChange(ammount);
+ 
+            this.#tx.send(ammount);
         });
         this.enabled = true;
     }
