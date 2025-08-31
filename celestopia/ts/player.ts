@@ -6,7 +6,7 @@ import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
 import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
 import { initChannel, Sender } from "./util/channel.js";
-import { Case, caseSize, type caseType } from "./board/Case.js";
+import { Case, caseSize, type CaseType } from "./board/Case.js";
 import { board, boardId, changeBoard, type Money, pig } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
@@ -217,7 +217,7 @@ export class Player {
         return this.#wonders.map((w)=>w.name);
     }
 
-    async caseResponse(type: caseType) {
+    async caseResponse(type: CaseType) {
         const {tx, rx} = initChannel<void>();
         if (type === "redCoin") {
             const choices = [50, 100, 250, 500];
@@ -237,7 +237,7 @@ export class Player {
             pig.feed(delta * 2);
 
             await this.progressiveStarChange(delta);
-        } else if (type === "star") {
+        } else if (type === "blueStar") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
 
@@ -254,7 +254,7 @@ export class Player {
             const chosen = choices[Math.floor(Math.random() * 4)];
 
             await this.progressiveRibbonChange(chosen);
-        } else if (type === "greenEvent") {
+        } else if (type === "event") {
             Happening.pickRandomEvent(this, tx);
             await rx.recv();
         } else if (type === "aquisition") {

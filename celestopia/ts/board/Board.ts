@@ -190,8 +190,6 @@ class Board {
                 );
                 break;
             case 2:
-                (document.getElementById("case.0") as HTMLElement).className = "rotate270";
-
                 const comet = createWonderImg(
                     "case.33",
                     "mother.png",
@@ -263,7 +261,7 @@ class Board {
             elements: Array(
                 new Case(0, 3, "start"),
                 new Case(1, 3, "blueCoin"),
-                new Case(2, 3, "greenEvent"),
+                new Case(2, 3, "event"),
                 new Case(3, 3, "redCoin"),
                 new Case(4, 3, "aquisition"),
                 new Case(5, 3, "ladder").withCaseConfig({ ladderDestination: 28 }),
@@ -279,7 +277,7 @@ class Board {
                 new Case(15, 2, "wonder", "upwards").withCaseConfig({ convex: false, wonderName: "statue" }),
                 new Case(14, 1, "duel", "backwards"),
                 new Case(13, 1, "aquisition", "backwards"),
-                new Case(12, 1, "greenEvent", "backwards"),
+                new Case(12, 1, "event", "backwards"),
                 new Case(11, 1, "dice", "backwards"),
                 new Case(10, 1, "piggy", "backwards"),
                 new Case(9, 1, "piggy", "backwards"),
@@ -290,7 +288,7 @@ class Board {
                 new Case(4, 1, "item", "backwards"),
                 new Case(3, 1, "duel", "backwards"),
                 new Case(2, 1, "ladder", "backwards").withCaseConfig({ ladderDestination: 5 }),
-                new Case(1, 1, "greenEvent", "backwards"),
+                new Case(1, 1, "event", "backwards"),
                 new Case(0, 1, "teleporter", "backwards").withCaseConfig({ nextId: 0 })
             ),
             length: 16,
@@ -312,7 +310,7 @@ class Board {
                 new Case(5, 1, "blueRibbon", "downwards"),
                 new Case(5, 2, "sale", "downwards"),
                 new Case(5, 3, "duel", "downwards").withCaseConfig({ convex: true }),
-                new Case(6, 4, "greenEvent", "straight").withCaseConfig({ convex: true }),
+                new Case(6, 4, "event", "straight").withCaseConfig({ convex: true }),
                 new Case(7, 3, "piggy", "upwards"),
                 new Case(7, 2, "aquisition", "upwards"),
                 new Case(7, 1, "redRibbon", "upwards").withCaseConfig({ convex: false }),
@@ -329,8 +327,8 @@ class Board {
                 new Case(14, 3, "wonder", "downwards").withCaseConfig({ wonderName: "bridge" }),
                 new Case(14, 4, "blueRibbon", "downwards").withCaseConfig({ convex: true, targetSide: "right" }),
                 new Case(13, 5, "aquisition", "downwards").withCaseConfig({ convex: true }),
-                new Case(14, 6, "greenEvent"),
-                new Case(15, 6, "greenEvent"),
+                new Case(14, 6, "event"),
+                new Case(15, 6, "event"),
                 new Case(16, 6, "saleRibbon"),
                 new Case(17, 6, "sale", "straight").withCaseConfig({ convex: true }),
                 new Case(18, 5, "item", "upwards"),
@@ -341,9 +339,9 @@ class Board {
                 new Case(19, 0, "ladder", "straight").withCaseConfig({ ladderDestination: 18 }),
                 new Case(20, 0, "teleporter", "straight").withCaseConfig({ convex: false }),
                 new Case(21, 1, "wonder", "downwards").withCaseConfig({wonderName: "teleporter"}),
-                new Case(21, 2, "greenEvent", "downwards"),
+                new Case(21, 2, "event", "downwards"),
                 new Case(21, 3, "duel", "downwards"),
-                new Case(21, 4, "greenEvent", "downwards"),
+                new Case(21, 4, "event", "downwards"),
                 new Case(21, 5, "sale", "downwards"),
                 new Case(21, 6, "ladder", "downwards").withCaseConfig({ nextId: 0, ladderDestination: 0 })
             ),
@@ -356,16 +354,16 @@ class Board {
     #board2(): BoardConstructor {
         return {
             elements: Array(
-                new Case(3, 15, "start", "upwards"),
+                new Case(3, 15, "startRotate", "upwards"),
                 new Case(3, 14, "intersection", "upwards").withCaseConfig({intersectionConfig: {leftId: 2, rightId: 16}, convex: true}),
-                new Case(2, 13, "greenEvent", "upwards").withCaseConfig({convex: true, fromSide: "left"}),
+                new Case(2, 13, "event", "upwards").withCaseConfig({convex: true, fromSide: "left"}),
                 new Case(1, 12, "intersection", "upwards").withCaseConfig({intersectionConfig: {leftId: 4, rightId: 8}}),
                 new Case(0, 11, "redStar", "upwards"),
                 new Case(0, 10, "saleStar", "upwards"),
                 new Case(0, 9, "aquisition", "upwards"),
                 new Case(0, 8, "redStar", "upwards").withCaseConfig({nextId: 12, convex: false, targetSide: "left"}),
-                new Case(2, 11, "star", "upwards"),
-                new Case(2, 10, "star", "upwards"),
+                new Case(2, 11, "blueStar", "upwards"),
+                new Case(2, 10, "blueStar", "upwards"),
                 new Case(2, 9, "wonder", "upwards").withCaseConfig({wonderName: "astropy"}),
                 new Case(2, 8, "aquisition", "upwards").withCaseConfig({convex: false, targetSide: "right"}),
                 new Case(1, 7, "duel", "upwards"),
@@ -375,17 +373,17 @@ class Board {
                 new Case(4, 13, "aquisition", "upwards").withCaseConfig({convex: true, fromSide: "right"}),
                 new Case(5, 12, "saleStar", "upwards").withCaseConfig({convex: true, fromSide: "right"}),
                 new Case(6, 11, "intersection", "upwards").withCaseConfig({intersectionConfig: {leftId: 19, rightId: 23}}),
-                new Case(5, 10, "star", "upwards"),
+                new Case(5, 10, "blueStar", "upwards"),
                 new Case(5, 9, "aquisition", "upwards"),
                 new Case(5, 8, "sale", "upwards"),
                 new Case(5, 7, "redStar", "upwards").withCaseConfig({convex: false, nextId: 29}),
                 new Case(7, 10, "duel", "upwards").withCaseConfig({convex: true, fromSide: "right"}),  
-                new Case(8, 9, "greenEvent", "upwards").withCaseConfig({convex: true, fromSide: "right"}),
+                new Case(8, 9, "event", "upwards").withCaseConfig({convex: true, fromSide: "right"}),
                 new Case(9, 8, "wonder", "upwards").withCaseConfig({convex: false, wonderName: "bank", targetSide: "right"}),
                 new Case(8, 7, "redCoin", "upwards").withCaseConfig({convex: false}),
                 new Case(7, 6, "blueCoin", "backwards").withCaseConfig({convex: false, fromSide: "top", targetSide: "right"}),
                 new Case(6, 5, "piggy", "backwards").withCaseConfig({targetSide: "right"}),
-                new Case(5, 5, "greenEvent", "upwards"),
+                new Case(5, 5, "event", "upwards"),
                 new Case(5, 4, "intersection", "upwards").withCaseConfig({intersectionConfig: {leftId: 38, rightId: 31}}),
                 new Case(6, 3, "redStar", "upwards").withCaseConfig({fromSide: "right"}),
                 new Case(7, 3, "redStar").withCaseConfig({convex: true}),
@@ -394,7 +392,7 @@ class Board {
                 new Case(6, 1, "redStar", "backwards").withCaseConfig({convex: false}),
                 new Case(5, 2, "redStar", "downwards").withCaseConfig({convex: true}),
                 new Case(4, 3, "item", "backwards").withCaseConfig({targetSide: "right"}),
-                new Case(3, 3, "greenEvent", "upwards"),
+                new Case(3, 3, "event", "upwards"),
                 new Case(3, 2, "end", "upwards")
             ),
             length: 9,
