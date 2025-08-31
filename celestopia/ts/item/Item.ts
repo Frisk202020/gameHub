@@ -1,6 +1,8 @@
 import { Popup } from "../event/Popup.js";
 import { Player } from "../Player.js";
-import { vwToPx } from "../util/functions.js";
+import { assets_link, vwToPx } from "../util/functions.js";
+
+export type ItemName = "DiceItem" | "TrickItem" | "Seller" | "AquisitionThief" | "MoneyThief" | "Pipe"
 
 export abstract class Item<T = void> {
     protected holder: Player;
@@ -17,7 +19,7 @@ export abstract class Item<T = void> {
         this.#description = description;
 
         const img = document.createElement("img");
-        img.src = `get_file/celestopia/assets/items/${imgId}.png`;
+        img.src = assets_link(`items/${imgId}.png`);
         img.style.width = padding ? "10vw" :"11vw";
         img.style.margin = "5vw";
         if (padding) { img.style.padding = "0.5vw"; }
@@ -64,7 +66,7 @@ export abstract class Item<T = void> {
     addHelpButton(parent: HTMLDivElement) {
         const rect = this.#img.getBoundingClientRect();
         const button = document.createElement("img");
-        button.src = "get_file/celestopia/assets/icons/help.png";
+        button.src = assets_link("icons/help.png");
         button.className = "pointerHover";
         button.style.width = "5vw";
         button.style.position = "absolute";
@@ -76,33 +78,55 @@ export abstract class Item<T = void> {
     }
 
     static async getRandomItem(holder: Player): Promise<Item<any>> {
-        const pick = Math.floor(Math.random() * 10);
+        const pick = Math.floor(Math.random() * 130);
+        let name: ItemName;
 
-        switch (pick) {
-            case 0: {
-                const { AquisitionThief } = await import("./AquisitionThief.js");
-                return new AquisitionThief(holder);
-            }
-            case 1: {
-                const { MoneyThief } = await import("./MoneyThief.js");
-                return new MoneyThief(holder);
-            }
-            case 2: {
-                const { Pipe } = await import("./Pipe.js");
-                return new Pipe(holder);
-            }
-            case 3: {
-                const { TrickItem } = await import("./TrickItem.js");
-                return new TrickItem(holder);
-            }
-            case 4: {
-                const { Seller } = await import("./Seller.js");
-                return new Seller(holder);
-            }
-            default: {
-                const { DiceItem } = await import("./DiceItem.js");
-                return new DiceItem(holder);
-            }
+        if (pick < 5) {
+            name = "AquisitionThief";
         }
+        else if (pick < 20) {
+            name = "MoneyThief";
+        }
+        else if (pick < 35) {
+            name = "Pipe";
+        }
+        else if (pick < 50) {
+            name = "TrickItem";
+        }
+        else if (pick < 65) {
+            name = "Seller";
+        }
+        else {
+            name = "DiceItem";
+        }
+
+        return await itemFactory(name, holder);
+    }
+    
+    static async getByName(name: ItemName, holder: Player): Promise<Item<any>> {
+        return await itemFactory(name, holder)
+    }
+}
+
+async function itemFactory(name: ItemName, holder: Player) {
+    switch(name) {
+        case "DiceItem": 
+            const { DiceItem } = await import("./DiceItem.js");
+            return new DiceItem(holder);
+        case "AquisitionThief":
+            const { AquisitionThief } = await import("./AquisitionThief.js");
+            return new AquisitionThief(holder);
+        case "MoneyThief":
+            const { MoneyThief } = await import("./MoneyThief.js");
+            return new MoneyThief(holder);
+        case "Pipe":
+            const { Pipe } = await import("./Pipe.js");
+            return new Pipe(holder);
+        case "Seller":
+            const { Seller } = await import("./Seller.js");
+            return new Seller(holder);
+        case "TrickItem":
+            const { TrickItem } = await import("./TrickItem.js");
+            return new TrickItem(holder);
     }
 }

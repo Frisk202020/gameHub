@@ -12,7 +12,7 @@ export class PigEvent extends BoardEvent {
                 BoardEvent.generateTextBox("Que souhaitez vous faire ?")
             ],
             BoardEvent.okSetup(true, "Doubler", ()=>pig.multiply(2).then(()=>tx.send())),
-            BoardEvent.denySetup(true, "Briser", ()=>p.progressiveCoinChange(p.coins + pig.break()).then(()=>tx.send()))
+            BoardEvent.denySetup(true, "Briser", ()=>p.progressiveCoinChange(pig.break()).then(()=>tx.send()))
         )
     }
 }

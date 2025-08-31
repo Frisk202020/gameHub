@@ -1,14 +1,13 @@
-import { Item } from "./item/Item.js";
-import { Aquisition } from "./card/Aquisition.js";
-import { Card, ImgFolder } from "./card/Card.js";
-import { Wonder } from "./card/Wonder.js";
+import { Item, type ItemName } from "./item/Item.js";
+import { Aquisition, type AquisitionName } from "./card/Aquisition.js";
+import { Card, type ImgFolder } from "./card/Card.js";
+import { Wonder, type WonderName } from "./card/Wonder.js";
 import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
-import { createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
-import { MailEvent } from "./event/MailEvent.js";
+import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
 import { initChannel, Sender } from "./util/channel.js";
-import { Case, caseSize, caseType } from "./board/Case.js";
-import { board, boardId, changeBoard, Money, pig, players } from "./util/variables.js";
+import { Case, caseSize, type caseType } from "./board/Case.js";
+import { board, boardId, changeBoard, type Money, pig } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
 import { Chest } from "./event/Chest.js";
@@ -18,9 +17,11 @@ import { Tuple } from "./util/tuple.js";
 import { Magic } from "./event/Magic.js";
 import { ItemMenu } from "./item/ItemMenu.js";
 import { Intersection } from "./event/Intersection.js";
-import { BoardId } from "./board/Board.js";
 import { TeleporterEvent } from "./event/TeleporterEvent.js";
 import { DuelEvent } from "./event/DuelEvent.js";
+import { Convert } from "./event/Convert.js";
+import { Seller } from "./item/Seller.js";
+import type { BoardId } from "./board/Board.js";
 
 export type Avatar = "hat" | "strawberry" | "crown" | "dice" | "heart";
 type gameIcon = "coin" | "ribbon" | "star" | "wonder" | "chest";
@@ -33,26 +34,14 @@ let helperBox: HTMLDivElement | undefined = undefined;
 
 const startingCoins = 3000;
 
-const playerColor = {
-    1: "#fa2714",
-    2: "#4ac75e",
-    3: "#ebdf3f",
-    4: "#29b0ff",
+interface ColorPalette {
+    name: PlayerColor,
+    base: string,
+    action: string,
+    info: string,
 }
 
-const actionColor = {
-    1: "#c40202",
-    2: "#04890d",
-    3: "#b39803",
-    4: "#0063ae",
-}
-
-const infoColor ={
-    1: "#fa271448",
-    2: "#4ac75f3a",
-    3: "#ebe03f3a",
-    4: "#29b1ff3d",
-}
+export type PlayerColor = "red" | "orange" | "yellow" | "green" | "cyan" | "blue" | "purple" | "pink";
 
 export class Player {
     #id: PlayerId;
@@ -64,22 +53,34 @@ export class Player {
     pendingCaseId: number;
     teleport: boolean;
     diceNumber: 1 | 2 | 3;
-    coins: number;
-    ribbons: number;
-    stars: number;
+    #coins: number;
+    uiCoins: number;
+    #ribbons: number;
+    uiRibbons: number;
+    #stars: number;
+    uiStars: number;
     #items: Array<Item<any>>;
     #aquisitions: Array<Aquisition>;
     #wonders: Array<Wonder>;
     #infoBox: HTMLDivElement;
     #infoActive: boolean;
-    color: string;
+    color: ColorPalette;
     #diceActionEnabled: boolean;
-    #mailActionEnabled: boolean;
     #itemActionEnabled: boolean;
+    static readonly #palette: Map<PlayerColor, ColorPalette> = new Map([
+        ["red",    { name: "red", base: "#fa2714", action: "#c40202", info: "#fa271448" }],
+        ["orange", { name: "orange", base: "#fa9214", action: "#c46c02", info: "#fa921448" }],
+        ["yellow", { name: "yellow", base: "#ebdf3f", action: "#c4b902", info: "#ebdf3f48" }],
+        ["green",  { name: "green", base: "#4ac75e", action: "#029c20", info: "#4ac75e48" }],
+        ["blue",   { name: "blue", base: "#4a4aff", action: "#0202c4", info: "#4a4aff48" }],
+        ["cyan",   { name: "cyan", base: "#45f6ed", action: "#02c4b9", info: "#45f6ed48" }],
+        ["purple", { name: "purple", base: "#f645f0", action: "#c402c0", info: "#f645f048" }],
+        ["pink",   { name: "pink", base: "#f64583", action: "#c4023c", info: "#f6458348" }],
+    ]);
 
-    constructor(id: PlayerId, name: string, avatar: Avatar) {
+    constructor(id: PlayerId, name: string, avatar: Avatar, color: PlayerColor) {
         this.#id = id;
-        this.color = playerColor[id];
+        this.color = Player.palette(color);
         this.#name = name;
         this.#avatar = avatar;
         this.boardId = 0;
@@ -87,20 +88,46 @@ export class Player {
         this.pendingCaseId = 0;
         this.teleport = false;
         this.diceNumber = 1;
-        this.coins = startingCoins;
-        this.ribbons = 0;
-        this.stars = 0;
+        this.#coins = startingCoins;
+        this.uiCoins = this.#coins;
+        this.#ribbons = 0;
+        this.uiRibbons = this.#ribbons;
+        this.#stars = 0;
+        this.uiStars = this.#stars;
         this.#items = Array();
         this.#aquisitions = Array();
         this.#wonders = Array();
         this.#infoBox = this.#createInfoBox();
         this.#infoActive = false;
         this.#diceActionEnabled = false;
-        this.#mailActionEnabled = false;
         this.#itemActionEnabled = false;
 
         this.#createHtml();
     }
+
+    private moneyMap = {
+        coin: {
+            get: ()=>this.#coins,
+            set: (v: number)=>this.#coins=v,
+            getUi: ()=>this.uiCoins,
+            setUi: (v: number)=>this.uiCoins=v,
+            html: "coin",
+        },
+        ribbon: {
+            get: ()=>this.#ribbons,
+            set: (v: number)=>this.#ribbons=v,
+            getUi: ()=>this.uiRibbons,
+            setUi: (v: number)=>this.uiRibbons=v,
+            html: "ribbon",
+        },
+        star: {
+            get: ()=>this.#stars,
+            set: (v: number)=>this.#stars=v,
+            getUi: ()=>this.uiStars,
+            setUi: (v: number)=>this.uiStars=v,
+            html: "star",
+        }
+    } as const;
 
     get name() {
         return this.#name;
@@ -112,11 +139,34 @@ export class Player {
         return this.#aquisitions.length;
     } get wonderCount() {
         return this.#wonders.length;
+    } get coins(): number {
+        return this.#coins;
+    } get ribbons(): number {
+        return this.#ribbons;
+    } get stars(): number {
+        return this.#stars;
+    } get avatar() {
+        return this.#avatar;
+    } get enabled() {
+        return this.#diceActionEnabled;
+    } static palette(color: PlayerColor): Readonly<ColorPalette> {
+        const v = this.#palette.get(color);
+        if (v === undefined) {
+            console.log(`ERROR: unhandled color - ${color}`);
+            return this.#palette.get("red") as ColorPalette;
+        } else {
+            return v;
+        }
+    } static colors(): PlayerColor[] {
+        return [...this.#palette.keys()]
     }
 
     addAquisition(aq: Aquisition) {
         this.#aquisitions.push(aq);
     } 
+    listAquisitions(): AquisitionName[] {
+        return this.#aquisitions.map((aq) => aq.name);
+    }
     async #removeAquisition(aq: Aquisition, boostedClone: Aquisition) {
         if (this.#aquisitions.length === 0) {
             console.log("ERROR: tried to remove aquisition, but player didn't have one");
@@ -136,15 +186,15 @@ export class Player {
             new Magic(tx);
             const m = await rx.recv()
             switch(m) {
-                case "coin": await this.progressiveCoinChange(this.coins + boostedClone.coins); break;
-                case "ribbon": await this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons); break;
-                case "star": await this.progressiveStarChange(this.stars + boostedClone.stars);
+                case "coin": await this.progressiveCoinChange(boostedClone.coins); break;
+                case "ribbon": await this.progressiveRibbonChange(boostedClone.ribbons); break;
+                case "star": await this.progressiveStarChange(boostedClone.stars);
             }
         } else {
             await Promise.all([
-                this.progressiveCoinChange(this.coins + boostedClone.coins),
-                this.progressiveRibbonChange(this.ribbons + boostedClone.ribbons),
-                this.progressiveStarChange(this.stars + boostedClone.stars)
+                this.progressiveCoinChange(boostedClone.coins),
+                this.progressiveRibbonChange(boostedClone.ribbons),
+                this.progressiveStarChange(boostedClone.stars)
             ]);
         }
     }
@@ -154,11 +204,17 @@ export class Player {
     generateSellMenu() {
         const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
         Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx));
-        rx.recv().then((t) => {if (t !== undefined) { this.#removeAquisition(t.first, t.second) }});
+        rx.recv().then((t) => {
+            if (t !== undefined) { this.#removeAquisition(t.first, t.second) } 
+            else { this.addItem(new Seller(this))}
+        });
     }
 
     addWonder(w: Wonder) {
         this.#wonders.push(w);
+    }
+    listWonders() {
+        return this.#wonders.map((w)=>w.name);
     }
 
     async caseResponse(type: caseType) {
@@ -167,38 +223,39 @@ export class Player {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
             pig.feed(chosen);
-            const newValue = this.coins - chosen;
 
-            await this.progressiveCoinChange(newValue);
+            await this.progressiveCoinChange(-chosen);
         } else if (type === "blueCoin") {
             const choices = [50, 100, 300, 600, 1000];
-            const newValue = this.coins + choices[Math.floor(Math.random() * 5)];
+            const chosen = choices[Math.floor(Math.random() * 5)];
 
-            await this.progressiveCoinChange(newValue);
+            await this.progressiveCoinChange(chosen);
         } else if (type === "redStar") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
-            const delta = Math.min(this.stars, chosen)
+            const delta = Math.min(this.#stars, chosen)
             pig.feed(delta * 2);
-            const newValue = this.stars - delta;
 
-            await this.progressiveStarChange(newValue);
+            await this.progressiveStarChange(delta);
         } else if (type === "star") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
 
-            await this.progressiveStarChange(this.stars + chosen);
+            await this.progressiveStarChange(chosen);
+        } else if (type === "redRibbon") {
+            const choices = [50, 100, 250, 500];
+            const chosen = choices[Math.floor(Math.random() * 4)];
+            const delta = Math.min(this.#ribbons, chosen)
+            pig.feed(delta * 2);
+
+            await this.progressiveRibbonChange(delta);
+        } else if (type === "blueRibbon") {
+            const choices = [50, 100, 250, 500];
+            const chosen = choices[Math.floor(Math.random() * 4)];
+
+            await this.progressiveRibbonChange(chosen);
         } else if (type === "greenEvent") {
             Happening.pickRandomEvent(this, tx);
-            await rx.recv();
-        } else if (type === "mail") {
-            new Popup("Vous avez reçu 1 courrier !", undefined, tx);
-            await rx.recv()
-        } else if (type === "3Mail") {
-            new Popup("Vous avez reçu 3 courriers !", undefined, tx);
-            await rx.recv();
-        } else if (type === "5Mail") {
-            new Popup("Vous avez reçu 5 courriers !", undefined, tx);
             await rx.recv();
         } else if (type === "aquisition") {
             new Chest(this, tx);
@@ -208,9 +265,6 @@ export class Player {
             this.teleport = true;
         } else if (type === "dice") {
             new Popup("Relancez les dés !");
-        } else if (type === "furnace") {
-            new Popup("Brulez tous vos courriers. Vous n'avez rien à payer !", undefined, tx);
-            await rx.recv();
         } else if (type === "wonder") {
             new Crown(this, (board.elements[this.caseId] as any).wonder, tx);
             await rx.recv();
@@ -220,11 +274,6 @@ export class Player {
         } else if (type === "piggy") {
             new PigEvent(this, tx);
             await rx.recv();
-        } else if (type === "postBox") {
-            const {tx, rx} = initChannel<number>();
-            new MailEvent(true, tx, this.color);
-            const n  = await rx.recv();
-            await this.progressiveCoinChange(this.coins - n);
         } else if (type === "sale") {
             const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
             Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "coin"));
@@ -255,34 +304,45 @@ export class Player {
             }
         } else if (type === "teleporter") {
             const {tx, rx} = initChannel<boolean>();
-            const newBoardId = (boardId + 1) as BoardId;
-            new TeleporterEvent(this, newBoardId, tx);
+            this.progressiveCoinChange(1500);
+            new TeleporterEvent(this, tx);
             
             const x = await rx.recv();
             if (x) {
                 const delta = this.pendingCaseId - this.caseId;
                 this.caseId = 0;
                 this.pendingCaseId = 0;
+                console.log(this.boardId)
+                changeBoard(this.boardId);
+                this.pendingCaseId = this.caseId + delta + 1;
 
-                this.boardId = newBoardId;
-                changeBoard(newBoardId);
-                this.pendingCaseId = this.caseId + delta;
+                switch(this.boardId) {
+                    case 0: return;
+                    case 1:
+                        const {tx, rx} = initChannel<number>();
+                        new Convert(tx, "ribbon");
+                        const x = await rx.recv();
+                        this.progressiveCoinChange(-x);
+                        this.progressiveRibbonChange(Math.floor(x / 3));
+                        return;
+                    case 2: 
+                        const {tx: tx2, rx: rx2} = initChannel<number>();
+                        new Convert(tx2, "star");
+                        const x2 = await rx2.recv();
+                        this.progressiveCoinChange(-x2);
+                        this.progressiveStarChange(Math.floor(x2 / 3));
+                }
             }
-            await this.progressiveCoinChange(this.coins + 1500);
         } else if (type === "end") {
             const {tx: tx1, rx: rx1} = initChannel<void>();
-            new Popup("Vous êtes arrivé à la fin du plateau. Payez vos courriers, des intérêt sur votre découvert et recevez 2500 pièces !", "Fin du mois !", tx1);
+            new Popup("Vous êtes arrivé à la fin du plateau. Payez vos courriers, des intérêt sur votre découvert et recevez 5000 pièces !", "Fin du mois !", tx1);
             await rx1.recv();
 
-            const {tx, rx} = initChannel<number>();
-            new MailEvent(false, tx, this.color);
-            const n = await rx.recv();
-
-            let finalVal = 5000 + this.coins - n;
+            let finalVal = 5000 + this.#coins;
             if (finalVal < 0) {
                 finalVal += (finalVal * 0.25);
             }
-            await this.progressiveCoinChange(finalVal);
+            await this.progressiveCoinChange(finalVal - this.#coins);
 
             this.caseId = 0;
             this.pendingCaseId = 0;
@@ -309,7 +369,6 @@ export class Player {
 
         this.#items.push(item);
     }
-
     replaceItem<T>(old: Item, newItem: Item<T>) {
         const i = this.#items.indexOf(old);
         if (i === -1) {
@@ -318,7 +377,6 @@ export class Player {
             this.#items[i] = newItem;
         }
     }
-
     removeItem<T = void>(item: Item<T>) {
         const index = this.#items.indexOf(item);
         if (index === -1) {
@@ -328,7 +386,6 @@ export class Player {
             this.#items.splice(index, 1);
         }
     }
-
     itemIterator(): IterableIterator<Item> {
         let index = 0;
         const data = this.#items;
@@ -346,84 +403,53 @@ export class Player {
             }
         };
     }
+    stringifyItems() {
+        return this.#items.map((i)=>(i as any).constructor.name as ItemName);
+    }
 
-    async progressiveCoinChange(target: number) {
+    async #progressiveChange(
+        kind: keyof typeof this.moneyMap,
+        delta: number
+    ) {
+        const c = this.moneyMap[kind];
         if (!this.#infoActive) {
-            this.#infoBox.classList.add("visible");
+        this.#infoBox.classList.add("visible");
         }
-        const dN = (target - this.coins) / 120;
-        const current = this.coins;
-        this.coins = target - this.coins;
-        const elm = document.getElementById(`${this.#id}.coin`) as HTMLElement;
-        if (this.coins < 0) {
-            elm.style.color = "#b70808";
+        c.set(c.get() + delta);
+
+        const dN = delta / 120;
+        const current = c.getUi();
+
+        c.setUi(delta);
+
+        const elm = document.getElementById(`${this.#id}.${c.html}`) as HTMLElement;
+        if (c.getUi() < 0) {
+        elm.style.color = "#b70808";
         } else {
-            elm.style.color = "#009220";
+        elm.style.color = "#009220";
         }
 
         await new Promise(r => setTimeout(r, 2000));
-        this.coins = current;
+        c.setUi(current);
         elm.style.color = "black";
 
         for (let i = 0; i < 120; i++) {
-            this.coins += dN;
-            await new Promise(r => setTimeout(r, 100/6));
+        c.setUi(c.getUi() + dN);
+        await new Promise(r => setTimeout(r, 100 / 6));
         }
 
-        this.coins = target;
+        c.setUi(c.get());
         this.#infoBox.classList.remove("visible");
     }
-    async progressiveRibbonChange(target: number) {
-        if (!this.#infoActive) {
-            this.#infoBox.classList.add("visible");
-        }
-        const dN = (target - this.ribbons) / 120;
-        const current = this.ribbons;
-        this.ribbons = target - this.ribbons;
-        const elm = document.getElementById(`${this.#id}.ribbon`) as HTMLElement;
-        if (this.ribbons < 0) {
-            elm.style.color = "#b70808";
-        } else {
-            elm.style.color = "#009220";
-        }
 
-        await new Promise(r => setTimeout(r, 2000));
-        this.ribbons = current;
-        elm.style.color = "black";
-
-        for (let i = 0; i < 120; i++) {
-            this.ribbons += dN;
-            await new Promise(r => setTimeout(r, 100/6));
-        }
-
-        this.ribbons = target;
-        this.#infoBox.classList.remove("visible");
+    async progressiveCoinChange(delta: number) {
+        return this.#progressiveChange("coin", delta);
     }
-    async progressiveStarChange(target: number) {
-        if (!this.#infoActive) {
-            this.#infoBox.classList.add("visible");
-        }
-        const dN = (target - this.stars) / 120;
-        const current = this.stars;
-        this.stars = target - this.stars;
-        const elm = document.getElementById(`${this.#id}.star`) as HTMLElement;
-        if (this.stars < 0) {
-            elm.style.color = "#b70808";
-        } else {
-            elm.style.color = "#009220";
-        }
-
-        await new Promise(r => setTimeout(r, 2000));
-        this.stars = current;
-        elm.style.color = "black";
-
-        for (let i = 0; i < 120; i++) {
-            this.stars += dN;
-            await new Promise(r => setTimeout(r, 100/6));
-        }
-
-        this.stars = target;
-        this.#infoBox.classList.remove("visible");
+    async progressiveRibbonChange(delta: number) {
+        return this.#progressiveChange("ribbon", delta);
+    }
+    async progressiveStarChange(delta: number) {
+        return this.#progressiveChange("star", delta);
     }
 
     // assumes caseId has been changed by the caller (to indicate the target)
@@ -439,29 +465,23 @@ export class Player {
     }
 
     enable() {
-        for (const id of ["diceAction", "mailAction", "itemAction"]) {
+        for (const id of ["diceAction", "itemAction"]) {
             const elm = document.getElementById(`${this.#id}.${id}`)  as HTMLElement;
-            elm.style.backgroundColor = actionColor[this.#id];
+            elm.style.backgroundColor = this.color.action;
         }
 
         this.#diceActionEnabled = true;
-        this.#mailActionEnabled = true;
         this.#itemActionEnabled = true;
     }
 
     disable() {
-        for (const id of ["diceAction", "mailAction", "itemAction"]) {
+        for (const id of ["diceAction", "itemAction"]) {
             const elm = document.getElementById(`${this.#id}.${id}`)  as HTMLElement;
             elm.style.backgroundColor = "#bebdbd";
         }
 
         this.#diceActionEnabled = false;
-        this.#mailActionEnabled = false;
         this.#itemActionEnabled = false;
-    }
-
-    #disableActionBox(id: string) {
-        (document.getElementById(id) as HTMLElement).style.backgroundColor = "#bebdbd";
     }
 
     #createHtml() {
@@ -509,7 +529,7 @@ export class Player {
         })
 
         const pawn = document.createElement("img");
-        pawn.src = `get_file/celestopia/assets/icons/${this.#avatar}.png`;
+        pawn.src = assets_link(`icons/${this.#avatar}.png`);
         pawn.id = `${this.#id}.pawn`;
         pawn.style.width = `${caseSize/2}px`;
         pawn.style.height = `${caseSize/2}px`
@@ -529,7 +549,7 @@ export class Player {
         style.display = "flex";
         style.flexDirection = "row";
         style.padding = "0.5vw";
-        style.backgroundColor = this.color;
+        style.backgroundColor = this.color.base;
         style.width = "10vw";
         style.justifyContent = "space-between";
         style.borderRadius = "10px";
@@ -543,7 +563,7 @@ export class Player {
         name.style.marginRight = "5px";
 
         const icon = document.createElement("img");
-        icon.src = `get_file/celestopia/assets/icons/${this.#avatar}.png`;
+        icon.src = assets_link(`icons/${this.#avatar}.png`);
         icon.style.height = "5vh";
         icon.style.marginLeft = "5px";
 
@@ -556,15 +576,15 @@ export class Player {
         const info = document.createElement("div");
         const infoStyle = info.style;
         infoStyle.width = "10vw";
-        infoStyle.background = `linear-gradient(to bottom, ${this.color}, ${infoColor[this.#id]})`;
+        infoStyle.background = `linear-gradient(to bottom, ${this.color.base}, ${this.color.info})`;
         infoStyle.padding = "0.5vw";
         infoStyle.borderRadius = "10px";
         infoStyle.pointerEvents = "none";
 
         info.className = "reveal-vertical";
-        info.appendChild(this.#createSubInfoBox("coin", this.coins, false));
-        info.appendChild(this.#createSubInfoBox("ribbon", this.ribbons, false));
-        info.appendChild(this.#createSubInfoBox("star", this.stars, false));
+        info.appendChild(this.#createSubInfoBox("coin", this.#coins, false));
+        info.appendChild(this.#createSubInfoBox("ribbon", this.#ribbons, false));
+        info.appendChild(this.#createSubInfoBox("star", this.#stars, false));
 
         const aq = this.#createSubInfoBox("chest", this.#aquisitions.length, true);
         this.#addCardEventListeners(
@@ -597,7 +617,7 @@ export class Player {
         box.style.alignItems = "center";
 
         const img = document.createElement("img");
-        img.src = `get_file/celestopia/assets/icons/${imgName}.png`;
+        img.src = assets_link(`icons/${imgName}.png`);
         img.style.width  = "2vw";
         img.style.marginLeft = "0.5vw";
 
@@ -625,14 +645,13 @@ export class Player {
             }
         });
 
-        let folder: Card[];
-        switch(imgFolder) {
-            case "aquisitions" : folder = this.#aquisitions; break;
-            case "wonders": folder = this.#wonders; break;
-            default: console.log("unhandled img folder");
-        }
-
         element.addEventListener("click", () => {
+            let folder: Card[];
+            switch(imgFolder) {
+                case "aquisitions" : folder = this.#aquisitions; break;
+                case "wonders": folder = this.#wonders; break;
+                default: console.log("unhandled img folder"); return;
+            }
             Card.generateMenu(folder, imgFolder, clickMsg);
         });
     }
@@ -651,18 +670,7 @@ export class Player {
             rx.recv().then((n) => {
                 this.pendingCaseId = this.caseId + n;
             }); 
-        }));
-        box.appendChild(this.#createAction(`${this.#id}.mailAction`, "mail.png", "Payez vos courriers en avance.",  () => {
-            if (!this.#mailActionEnabled) { return; }
-
-            const {tx, rx} = initChannel<number>();
-            new MailEvent(false, tx, this.color);
-            rx.recv().then((n) => {
-                this.progressiveCoinChange(this.coins - n);
-                this.#disableActionBox(`${this.#id}.mailAction`);
-                this.#mailActionEnabled = false;
-            })
-        }));
+        }))
         box.appendChild(this.#createAction(`${this.#id}.itemAction`, "bag.png", "Utilisez un objet (avant de lancer le dé).",  () => {
             if (!this.#itemActionEnabled) { return; }
 
@@ -674,7 +682,7 @@ export class Player {
     #createAction(id: string, imgSrc: string, hover: string, action: ()=>void) {
         const elm = document.createElement("img");
         elm.id = id;
-        elm.src = `get_file/celestopia/assets/icons/${imgSrc}`;
+        elm.src = assets_link(`icons/${imgSrc}`);
         elm.style.width = "25%";
         elm.style.margin = "2.5%";
         elm.style.borderRadius = "25%";
@@ -701,8 +709,49 @@ export class Player {
     #sellInterface(tx: Sender<Tuple<Aquisition, Aquisition> | undefined>, type?: Money) {
         return { tx, type }
     }
+
+    loadData(data: PlayerData, enabled: boolean) {
+        this.#coins = data.coins;
+        this.uiCoins = data.coins;
+        this.#ribbons = data.ribbons;
+        this.uiRibbons = data.ribbons;
+        this.#stars = data.stars;
+        this.uiStars = data.stars;
+        this.#aquisitions = data.aquisitions.map((aq) => Aquisition.getByName(aq)).filter((aq) => aq !== undefined);
+        this.#wonders = data.wonders.map((w) => Wonder.getWonder(w, true)).filter((w) => w !== undefined);
+        Promise.all(data.items.map((i) => Item.getByName(i, this))).then((items) => this.#items = items);
+        this.pendingCaseId = data.caseId;
+        this.teleport = true;
+        (this as any).ignoreTurnSystem = true;
+        this.boardId = data.boardId;
+        this.diceNumber = data.diceNumber;
+        if (boardId !== this.boardId) {
+            this.#pawn.style.opacity = "0";
+        }
+
+        if (enabled) {
+            this.enable();
+        } else {
+            this.disable();
+        }
+    }
 }
 
 function computePawnPosition(elm: Case) {
     return new Position(elm.uiPosition.x + caseSize/4, elm.uiPosition.y);
+}
+
+export interface PlayerData {
+    name: string,
+    icon: Avatar,
+    color: PlayerColor,
+    coins: number,
+    ribbons: number,
+    stars: number,
+    aquisitions: AquisitionName[],
+    wonders: WonderName[],
+    items: ItemName[],
+    caseId: number,
+    boardId: BoardId,
+    diceNumber: 1 | 2 | 3,
 }

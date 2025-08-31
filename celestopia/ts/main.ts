@@ -2,11 +2,13 @@ import { boardCanvas } from "./board/Board.js";
 import { Case, setDisableCaseHelper } from "./board/Case.js";
 import { ChangeBoardEvent } from "./event/ChangeBoardEvent.js";
 import { Popup } from "./event/Popup.js";
+import { FileEvent } from "./event/FileEvent.js";
 import { Player } from "./Player.js";
 import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
-import { updateCounterValue } from "./util/functions.js";
-import { board, boardId, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables, setGlobalKeyboardListener } from "./util/variables.js";
+import { assets_link, updateCounterValue } from "./util/functions.js";
+import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
+import { initPlayersLocal } from "./event/PlayerCreate.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -16,6 +18,7 @@ document.addEventListener("keydown", (event) => {
     } else {
         switch (event.key) {
             case "Enter": 
+                event.preventDefault();
                 if (document.fullscreenElement) {
                     document.exitFullscreen();
                 } else {
@@ -35,9 +38,9 @@ window.addEventListener("resize", () => {
 
 async function counterRenderLoop() {
     for (const p of players) {
-        updateCounterValue(`${p.id}.coin`, p.coins);
-        updateCounterValue(`${p.id}.ribbon`, p.ribbons);
-        updateCounterValue(`${p.id}.star`, p.stars);
+        updateCounterValue(`${p.id}.coin`, p.uiCoins);
+        updateCounterValue(`${p.id}.ribbon`, p.uiRibbons);
+        updateCounterValue(`${p.id}.star`, p.uiStars);
         updateCounterValue(`${p.id}.chest`, p.aquisitionCount);
         updateCounterValue(`${p.id}.wonder`, p.wonderCount);
         updateCounterValue(`bankCounter`, pig.content);
@@ -59,7 +62,13 @@ async function boardRenderLoop() {
         if (p.teleport) {
             p.teleport = false;
             p.caseId = p.pendingCaseId;
-            p.movePawn().then(()=>nextPlayer(p));
+            p.movePawn().then(()=>{
+                if ((p as any).ignoreTurnSystem) {
+                    (p as any).ignoreTurnSystem = false;
+                } else {
+                    nextPlayer(p);
+                }
+            });
         } else if (p.caseId < p.pendingCaseId) {            
             setDisableCaseHelper(true);
             let firstMove = true;
@@ -110,31 +119,16 @@ async function boardRenderLoop() {
 }
 
 function initPlayers() {
-    /*
-    const frisk = new Player(1, "Frisk", "strawberry");
-    const dokueki = new Player(2, "Dokueki", "crown");
-    const q = new Player(3, "New Quark", "dice");
-    const cas = new Player(4, "Casyaks", "hat");
-    
-
-    players.push(frisk);
-    players.push(dokueki);
-    players.push(q);
-    players.push(cas);
-    */
-
-    const clem = new Player(1, "Clem", "strawberry");
-    const eve = new Player(2, "Eve", "heart");
-
-    players.push(clem);
-    players.push(eve);
-
-    for (const p of players) {
-        document.body.appendChild(p.pawn);
-    }
+    initPlayersLocal().then((x)=>{
+        x.forEach((x)=>{
+            players.push(x);
+            document.body.appendChild(x.pawn);
+        });
+        players[0].enable();
+    });
 }
 
-function initBoardBtn() {
+function initBoardBtns() {
     const p = document.createElement("p");
     p.className = "pointerHover";
     p.textContent = "Changer de plateau";
@@ -152,6 +146,18 @@ function initBoardBtn() {
 
     p.addEventListener("click", ()=>new ChangeBoardEvent());
     document.body.appendChild(p);
+
+    const img = document.createElement("img");
+    img.src = assets_link("icons/save.png");
+    img.style.height = "3vw";
+    img.style.position = "fixed";
+    img.style.bottom = "0px";
+    img.style.left = "48.5vw";
+    img.className = "pointerHover";
+    img.addEventListener("click", ()=>new FileEvent());
+
+    document.body.appendChild(img);
+
 }
 
 async function nextPlayer(p: Player) {
@@ -165,14 +171,14 @@ async function nextPlayer(p: Player) {
     await rx.recv();
     p.disable();
     nextP.enable();
+    if (nextP.boardId !== boardId) { changeBoard(nextP.boardId); }  
 }
 
-function main() {
+async function main() {
     initPlayers();
     counterRenderLoop();
     boardRenderLoop();
-    initBoardBtn();
-    players[0].enable();
+    initBoardBtns();
 }
 
 main();

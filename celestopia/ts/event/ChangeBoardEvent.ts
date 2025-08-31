@@ -1,4 +1,4 @@
-import { BoardId } from "../board/Board.js";
+import type { BoardId } from "../board/Board.js";
 import { appendCross } from "../util/functions.js";
 import { boardId, changeBoard } from "../util/variables.js";
 import { BoardEvent } from "./BoardEvent.js";

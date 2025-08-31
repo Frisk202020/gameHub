@@ -1,6 +1,6 @@
 import { Player } from "../Player.js";
 import { Sender } from "../util/channel.js";
-import { Money, players } from "../util/variables.js";
+import { type Money, players } from "../util/variables.js";
 import { Happening } from "./Happening.js";
 
 export class Theft extends Happening {

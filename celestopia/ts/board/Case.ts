@@ -1,22 +1,18 @@
-import { WonderName } from "../card/Wonder.js";
-import { createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
+import type { WonderName } from "../card/Wonder.js";
+import { assets_link, createHelperBox, removeFromBodyOrWarn } from "../util/functions.js";
 import { Position } from "../util/Position.js";
 
-const caseFolder = "get_file/celestopia/assets/cases/";
-export type caseType = "blueCoin" | "redCoin" | "greenEvent" | "end" |
-    "mail" | "3Mail" | "5Mail" | "furnace" | "postBox" | "ladder" | "teleporter" | "dice" | "duel" |
+const caseFolder = assets_link("cases/");
+export type caseType = "blueCoin" | "redCoin" | "greenEvent" | "end" |"ladder" | "teleporter" | "dice" | "duel" | "blueRibbon" | "redRibbon" | 
     "piggy" | "wonder" | "aquisition" | "sale" | "saleRibbon" | "saleStar" | "start" | "item" | "intersection" | "star" | "redStar";
 
 const descriptions = {
     "start": "Le début d'un long voyage...",
     "blueCoin": "Gagnez etre 50 et 1000 pièces. Le somme est aléatoire.",
     "redCoin": "Donnez entre 50 et 500 pièces à la cagnotte. La somme est aléatoire.",
+    "blueRibbon": "Gagnez entre 50 et 500 rubans.",
+    "redRibbon": "Perdez entre 50 et 500 rubans.",
     "greenEvent": "Participez à un événement aléatoire pour tenter de gagner des pièces !",
-    "mail": "Prenez 1 courrier.",
-    "3Mail": "Prenez 3 courriers.",
-    "5Mail": "Prenez 5 courriers.",
-    "furnace": "Brulez tous vos courriers : vous n'aurez rien à payer !",
-    "postBox": "Payez tous vos courriers. Chaque courrier vaut deux fois la somme indiquée sur la carte !",
     "ladder": "Déplacez vous à l'autre extremité de l'échelle.",
     "teleporter": "Empruntez ce téléporteur pour passer à la prochaine zone. Vous pouvez ne pas l'emprunter à ce tour. Vous recevrez une gratifcation de 1500 pièces.",
     "dice": "Relancez les dés !",

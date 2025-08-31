@@ -58,16 +58,38 @@
             0% { offset-distance: 0%; }
             100% { offset-distance: 100%; }
         }
+        @keyframes hue {
+            0% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(360deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
 
         /* specific properties */
         body {
             margin: 0px;
             padding: 0px;
             overflow-y: scroll;
-            font-family: DynaPuff, arial;
         }
         html,body{
             height: 100%;
+        }
+        body,input {
+            font-family: DynaPuff, arial;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            font-size: 30px;
+        }
+        label,input {
+            margin: 1vh;
+            border-radius: 10px;
+        }
+        input {
+            font-size: 20px;
+            text-align: center;
         }
         #bg {
             width: 100%;
@@ -97,6 +119,7 @@
             position: absolute;
             border: none;
             background-color: transparent;
+            pointer-events: none;
         }
         .case {
             z-index: 2;
@@ -168,6 +191,14 @@
         }
 
         /* utility classes */
+        .row-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .hue {
+            animation: hue 5s linear infinite;
+        }
         .pointerHover:hover {
             cursor: pointer;
         }

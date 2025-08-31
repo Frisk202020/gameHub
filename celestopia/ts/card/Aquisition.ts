@@ -1,6 +1,9 @@
 import { removeFromArray } from "../util/functions.js";
-import { Money, resizables } from "../util/variables.js";
+import { type Money, resizables } from "../util/variables.js";
 import { Card } from "./Card.js";
+
+export type AquisitionName = "astropy" | "baloon" | "bd" | "beauty" | "camping" | "car" | "castle" | "chest" | "horse" | "magic" | "moto"
+    | "necklace" | "picasso" | "pool" | "post" | "tractor" | "vase" | "wine";
 
 export class Aquisition extends Card {
     #price: number;
@@ -19,6 +22,9 @@ export class Aquisition extends Card {
         resizables.push(this);
     }
 
+    get name() {
+        return this._name as AquisitionName;
+    }
     get price() {
         return this.#price;
     } get coins() {
@@ -63,6 +69,16 @@ export class Aquisition extends Card {
         new Aquisition("vase", 3000, 300, 0, 7500),
         new Aquisition("wine", 3000, 4500, 100, 0),
     ];
+
+    static getByName(name: string) {
+        for (let i = 0; i < this.#bank.length; i++) {
+            const a = this.#bank[i];
+            if (a.name === name) { return removeFromArray(this.#bank, i); }
+        }
+
+        console.log(`WARN: can't found ${name}`)
+        return undefined;
+    }
 
     static getRandomAquisition() {
         const i = Math.floor(Math.random() * Aquisition.#bank.length);

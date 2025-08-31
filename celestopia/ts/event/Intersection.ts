@@ -1,4 +1,4 @@
-import { IntersectionConfig } from "../board/Case.js";
+import type { IntersectionConfig } from "../board/Case.js";
 import { Player } from "../Player.js";
 import { Sender } from "../util/channel.js";
 import { BoardEvent } from "./BoardEvent.js";
@@ -8,7 +8,8 @@ export class Intersection extends BoardEvent {
         super(
             [
                 BoardEvent.generateTextBox("Intersection !"),
-                BoardEvent.generateTextBox("Choisissez le chemin à emprunter.")
+                BoardEvent.generateTextBox("Choisissez le chemin à emprunter."),
+                BoardEvent.generateTextBox(`Chemin restant à parcourir: ${p.pendingCaseId - p.caseId + 1} cases.`)
             ],
             BoardEvent.okSetup(true, "Gauche", ()=>{
                 const delta = p.pendingCaseId - p.caseId;

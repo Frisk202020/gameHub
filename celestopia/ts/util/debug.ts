@@ -1,3 +1,6 @@
+import type { BoardId } from "../board/Board.js";
+import { Aquisition } from "../card/Aquisition.js";
+import { Wonder, type WonderName } from "../card/Wonder.js";
 import { AquisitionThief } from "../item/AquisitionThief.js";
 import { DiceItem } from "../item/DiceItem.js";
 import { MoneyThief } from "../item/MoneyThief.js";
@@ -20,14 +23,14 @@ export const debugTools = {
     },
     showPig() { console.log(pig); },
     setPigAmmount(ammount: number) { pig.content = ammount; },
-    setCoins(id: PlayerId, value: number) { players[id - 1].coins = value; },
-    setRibbons(id: PlayerId, value: number) { players[id - 1].ribbons = value; },
-    setStars(id: PlayerId, value: number) { players[id - 1].stars = value; },
+    addCoins(id: PlayerId, value: number) { players[id - 1].progressiveCoinChange(value); },
+    addRibbons(id: PlayerId, value: number) { players[id - 1].progressiveRibbonChange(value); },
+    addStars(id: PlayerId, value: number) { players[id - 1].progressiveStarChange(value); },
     setRich(id: PlayerId) {
         const p = players[id - 1];
-        p.coins = 99999;
-        p.ribbons = 99999;
-        p.stars = 99999;
+        p.progressiveCoinChange(99999);
+        p.progressiveRibbonChange(99999);
+        p.progressiveStarChange(99999);
     },
     giveItem(id: PlayerId, item: string) {
         const p = players[id - 1];
@@ -47,5 +50,21 @@ export const debugTools = {
                 p.addItem(new Pipe(p));
             default: console.log("Unrecognized item");
         }
+    },
+    giveAquisition(id: PlayerId, name: string) {
+        const aq = Aquisition.getByName(name);
+        if (aq === undefined) { return "unrecognized aquisition"; }
+        players[id-1].addAquisition(aq);
+    },
+    giveWonder(id: PlayerId, name: WonderName) {
+        const aq = Wonder.getWonder(name, false);
+        if (aq === undefined) { return "unrecognized wonder"; }
+        players[id-1].addWonder(aq);
+    },
+    setBoardId(id: PlayerId, board: BoardId) {players[id-1].boardId = board;},
+    setCaseId(id: PlayerId, n: number) {
+        const p = players[id-1];
+        p.pendingCaseId = n;
+        p.teleport = true;
     },
 };

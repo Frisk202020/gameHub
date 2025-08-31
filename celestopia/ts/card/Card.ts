@@ -1,11 +1,11 @@
-import { DynamicPlacement } from "../util/DynamicPlacement.js";
+import type { DynamicPlacement } from "../util/DynamicPlacement.js";
+import type { Money } from "../util/variables.js";
 import { Popup } from "../event/Popup.js";
 import { initChannel, Sender } from "../util/channel.js";
-import { appendBlurryBackground, appendCross, createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
+import { appendBlurryBackground, appendCross, assets_link, createHelperBox, translateAnimation, vwToPx } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";
 import { Position } from "../util/Position.js";
 import { Tuple } from "../util/tuple.js";
-import { Money } from "../util/variables.js";
 import { Aquisition } from "./Aquisition.js";
 
 export const cardId = "activeCard";
@@ -25,7 +25,7 @@ let boostedClone: Aquisition | undefined = undefined;
 let boost: Money | undefined = undefined;
 
 export abstract class Card implements DynamicPlacement {
-    #name: string;
+    protected _name: string;
     #src: string;
     static #cardWidth = 30;
 
@@ -34,13 +34,11 @@ export abstract class Card implements DynamicPlacement {
     }
 
     constructor(name: string, folder: "aquisitions" | "wonders") {
-        this.#name = name;
-        this.#src = `get_file/celestopia/assets/${folder}/${name}.png`
+        this._name = name;
+        this.#src = assets_link(`${folder}/${name}.png`);
     }
 
-    get name() {
-        return this.#name;
-    } get src() {
+    get src() {
         return this.#src;
     }
 
@@ -211,7 +209,7 @@ function createGainDiv(type: Money, value: number) {
     box.style.margin = "1vh";
 
     const img = document.createElement("img");
-    img.src = `get_file/celestopia/assets/icons/${type}.png`;
+    img.src = assets_link(`icons/${type}.png`);
     img.style.marginRight = "10px";
     box.appendChild(img);
 
@@ -373,12 +371,13 @@ class CardKeyboardListener extends KeyboardListener {
             default: console.log("Unhandled img folder");
         }
 
-        const cardObj = this.cards[this.currentIndex];
+        const cardObj = this.cards[this.currentIndex] as Aquisition;
         card.src = cardObj.src;
         card.id = newCardId;
-        if (sellingAq !== undefined && boost !== undefined) {
-            sellingAq = cardObj as Aquisition;
-            boostedClone = (cardObj as Aquisition).getBoostedClone(boost)
+        if (sellingAq !== undefined) {
+            sellingAq = cardObj;
+            if (boost !== undefined) { boostedClone = cardObj.getBoostedClone(boost) }
+            else { boostedClone = cardObj.clone(); }
         }
 
         this.bg.appendChild(card);

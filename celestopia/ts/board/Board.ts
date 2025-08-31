@@ -1,6 +1,7 @@
-import { Case, defaultCasePadding, IntersectionConfig } from "./Case.js";
+import { Case, defaultCasePadding, type IntersectionConfig } from "./Case.js";
 import { Position } from "../util/Position.js";
 import { Tuple } from "../util/tuple.js";
+import { assets_link } from "../util/functions.js";
 
 export type BoardId = 0 | 1 | 2;
 export function buildBoard(id: BoardId) {
@@ -117,6 +118,15 @@ class Board {
                 );
                 statue.className = "glow";
                 boardDiv.appendChild(statue);
+                statue.onload = ()=>wonderHelpBox(
+                    statue,
+                    boardDiv,
+                    "Statue de la mairesse",
+                    25000,
+                    0,
+                    0
+                );
+                
                 break;
             case 1:
                 const bridge = createWonderImg(
@@ -130,6 +140,14 @@ class Board {
                 )
                 bridge.style.zIndex = "1";
                 boardDiv.appendChild(bridge);
+                bridge.onload = ()=>wonderHelpBox(
+                    bridge,
+                    boardDiv,
+                    "Pont de tissu",
+                    1200,
+                    30000,
+                    0
+                );
 
                 const teleporter = createWonderImg(
                     "case.37",
@@ -142,6 +160,14 @@ class Board {
                 )
                 teleporter.id = "teleporter";
                 boardDiv.appendChild(teleporter);
+                teleporter.onload = ()=>wonderHelpBox(
+                    teleporter,
+                    boardDiv,
+                    "Téléporteur de tissu",
+                    10000,
+                    10000,
+                    0
+                );
 
                 const dress = createWonderImg(
                     "case.21",
@@ -154,6 +180,14 @@ class Board {
                 )
                 dress.className = "glow";
                 boardDiv.appendChild(dress);
+                dress.onload = ()=>wonderHelpBox(
+                    dress,
+                    boardDiv,
+                    "Robe maitresse",
+                    7500,
+                    20000,
+                    0
+                );
                 break;
             case 2:
                 (document.getElementById("case.0") as HTMLElement).className = "rotate270";
@@ -168,6 +202,14 @@ class Board {
                     }
                 );
                 comet.id = "comet";
+                comet.onload = ()=>wonderHelpBox(
+                    comet,
+                    boardDiv,
+                    "Comète mère",
+                    0,
+                    0,
+                    40000
+                );
 
                 const trail = document.createElement("div");
                 trail.id = "comet-trail";
@@ -185,6 +227,14 @@ class Board {
                 );
                 bank.id = "moon";
                 boardDiv.appendChild(bank);
+                bank.onload = ()=>wonderHelpBox(
+                    bank,
+                    boardDiv,
+                    "Banque municipale",
+                    15000,
+                    0,
+                    15000
+                );
 
                 const planet = createWonderImg(
                     "case.10",
@@ -197,6 +247,14 @@ class Board {
                 planet.id = "planet";
                 planet.style.zIndex = "1";
                 boardDiv.appendChild(planet);
+                planet.onload = ()=>wonderHelpBox(
+                    planet,
+                    boardDiv,
+                    "Astropy",
+                    4000,
+                    0,
+                    20000
+                );
         }
     }
 
@@ -204,23 +262,23 @@ class Board {
         return {
             elements: Array(
                 new Case(0, 3, "start"),
-                new Case(1, 3, "mail"),
+                new Case(1, 3, "blueCoin"),
                 new Case(2, 3, "greenEvent"),
-                new Case(3, 3, "3Mail"),
+                new Case(3, 3, "redCoin"),
                 new Case(4, 3, "aquisition"),
                 new Case(5, 3, "ladder").withCaseConfig({ ladderDestination: 28 }),
                 new Case(6, 3, "blueCoin"),
                 new Case(7, 3, "blueCoin"),
                 new Case(8, 3, "redCoin"),
-                new Case(9, 3, "mail"),
-                new Case(10, 3, "5Mail"),
+                new Case(9, 3, "aquisition"),
+                new Case(10, 3, "dice"),
                 new Case(11, 3, "redCoin"),
                 new Case(12, 3, "redCoin"),
                 new Case(13, 3, "dice"),
                 new Case(14, 3, "aquisition", "straight").withCaseConfig({ convex: true }),
                 new Case(15, 2, "wonder", "upwards").withCaseConfig({ convex: false, wonderName: "statue" }),
                 new Case(14, 1, "duel", "backwards"),
-                new Case(13, 1, "furnace", "backwards"),
+                new Case(13, 1, "aquisition", "backwards"),
                 new Case(12, 1, "greenEvent", "backwards"),
                 new Case(11, 1, "dice", "backwards"),
                 new Case(10, 1, "piggy", "backwards"),
@@ -232,7 +290,7 @@ class Board {
                 new Case(4, 1, "item", "backwards"),
                 new Case(3, 1, "duel", "backwards"),
                 new Case(2, 1, "ladder", "backwards").withCaseConfig({ ladderDestination: 5 }),
-                new Case(1, 1, "postBox", "backwards"),
+                new Case(1, 1, "greenEvent", "backwards"),
                 new Case(0, 1, "teleporter", "backwards").withCaseConfig({ nextId: 0 })
             ),
             length: 16,
@@ -247,19 +305,19 @@ class Board {
                 new Case(0, 4, "start"),
                 new Case(1, 4, "aquisition"),
                 new Case(2, 4, "aquisition", "straight").withCaseConfig({ convex: true }),
-                new Case(3, 3, "blueCoin", "upwards"),
+                new Case(3, 3, "blueRibbon", "upwards"),
                 new Case(3, 2, "item", "upwards"),
                 new Case(3, 1, "saleRibbon", "upwards").withCaseConfig({ convex: false }),
                 new Case(4, 0, "ladder", "straight").withCaseConfig({ convex: false, ladderDestination: 17 }),
-                new Case(5, 1, "postBox", "downwards"),
+                new Case(5, 1, "blueRibbon", "downwards"),
                 new Case(5, 2, "sale", "downwards"),
                 new Case(5, 3, "duel", "downwards").withCaseConfig({ convex: true }),
                 new Case(6, 4, "greenEvent", "straight").withCaseConfig({ convex: true }),
                 new Case(7, 3, "piggy", "upwards"),
-                new Case(7, 2, "3Mail", "upwards"),
-                new Case(7, 1, "redCoin", "upwards").withCaseConfig({ convex: false }),
-                new Case(8, 0, "redCoin"),
-                new Case(9, 0, "blueCoin"),
+                new Case(7, 2, "aquisition", "upwards"),
+                new Case(7, 1, "redRibbon", "upwards").withCaseConfig({ convex: false }),
+                new Case(8, 0, "redRibbon"),
+                new Case(9, 0, "blueRibbon"),
                 new Case(10, 0, "aquisition"),
                 new Case(11, 0, "ladder", "straight").withCaseConfig({ ladderDestination: 6 }),
                 new Case(12, 0, "ladder", "straight").withCaseConfig({ ladderDestination: 36, convex: false }),
@@ -267,18 +325,18 @@ class Board {
                 new Case(12, 2, "blueCoin", "downwards"),
                 new Case(12, 3, "wonder", "downwards").withCaseConfig({ wonderName: "dress" }),
                 new Case(12, 4, "redCoin", "downwards").withCaseConfig({ nextId: 26, convex: true, targetSide: "left" }),
-                new Case(14, 2, "redCoin", "downwards"),
+                new Case(14, 2, "redRibbon", "downwards"),
                 new Case(14, 3, "wonder", "downwards").withCaseConfig({ wonderName: "bridge" }),
-                new Case(14, 4, "blueCoin", "downwards").withCaseConfig({ convex: true, targetSide: "right" }),
+                new Case(14, 4, "blueRibbon", "downwards").withCaseConfig({ convex: true, targetSide: "right" }),
                 new Case(13, 5, "aquisition", "downwards").withCaseConfig({ convex: true }),
                 new Case(14, 6, "greenEvent"),
                 new Case(15, 6, "greenEvent"),
                 new Case(16, 6, "saleRibbon"),
-                new Case(17, 6, "furnace", "straight").withCaseConfig({ convex: true }),
+                new Case(17, 6, "sale", "straight").withCaseConfig({ convex: true }),
                 new Case(18, 5, "item", "upwards"),
-                new Case(18, 4, "mail", "upwards"),
-                new Case(18, 3, "5Mail", "upwards"),
-                new Case(18, 2, "postBox", "upwards"),
+                new Case(18, 4, "aquisition", "upwards"),
+                new Case(18, 3, "blueRibbon", "upwards"),
+                new Case(18, 2, "blueCoin", "upwards"),
                 new Case(18, 1, "piggy", "upwards").withCaseConfig({ convex: false }),
                 new Case(19, 0, "ladder", "straight").withCaseConfig({ ladderDestination: 18 }),
                 new Case(20, 0, "teleporter", "straight").withCaseConfig({ convex: false }),
@@ -304,8 +362,8 @@ class Board {
                 new Case(1, 12, "intersection", "upwards").withCaseConfig({intersectionConfig: {leftId: 4, rightId: 8}}),
                 new Case(0, 11, "redStar", "upwards"),
                 new Case(0, 10, "saleStar", "upwards"),
-                new Case(0, 9, "5Mail", "upwards"),
-                new Case(0, 8, "furnace", "upwards").withCaseConfig({nextId: 12, convex: false, targetSide: "left"}),
+                new Case(0, 9, "aquisition", "upwards"),
+                new Case(0, 8, "redStar", "upwards").withCaseConfig({nextId: 12, convex: false, targetSide: "left"}),
                 new Case(2, 11, "star", "upwards"),
                 new Case(2, 10, "star", "upwards"),
                 new Case(2, 9, "wonder", "upwards").withCaseConfig({wonderName: "astropy"}),
@@ -318,7 +376,7 @@ class Board {
                 new Case(5, 12, "saleStar", "upwards").withCaseConfig({convex: true, fromSide: "right"}),
                 new Case(6, 11, "intersection", "upwards").withCaseConfig({intersectionConfig: {leftId: 19, rightId: 23}}),
                 new Case(5, 10, "star", "upwards"),
-                new Case(5, 9, "furnace", "upwards"),
+                new Case(5, 9, "aquisition", "upwards"),
                 new Case(5, 8, "sale", "upwards"),
                 new Case(5, 7, "redStar", "upwards").withCaseConfig({convex: false, nextId: 29}),
                 new Case(7, 10, "duel", "upwards").withCaseConfig({convex: true, fromSide: "right"}),  
@@ -336,7 +394,7 @@ class Board {
                 new Case(6, 1, "redStar", "backwards").withCaseConfig({convex: false}),
                 new Case(5, 2, "redStar", "downwards").withCaseConfig({convex: true}),
                 new Case(4, 3, "item", "backwards").withCaseConfig({targetSide: "right"}),
-                new Case(3, 3, "postBox", "upwards"),
+                new Case(3, 3, "greenEvent", "upwards"),
                 new Case(3, 2, "end", "upwards")
             ),
             length: 9,
@@ -420,7 +478,7 @@ interface ImgStyle {
 function createWonderImg(refElmId: string, name: string, style: ImgStyle) {
     const elmStyle = getComputedStyle(document.getElementById(refElmId) as HTMLElement);
     const elm = document.createElement("img");
-    elm.src = `get_file/celestopia/assets/wonders/${name}`;
+    elm.src = assets_link(`wonders/${name}`);
 
     let height = parseInt(elmStyle.width);
     let width = height;
@@ -442,4 +500,39 @@ function createWonderImg(refElmId: string, name: string, style: ImgStyle) {
     elm.style.zIndex = "2";
 
     return elm; 
+}
+
+function wonderHelpBox(refElm: HTMLElement, boardDiv: HTMLDivElement, name: string, coins: number, ribbons: number, stars: number) {
+    const box = document.createElement("div");
+    box.style.padding = "10px";
+    box.style.borderRadius = "10px";
+    box.style.position = "absolute";
+
+    const style = getComputedStyle(refElm);
+    box.style.left = `${parseInt(style.left) + refElm.offsetWidth + 50}px`;
+    box.style.top = refElm.style.top;
+    box.style.backgroundColor = "#ffec7d";
+    box.style.zIndex = "5";
+    box.innerHTML = boxInnerHtml(name, coins, ribbons, stars);
+
+    refElm.addEventListener("mouseenter", ()=>boardDiv.appendChild(box));
+    refElm.addEventListener("mouseleave", ()=>boardDiv.removeChild(box));
+}
+
+function boxInnerHtml(name: string, coin: number, ribbon: number, star: number) {
+    return `
+        <p style="font-size: 20px; text-align: center">${name}</p>
+        <div style="display: flex; justify-content: center; align-items: center">
+            <img src=${assets_link("icons/coin.png")} style="width: 2vw; margin: 1vw;">
+            <p style="font-size: 15px">${coin}</p>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center">
+            <img src=${assets_link("icons/ribbon.png")} style="width: 2vw; margin: 1vw;">
+            <p style="font-size: 15px">${ribbon}</p>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center">
+            <img src=${assets_link("icons/star.png")} style="width: 2vw; margin: 1vw;">
+            <p style="font-size: 15px">${star}</p>
+        </div>
+    `;
 }

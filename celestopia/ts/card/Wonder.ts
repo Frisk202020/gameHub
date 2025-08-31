@@ -23,6 +23,8 @@ export class Wonder extends Card {
         return this.#ribbonPrice;
     } get stars() {
         return this.#starPrice;
+    } get name() {
+        return this._name as WonderName;
     }
 
     static #bank = new Map<WonderName, Wonder>([
@@ -36,9 +38,10 @@ export class Wonder extends Card {
     ]);
 
 
-    static getWonder(name: WonderName): Wonder | undefined {
+    static getWonder(name: WonderName, warn: boolean): Wonder | undefined {
         const x = this.#bank.get(name);
         if (x === undefined) {
+            if (warn) { console.log(`WARN: ${name} not found`); }
             return undefined;
         } else {
             this.#bank.delete(name);

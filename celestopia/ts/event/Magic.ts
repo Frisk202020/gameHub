@@ -1,6 +1,6 @@
+import type { Money } from "../util/variables.js";
 import { Sender } from "../util/channel.js";
 import { Tuple } from "../util/tuple.js";
-import { Money } from "../util/variables.js";
 import { BoardEvent } from "./BoardEvent.js";
 
 export class Magic extends BoardEvent {

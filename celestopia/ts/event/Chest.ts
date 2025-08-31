@@ -31,11 +31,11 @@ export class ChestAccept extends BoardEvent {
                 BoardEvent.generateImage(aq.src),
             ],
             BoardEvent.okSetup(true, undefined, tx === undefined ? () => {
-                if (!free) { player.progressiveCoinChange(player.coins - aq.price); }
+                if (!free) { player.progressiveCoinChange(-aq.price); }
                 player.addAquisition(aq);
                 
             } : () => {
-                if (!free) { player.progressiveCoinChange(player.coins - aq.price).then(()=>tx.send()); }
+                if (!free) { player.progressiveCoinChange(-aq.price).then(()=>tx.send()); }
                 player.addAquisition(aq);
             }),
             BoardEvent.denySetup(false, undefined, tx === undefined ? undefined : ()=>tx.send())
