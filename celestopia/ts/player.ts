@@ -1,6 +1,6 @@
 import { Item, type ItemName } from "./item/Item.js";
 import { Aquisition, type AquisitionName } from "./card/Aquisition.js";
-import { Card, type ImgFolder } from "./card/Card.js";
+import { Card } from "./card/Card.js";
 import { Wonder, type WonderName } from "./card/Wonder.js";
 import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
@@ -203,7 +203,7 @@ export class Player {
     }
     generateSellMenu() {
         const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-        Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx));
+        Card.generateMenu(this.#aquisitions, this.#sellInterface(tx));
         rx.recv().then((t) => {
             if (t !== undefined) { this.#removeAquisition(t.first, t.second) } 
             else { this.addItem(new Seller(this))}
@@ -276,17 +276,17 @@ export class Player {
             await rx.recv();
         } else if (type === "sale") {
             const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-            Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "coin"));
+            Card.generateMenu(this.#aquisitions, this.#sellInterface(tx, "coin"));
             const t = await rx.recv()
             if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
         } else if (type === "saleRibbon") {
             const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-            Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "ribbon"));
+            Card.generateMenu(this.#aquisitions, this.#sellInterface(tx, "ribbon"));
             const t = await rx.recv()
             if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
         } else if (type === "saleStar") {
             const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-            Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "star"));
+            Card.generateMenu(this.#aquisitions, this.#sellInterface(tx, "star"));
             const t = await rx.recv()
             if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
         } else if (type === "item") {
@@ -454,9 +454,11 @@ export class Player {
 
     // assumes caseId has been changed by the caller (to indicate the target)
     async movePawn() {
+        const targetCasePos = board.elements[this.caseId].uiPosition;
         return translateAnimation(
             this.#pawn,
-            computePawnPosition(board.elements[this.caseId]),
+            targetCasePos.x + caseSize / 4,
+            targetCasePos.y,
             60,
             0.25,
             true,
@@ -535,9 +537,9 @@ export class Player {
         pawn.style.height = `${caseSize/2}px`
         pawn.style.position = "absolute";
         
-        const pos = computePawnPosition(board.elements[this.caseId] as Case);
-        pawn.style.left = `${pos.x}px`;
-        pawn.style.top = `${pos.y}px`;
+        const currentCase = board.elements[this.caseId];
+        pawn.style.left = `${currentCase.uiPosition.x + caseSize/4}px`;
+        pawn.style.top = `${currentCase.uiPosition.y}px`;
         pawn.style.zIndex = "3";
         this.#pawn = pawn;
     }
@@ -587,23 +589,40 @@ export class Player {
         info.appendChild(this.#createSubInfoBox("star", this.#stars, false));
 
         const aq = this.#createSubInfoBox("chest", this.#aquisitions.length, true);
-        this.#addCardEventListeners(
-            aq, 
-            "aquisitions",
-            "Cliquez pour afficher votre collection d'aquisitions.", 
-            "Utilisez les flèches du clavier pour naviguer entre vos aquisitions."
-        );
+        aq.addEventListener("mouseenter", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = "Cliquez pour afficher votre collection d'aquisitions.";
+            } else {
+                console.log("WARN: helper box is undefined");
+            }
+        });
+        aq.addEventListener("mouseleave", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = activeInfoHelp;
+            }
+        });
+        aq.addEventListener("click", () => {
+            Card.generateMenu(this.#aquisitions);
+        });
         info.appendChild(aq);
 
         const w = this.#createSubInfoBox("wonder", this.#wonders.length, true);
-        this.#addCardEventListeners(
-            w,
-            "wonders",
-            "Cliquez pour afficher votre collection de merveilles.",
-            "Utilisez les flèches du clavier pour naviguer entre vos merveilles."
-        )
+        w.addEventListener("mouseenter", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = "Cliquez pour afficher votre collection de merveilles.";
+            } else {
+                console.log("WARN: helper box is undefined");
+            }
+        });
+        w.addEventListener("mouseleave", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = activeInfoHelp;
+            }
+        });
+        w.addEventListener("click", () => {
+            Card.generateMenu(this.#wonders);
+        });
         info.appendChild(w);
-
         info.appendChild(this.#createActionBox());
 
         return info;
@@ -629,31 +648,6 @@ export class Player {
         box.appendChild(img);
         box.appendChild(counter);
         return box;
-    }
-
-    #addCardEventListeners(element: HTMLElement, imgFolder: ImgFolder, hoverMsg: string, clickMsg: string) {
-        element.addEventListener("mouseenter", () => {
-            if (helperBox !== undefined) {
-                helperBox.textContent = hoverMsg;
-            } else {
-                console.log("WARN: helper box is undefined");
-            }
-        });
-        element.addEventListener("mouseleave", () => {
-            if (helperBox !== undefined) {
-                helperBox.textContent = activeInfoHelp;
-            }
-        });
-
-        element.addEventListener("click", () => {
-            let folder: Card[];
-            switch(imgFolder) {
-                case "aquisitions" : folder = this.#aquisitions; break;
-                case "wonders": folder = this.#wonders; break;
-                default: console.log("unhandled img folder"); return;
-            }
-            Card.generateMenu(folder, imgFolder, clickMsg);
-        });
     }
 
     #createActionBox() {
@@ -735,10 +729,6 @@ export class Player {
             this.disable();
         }
     }
-}
-
-function computePawnPosition(elm: Case) {
-    return new Position(elm.uiPosition.x + caseSize/4, elm.uiPosition.y);
 }
 
 export interface PlayerData {

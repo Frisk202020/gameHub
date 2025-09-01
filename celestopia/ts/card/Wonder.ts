@@ -1,4 +1,3 @@
-import { resizables } from "../util/variables.js";
 import { Card } from "./Card.js";
 
 export type WonderName = "statue" | "astropy" | "bank" | "bridge" | "dress" | "comet" | "teleporter";
@@ -9,12 +8,29 @@ export class Wonder extends Card {
     #starPrice: number;
 
     constructor(name: WonderName, coinPrice: number, ribbonPrice: number, starPrice: number) {
-        super(name, "wonders");
+        super(name, "wonder");
         this.#coinPrice = coinPrice;
         this.#ribbonPrice = ribbonPrice;
         this.#starPrice = starPrice;
+    }
 
-        resizables.push(this);
+    cardColor(): string {
+        return "#ffd700";
+    }
+    protected dataLayout(): HTMLDivElement {
+        const box = document.createElement("div");
+        box.style.display = "flex";
+        box.style.flexDirection = "column";
+        box.style.justifyContent = "center";
+        
+        box.appendChild(Card.generateParagraph("Prix d'achat"));
+
+        const values = Card.generateValueBoxes(this.#coinPrice, this.#ribbonPrice, this.#starPrice);
+        values.forEach((x)=>{
+            box.appendChild(x);
+        });
+
+        return box;
     }
 
     get coins() {

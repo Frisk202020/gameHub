@@ -1,5 +1,5 @@
 import { removeFromArray } from "../util/functions.js";
-import { type Money, resizables } from "../util/variables.js";
+import { type Money } from "../util/variables.js";
 import { Card } from "./Card.js";
 
 export type AquisitionName = "astropy" | "baloon" | "bd" | "beauty" | "camping" | "car" | "castle" | "chest" | "horse" | "magic" | "moto"
@@ -13,13 +13,33 @@ export class Aquisition extends Card {
     static menuText = "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.";
 
     constructor(name: string, price: number, coin: number, ribbon: number, star: number) {
-        super(name, "aquisitions")
+        super(name, "aquisition")
         this.#price = price;
         this.#coinValue = coin;
         this.#ribbonValue = ribbon;
         this.#starValue = star;
+    }
 
-        resizables.push(this);
+    cardColor(): string {
+        return "#b3ec69";
+    }
+
+    protected dataLayout(): HTMLDivElement {
+        console.log(this);
+        const box = document.createElement("div");
+        box.style.display = "flex";
+        box.style.flexDirection = "column";
+        box.style.justifyContent = "center";
+        [
+            Card.generateParagraph("Prix d'achat"), 
+            Card.generateValueBox("coin", this.#price), 
+            Card.generateParagraph("Gains de vente")
+        ].forEach((x)=>box.appendChild(x));
+
+        const values = Card.generateValueBoxes(this.#coinValue, this.#ribbonValue, this.#starValue);
+        values.forEach((x)=>box.appendChild(x));
+
+        return box;
     }
 
     get name() {

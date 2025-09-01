@@ -174,8 +174,13 @@ async function nextPlayer(p: Player) {
     if (nextP.boardId !== boardId) { changeBoard(nextP.boardId); }  
 }
 
+function debugInit() {
+    players.push(new Player(1, "debug", "hat", "red"));
+}
+
 async function main() {
-    initPlayers();
+    //initPlayers();
+    debugInit();
     counterRenderLoop();
     boardRenderLoop();
     initBoardBtns();

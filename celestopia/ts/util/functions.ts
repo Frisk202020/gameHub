@@ -116,6 +116,10 @@ export function createHelperBox(text: string, position?: Position, size?: number
     return helpBox;
 }
 
+export function pxToVw(px: number) {
+    return px * 100 / document.documentElement.clientWidth;
+}
+
 export function vwToPx(vw: number) {
     return vw * document.documentElement.clientWidth/100;
 }
@@ -137,25 +141,33 @@ export function removeFromBodyOrWarn(element: Node | undefined) {
     }
 }
 
-export async function translateAnimation(element: HTMLElement, target: Position, frames: number, timeSeconds: number, correctScrollPos: boolean, follow?: true) {
+export async function translateAnimation(
+    element: HTMLElement, 
+    translateX: number, 
+    translateY: number, 
+    frames: number, 
+    timeSeconds: number, 
+    correctScrollPos: boolean, 
+    follow?: true
+) {
     // assumes the element is position: absolute or fixed
     const it = timeSeconds * frames;
     const dt = 1000 / frames;
     
-    const rect = element.getBoundingClientRect();
-    let currentPos = correctScrollPos ? new Position(rect.left + window.scrollX, rect.top + window.scrollY) : new Position(rect.left, rect.top);
-    let dP = target.difference(currentPos);
-    dP.divideMut(it);
+    const elmPosition = Position.new(element.getBoundingClientRect());
+    let current = correctScrollPos ? elmPosition.translate(window.scrollX, window.scrollY) : elmPosition;
+    const target = elmPosition.translate(translateX, translateY);
+    const dP = new Position(translateX/it, translateY/it);
 
     for (let i = 0; i < it; i++) {
-        currentPos.translateMut(dP);
-        element.style.left = `${currentPos.x}px`;
-        element.style.top = `${currentPos.y}px`;
+        current.translateMut(dP);
+        element.style.left = `${current.x}px`;
+        element.style.top = `${current.y}px`;
 
         if (follow === true) { 
             window.scrollTo({
-                left: currentPos.x - (window.innerWidth / 2) + (element.offsetWidth / 2), // keep centered
-                top: currentPos.y - (window.innerHeight / 2) + (element.offsetHeight / 2),
+                left: current.x - (window.innerWidth / 2) + (element.offsetWidth / 2), // keep centered
+                top: current.y - (window.innerHeight / 2) + (element.offsetHeight / 2),
                 behavior: 'instant' // no built-in scroll animation
             }); 
         }

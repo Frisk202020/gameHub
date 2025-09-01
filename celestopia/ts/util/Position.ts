@@ -7,6 +7,10 @@ export class Position {
         this.y = y;
     }
 
+    static new(x: DOMRect) {
+        return new Position(x.left, x.top);
+    }
+
     toString(): string {
         return `(${this.x}, ${this.y})`;
     }

@@ -16,7 +16,7 @@ export class Crown extends BoardEvent {
             super(
                 [
                     BoardEvent.generateTextBox("Acheter cette merveille ?"),
-                    BoardEvent.generateImage(w.src)
+                    BoardEvent.generateImage(w.imgSrc)
                 ],
                 BoardEvent.okSetup(
                     player.coins >= w.coins && player.ribbons >= w.ribbons && player.stars >= w.stars,
