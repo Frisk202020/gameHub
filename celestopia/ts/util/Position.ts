@@ -28,6 +28,10 @@ export class Position {
         this.y /= z;
     }
 
+    divide(z: number) {
+        return new Position(this.x / z, this.y / z);
+    }
+
     translateMut(other: Position) {
         this.x += other.x;
         this.y += other.y;

@@ -8,15 +8,12 @@ export class Wonder extends Card {
     #starPrice: number;
 
     constructor(name: WonderName, coinPrice: number, ribbonPrice: number, starPrice: number) {
-        super(name, "wonder");
+        super(name, "wonder", "#ffd700", "#ffe138", "#f1de72");
         this.#coinPrice = coinPrice;
         this.#ribbonPrice = ribbonPrice;
         this.#starPrice = starPrice;
     }
 
-    cardColor(): string {
-        return "#ffd700";
-    }
     protected dataLayout(): HTMLDivElement {
         const box = document.createElement("div");
         box.style.display = "flex";

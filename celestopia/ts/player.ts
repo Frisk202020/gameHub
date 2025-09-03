@@ -4,9 +4,9 @@ import { Card } from "./card/Card.js";
 import { Wonder, type WonderName } from "./card/Wonder.js";
 import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
-import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
+import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn } from "./util/functions.js";
 import { initChannel, Sender } from "./util/channel.js";
-import { Case, caseSize, type CaseType } from "./board/Case.js";
+import { caseSize, type CaseType } from "./board/Case.js";
 import { board, boardId, changeBoard, type Money, pig } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
@@ -454,16 +454,29 @@ export class Player {
 
     // assumes caseId has been changed by the caller (to indicate the target)
     async movePawn() {
-        const targetCasePos = board.elements[this.caseId].uiPosition;
-        return translateAnimation(
-            this.#pawn,
-            targetCasePos.x + caseSize / 4,
-            targetCasePos.y,
-            60,
-            0.25,
-            true,
-            true
-        )
+        const frames = 60;
+        const it = 0.5 * frames;
+        const dt = 1000 / frames;
+
+        const pawnPos = Position.new(this.#pawn.getBoundingClientRect());
+        const current = pawnPos.translate(window.scrollX, window.scrollY) // correct pos with scroll values
+        const target = board.elements[this.caseId].uiPosition.translate(caseSize / 4, 0);
+        const dP = target.difference(current).divide(it);
+
+        for (let i = 0; i < it; i++) {
+            current.translateMut(dP);
+            this.#pawn.style.left = `${current.x}px`;
+            this.#pawn.style.top = `${current.y}px`;
+            window.scrollTo({
+                left: current.x - (window.innerWidth / 2) + (this.#pawn.offsetWidth / 2), // keep centered
+                top: current.y - (window.innerHeight / 2) + (this.#pawn.offsetHeight / 2),
+                behavior: 'instant' // no built-in scroll animation
+            });
+            await new Promise(r => setTimeout(r, dt));
+        }
+
+        this.#pawn.style.left = `${target.x}px`;
+        this.#pawn.style.top = `${target.y}px`;
     }
 
     enable() {

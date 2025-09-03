@@ -13,19 +13,14 @@ export class Aquisition extends Card {
     static menuText = "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.";
 
     constructor(name: string, price: number, coin: number, ribbon: number, star: number) {
-        super(name, "aquisition")
+        super(name, "aquisition", "#9cd552","#b3ec69", "#c7fa85ff")
         this.#price = price;
         this.#coinValue = coin;
         this.#ribbonValue = ribbon;
         this.#starValue = star;
     }
 
-    cardColor(): string {
-        return "#b3ec69";
-    }
-
     protected dataLayout(): HTMLDivElement {
-        console.log(this);
         const box = document.createElement("div");
         box.style.display = "flex";
         box.style.flexDirection = "column";
