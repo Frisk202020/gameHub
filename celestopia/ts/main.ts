@@ -10,6 +10,7 @@ import { assets_link, updateCounterValue } from "./util/functions.js";
 import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
 import { initPlayersLocal } from "./event/PlayerCreate.js";
 import { Wonder } from "./card/Wonder.js";
+import { Aquisition } from "./card/Aquisition.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -185,8 +186,6 @@ function debugInit() {
     players.push(p);
     document.body.appendChild(p.pawn);
     players[0].enable();
-    p.teleport = true;
-    p.boardId = 2;
 }
 
 async function main() {

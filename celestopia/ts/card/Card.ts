@@ -1,14 +1,14 @@
 import { BoardEvent, DenySetup, OkSetup } from "../event/BoardEvent.js";
 import { Popup } from "../event/Popup.js";
 import { initChannel, Sender } from "../util/channel.js";
-import { assets_link, pxToVw, unwrap_or_default } from "../util/functions.js";
+import { assets_link, pxToVw, unwrap_or_default, vwToPx } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";
 import { Tuple } from "../util/tuple.js";
 import { Money } from "../util/variables.js";
 import { Aquisition } from "./Aquisition.js";
 
-const cardWidth = 35 //vw
-const cardHeight = 20; //vw
+export const cardWidth = 35 //vw
+export const cardHeight = 20; //vw
 const border = cardHeight/25; //vw
 const oultine = cardHeight/35; //vw
 const frames = 60; //FPS
@@ -18,26 +18,38 @@ const inactiveSquareColor = "#5e5c5c";
 
 export abstract class Card {
     protected _name: string;
+    #title: string;
     #html: HTMLDivElement | null;
+    #neutralHtml: HTMLDivElement | null;
     imgSrc: string;
     color: {base: string, mid: string, end: string};
     
-    constructor(name: string, imgFolder: string, baseColor: string, midColor: string, endColor: string) {
+    constructor(name: string, title: string, imgFolder: string, baseColor: string, midColor: string, endColor: string, extention?: string) {
         this._name = name;
-        this.imgSrc = assets_link(`cards/${imgFolder}/${name}.png`);
+        this.#title = title;
+        this.imgSrc = assets_link(`cards/${imgFolder}/${name}.${unwrap_or_default(extention, "png")}`);
         this.#html = null;
+        this.#neutralHtml = null;
         this.color = {base: baseColor, mid: midColor, end: endColor};
     }
 
-    // lazy initialization because we have circular imports otherwhise
+    get title() {
+        return this.#title;
+    }
+    // lazy initialization because we have circular imports otherwhise 
     get html() {
         if (this.#html === null) {
-            this.buildHtml();
+            this.buildHtml(true);
         }
         return this.#html as HTMLDivElement;
+    } get neutralHtml(): Readonly<HTMLDivElement> {
+        if (this.#neutralHtml === null) {
+            this.buildHtml(false);
+        }
+        return this.#neutralHtml as HTMLDivElement;
     }
 
-    protected buildHtml() {
+    protected buildHtml(centered: boolean) {
         const elm = document.createElement("div");
         elm.style.width = `${cardWidth}vw`;
         elm.style.height = `${cardHeight}vw`;
@@ -48,13 +60,25 @@ export abstract class Card {
         elm.style.border = `solid black ${border}vw`;
         elm.style.borderRadius = "20px";
         elm.style.outline = `solid ${oultine}vw white`;
-        elm.style.position = "absolute";
-        elm.style.background = `radial-gradient(${this.color.base} 30%, ${this.color.mid} 80%, ${this.color.end} 100%)`
+        elm.style.background = `radial-gradient(${this.color.base} 30%, ${this.color.mid} 80%, ${this.color.end} 100%)`;
 
-        const title = Card.generateParagraph(this._name, cardHeight/8);
-        title.style.margin = "1w";
-        title.style.marginBottom = "1vw";
+        let titleWidth = cardWidth/8;
+        const title = Card.generateParagraph(this.title, titleWidth);
+        title.style.margin = "0.5vw";
         title.style.textShadow = "2px 2px 2px #ffffff";
+        title.style.whiteSpace = "nowrap";
+
+        const obs = new ResizeObserver(()=>{
+            if (title.scrollWidth === 0) {
+                return; // wait for style to be computed before any operation
+            } 
+            while (title.scrollWidth > vwToPx(cardWidth)) {
+                titleWidth *= 0.8;
+                title.style.fontSize = `${titleWidth}vw`;
+            }
+            obs.disconnect();
+        })
+        obs.observe(title);
         elm.appendChild(title);
 
         const box = document.createElement("box");
@@ -77,7 +101,12 @@ export abstract class Card {
         box.appendChild(values);
         elm.appendChild(box);
 
-        this.#html = elm;
+        if (centered) {
+            elm.style.position = "absolute";
+            this.#html = elm;
+        } else {
+            this.#neutralHtml = elm;
+        }
     }
     protected static generateValueBoxes(
         coinValue: number,

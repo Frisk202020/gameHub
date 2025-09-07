@@ -7,8 +7,8 @@ export class Wonder extends Card {
     #ribbonPrice: number;
     #starPrice: number;
 
-    constructor(name: WonderName, coinPrice: number, ribbonPrice: number, starPrice: number) {
-        super(name, "wonder", "#ffd700", "#ffe138", "#f1de72");
+    constructor(name: WonderName, title: string, coinPrice: number, ribbonPrice: number, starPrice: number) {
+        super(name, title, "wonder", "#ffd700", "#ffe138", "#f1de72");
         this.#coinPrice = coinPrice;
         this.#ribbonPrice = ribbonPrice;
         this.#starPrice = starPrice;
@@ -41,13 +41,13 @@ export class Wonder extends Card {
     }
 
     static #bank = new Map<WonderName, Wonder>([
-        ["statue", new Wonder("statue", 25000, 0, 0)],
-        ["astropy", new Wonder("astropy", 4000, 0, 20000)],
-        ["bank", new Wonder("bank", 15000, 0, 15000)],
-        ["bridge", new Wonder("bridge", 1200, 30000, 0)],
-        ["dress", new Wonder("dress", 7500, 20000, 0)],
-        ["comet", new Wonder("comet", 0, 0, 40000)],
-        ["teleporter", new Wonder("teleporter", 10000, 10000, 0)]
+        ["statue", new Wonder("statue", "La statue de la Mairesse", 25000, 0, 0)],
+        ["astropy", new Wonder("astropy", "Astropy", 4000, 0, 20000)],
+        ["bank", new Wonder("bank", "La banque municipale", 15000, 0, 15000)],
+        ["bridge", new Wonder("bridge", "Le pont de tissu", 1200, 30000, 0)],
+        ["dress", new Wonder("dress", "La robe dorée", 7500, 20000, 0)],
+        ["comet", new Wonder("comet", "La comète mère", 0, 0, 40000)],
+        ["teleporter", new Wonder("teleporter", "Le téléporteur de tissu", 10000, 10000, 0)]
     ]);
 
 
