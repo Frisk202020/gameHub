@@ -309,28 +309,28 @@ export class Player {
             
             const x = await rx.recv();
             if (x) {
-                const delta = this.pendingCaseId - this.caseId;
-                this.caseId = 0;
-                this.pendingCaseId = 0;
-                console.log(this.boardId)
+                this.pendingCaseId = this.pendingCaseId - this.caseId;
+                this.caseId = 0; // If we land on telporter and change board, we SPAWN on case 0
                 changeBoard(this.boardId);
-                this.pendingCaseId = this.caseId + delta + 1;
-
                 switch(this.boardId) {
-                    case 0: return;
+                    case 0: break;
                     case 1:
                         const {tx, rx} = initChannel<number>();
                         new Convert(tx, "ribbon");
                         const x = await rx.recv();
                         this.progressiveCoinChange(-x);
                         this.progressiveRibbonChange(Math.floor(x / 3));
-                        return;
+                        break;
                     case 2: 
                         const {tx: tx2, rx: rx2} = initChannel<number>();
                         new Convert(tx2, "star");
                         const x2 = await rx2.recv();
                         this.progressiveCoinChange(-x2);
                         this.progressiveStarChange(Math.floor(x2 / 3));
+                }
+            } else {
+                if (this.pendingCaseId === this.caseId) {
+                    this.pendingCaseId = 0; // If we land on teleporter and stay on board, we go TOWARDS case 0
                 }
             }
         } else if (type === "end") {
@@ -455,7 +455,7 @@ export class Player {
     // assumes caseId has been changed by the caller (to indicate the target)
     async movePawn() {
         const frames = 60;
-        const it = 0.5 * frames;
+        const it = 0.25 * frames;
         const dt = 1000 / frames;
 
         const pawnPos = Position.new(this.#pawn.getBoundingClientRect());

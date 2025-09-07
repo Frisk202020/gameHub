@@ -94,7 +94,11 @@ async function boardRenderLoop() {
                 } else {
                     const delta = p.pendingCaseId - p.caseId;
                     p.caseId = currentCase.nextId;
-                    p.pendingCaseId = p.caseId + delta - 1;
+                    if (currentCase.type === "teleporter" || currentCase.type === "intersection") {
+                        p.pendingCaseId = p.caseId + delta;
+                    } else {
+                        p.pendingCaseId = p.caseId + delta - 1;
+                    }
                 }
                 if (boardCanvas !== undefined) {
                     await p.movePawn();
@@ -181,6 +185,8 @@ function debugInit() {
     players.push(p);
     document.body.appendChild(p.pawn);
     players[0].enable();
+    p.teleport = true;
+    p.boardId = 2;
 }
 
 async function main() {
