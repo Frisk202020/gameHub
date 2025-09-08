@@ -1,13 +1,13 @@
 import { appendBlurryBackground } from "../util/functions.js";
 
-export interface OkSetup {
+interface OkSetup {
     append: boolean;
     enable: boolean;
     customLabel?: string;
     customHandler?: ()=>void;
 }
 
-export interface DenySetup {
+interface DenySetup {
     append: boolean;
     customLabel?: string;
     customHandler?: ()=>void;

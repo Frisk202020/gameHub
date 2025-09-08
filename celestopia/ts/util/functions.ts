@@ -133,7 +133,7 @@ export function removeFromBodyOrWarn(element: Node | undefined) {
         if (document.body.contains(element)) {
             document.body.removeChild(element);
         } else {
-            console.log("WARN: element is not in body");
+            console.log(`WARN: ${element} is not in body`);
         }
         element = undefined;
     } else {

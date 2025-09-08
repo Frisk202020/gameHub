@@ -1,4 +1,4 @@
-import { BoardEvent, DenySetup, OkSetup } from "../event/BoardEvent.js";
+import { BoardEvent } from "../event/BoardEvent.js";
 import { Popup } from "../event/Popup.js";
 import { initChannel, Sender } from "../util/channel.js";
 import { assets_link, pxToVw, unwrap_or_default, vwToPx } from "../util/functions.js";
@@ -111,17 +111,18 @@ export abstract class Card {
     protected static generateValueBoxes(
         coinValue: number,
         ribbonValue: number,
-        starValue: number
+        starValue: number,
+        highlight?: Money
     ) {
-        const args: Array<{m: Money, n: number}> = [
-            {m: "coin", n: coinValue}, 
-            {m: "ribbon", n: ribbonValue},
-            {m: "star", n: starValue}
+        const args: Array<{m: Money, n: number, h: boolean}> = [
+            {m: "coin", n: coinValue, h: highlight === "coin"}, 
+            {m: "ribbon", n: ribbonValue, h: highlight === "ribbon"},
+            {m: "star", n: starValue, h: highlight === "star"}
         ];
-        return args.map((x)=>this.generateValueBox(x.m, x.n))
+        return args.map((x)=>this.generateValueBox(x.m, x.n, x.h));
     }
 
-    protected static generateValueBox(money: Money, value: number) {
+    protected static generateValueBox(money: Money, value: number, highlight: boolean) {
         const box = document.createElement("div");
         box.className = "row-box";
         box.style.margin = "0.1vw";
@@ -131,7 +132,12 @@ export abstract class Card {
         img.style.height = `${cardHeight/10}vw`;
         img.style.marginRight = "1vw";
         box.appendChild(img);
-        box.appendChild(this.generateParagraph(value.toString(), cardHeight/12));
+        const p = this.generateParagraph(value.toString(), cardHeight/12);
+        if (highlight) {
+            p.className = "hue";
+            p.style.color = "#ffd700";
+        }
+        box.appendChild(p);
 
         return box;
     }
@@ -157,44 +163,62 @@ export abstract class Card {
             }
             return;
         } else {
-            new CardMenu(cards, cards[0].color.base);
+            new CardMenu(cards, cards[0].color.base, sellConfig);
         }
     }
 }
 
+const enum MenuOkSetup {
+    Unappended,
+    Appended,
+    Sell,
+}
+
 class CardMenu extends BoardEvent {
-    #cards: HTMLDivElement[];
+    #cards: Card[];
     #imgBox!: HTMLDivElement;
     #navSquares!: HTMLDivElement[];
     #navColor!: string;
-    current: number;
+    #current: number;
+    #sellChannel?: Sender<Aquisition | undefined>;
 
-    constructor(cards: Card[], navBarColor: string) {
-        const setup = CardMenu.#setup(cards, navBarColor);
-        super(setup.elements, setup.okSetup, setup.denySetup);
+    constructor(cards: Card[], navBarColor: string, config?: SellConfig) { 
+        const setup = CardMenu.#setup(cards, navBarColor, config);
+        const okSetup = (()=> {
+            switch (setup.okSetup) {
+                case MenuOkSetup.Appended: return BoardEvent.okSetup(true);
+                case MenuOkSetup.Unappended: return BoardEvent.unappendedOkSetup();
+                case MenuOkSetup.Sell: return BoardEvent.okSetup(true, "Vendre", ()=>this.#sellEvent());
+            }
+        })();
+        super(setup.elements, okSetup, setup.denySetup ? BoardEvent.denySetup(true, "Retour") : BoardEvent.denySetup(false));
         this.menu.style.overflowY = "scroll";
 
-        this.#cards = cards.map((x)=>x.html);
-        this.current = 0;
+        this.#current = 0;
         if (cards.length > 0) {
             if (cards.length !== 1) { new Listener(this.menu, this); }// menu as seperate arg bc it's protected
             this.#imgBox = setup.elements[0]!;
             this.#navSquares = setup.navSquares!;
             this.#navColor = navBarColor;
         }
+        this.#cards = setup.cards;
+        this.#sellChannel = setup.sellChannel;
     }
 
-    static #setup(cards: Card[], navBarColor: string): {
+    static #setup(cards: Card[], navBarColor: string, config?: SellConfig): {
+        cards: Card[];
         elements: HTMLDivElement[],
         navSquares?: HTMLDivElement[],
-        okSetup: OkSetup,
-        denySetup : DenySetup,
+        okSetup: MenuOkSetup,
+        denySetup : boolean,
+        sellChannel?: Sender<Aquisition | undefined>
     } {
         if (cards.length === 0) {
             return {
+                cards,
                 elements: [BoardEvent.generateTextBox("Vous n'avez aucune carte")],
-                okSetup: BoardEvent.okSetup(true),
-                denySetup: BoardEvent.denySetup(false)
+                okSetup: MenuOkSetup.Appended,
+                denySetup: false
             }
         }
 
@@ -203,9 +227,25 @@ class CardMenu extends BoardEvent {
         imgBox.style.height = `${cardHeight + border + oultine + cardHeight / 10}vw`;
         imgBox.style.marginTop = `${cardHeight / 10}vw`;
 
+        const {boostedCards, okSetup, sellChannel} = config === undefined ? {boostedCards: cards, okSetup: MenuOkSetup.Unappended, sellChannel: undefined} : (()=>{
+            if (config.type === undefined) { return {boostedCards: cards, okSetup: MenuOkSetup.Sell, sellChannel: config.tx }; }
+            else {
+                if (cards[0] instanceof Aquisition) {
+                    return {
+                        boostedCards: cards.map((x)=>(x as Aquisition).getBoostedClone(config.type!)), 
+                        okSetup: MenuOkSetup.Sell,
+                        sellChannel: config.tx
+                    };
+                } else {
+                    console.log("ERROR: Called sell config on acard that is not an Aquisition");
+                    return {boostedCards: cards, okSetup: MenuOkSetup.Unappended, sellChannel: undefined};
+                }
+            }
+        })();
+
         // append to center
         // not its how method since it's only supposed to happen at menu's build
-        const card = cards[0].html;
+        const card = boostedCards[0].html;
         card.style.left = `${centerX}vw`;
         imgBox.appendChild(card);
 
@@ -217,10 +257,20 @@ class CardMenu extends BoardEvent {
             : [imgBox, BoardEvent.generateTextBox("Utilisez les flèches du clavier pour naviguer entre vos aquisitions"), navBar];
 
         return {
+            cards: boostedCards,
             elements,
             navSquares,
-            okSetup: BoardEvent.unappendedOkSetup(),
-            denySetup: BoardEvent.denySetup(true, "Retour")
+            okSetup,
+            denySetup: true,
+            sellChannel
+        }
+    }
+
+    #sellEvent() {
+        if (this.#sellChannel === undefined) {
+            console.log("ERROR: tried to send a sell message but menu's channel is undefined");
+        } else {
+            this.#sellChannel.send(this.#cards[this.#current] as Aquisition); // already checked at ok button init if cards are actually aquisitions
         }
     }
 
@@ -237,25 +287,25 @@ class CardMenu extends BoardEvent {
     async #moveCards(nextIndex: number, oldCardTargetX: number, appendRight: boolean) {
         const promises = [];
 
-        const oldCard = this.#cards[this.current];
+        const oldCard = this.#cards[this.#current].html;
         promises.push(translate(oldCard, oldCardTargetX).then(()=>this.#imgBox.removeChild(oldCard)));
-        this.#navSquares[this.current].style.backgroundColor = "#5e5c5c";
+        this.#navSquares[this.#current].style.backgroundColor = "#5e5c5c";
 
-        this.current = nextIndex;
-        const card = this.#cards[this.current];
+        this.#current = nextIndex;
+        const card = this.#cards[this.#current].html;
         if (appendRight) { this.#appendToRight(card); } else { this.#appendToLeft(card); }
         promises.push(translate(card, centerX));
-        this.#navSquares[this.current].style.backgroundColor = this.#navColor;
+        this.#navSquares[this.#current].style.backgroundColor = this.#navColor;
 
         await Promise.all(promises);
     }
 
     async nextCard() {
-        await this.#moveCards((this.current + 1) % this.#cards.length, -cardWidth, true);
+        await this.#moveCards((this.#current + 1) % this.#cards.length, -cardWidth, true);
     }
 
     async previousCard() {
-        let i = this.current - 1;
+        let i = this.#current - 1;
         if (i < 0) { i = this.#cards.length - 1; };
         await this.#moveCards(i, 100, false);
     }
@@ -307,7 +357,7 @@ function createNavBar(length: number, color: string) {
 }
 
 interface SellConfig {
-    tx: Sender<Tuple<Aquisition, Aquisition> | undefined>,
+    tx: Sender<Aquisition | undefined>,
     type?: Money
 }
 

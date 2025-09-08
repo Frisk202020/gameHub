@@ -10,14 +10,16 @@ export class Aquisition extends Card {
     #coinValue: number;
     #ribbonValue: number;
     #starValue: number;
+    #boostedValue?: Money;
     static menuText = "Utilisez les flèches du clavier pour naviguer entre vos aquisitions.";
 
-    constructor(name: AquisitionName, title: string, price: number, coin: number, ribbon: number, star: number) {
+    constructor(name: AquisitionName, title: string, price: number, coin: number, ribbon: number, star: number, boostedValue?: Money) {
         super(name, title, "aquisition", "#9cd552","#b3ec69", "#c7fa85", "jpg")
         this.#price = price;
         this.#coinValue = coin;
         this.#ribbonValue = ribbon;
         this.#starValue = star;
+        this.#boostedValue = boostedValue;
     }
 
     protected dataLayout(): HTMLDivElement {
@@ -31,11 +33,11 @@ export class Aquisition extends Card {
         box.style.scrollbarColor = "#6b9535 transparent";
         [
             Card.generateParagraph("Prix d'achat"), 
-            Card.generateValueBox("coin", this.#price), 
+            Card.generateValueBox("coin", this.#price, false), 
             Card.generateParagraph("Gains de vente")
         ].forEach((x)=>box.appendChild(x));
 
-        const values = Card.generateValueBoxes(this.#coinValue, this.#ribbonValue, this.#starValue);
+        const values = Card.generateValueBoxes(this.#coinValue, this.#ribbonValue, this.#starValue, this.#boostedValue);
         values.forEach((x)=>box.appendChild(x));
 
         return box;
@@ -66,6 +68,7 @@ export class Aquisition extends Card {
             boost === "coin" ? this.coins * 1.5 : this.coins,
             boost === "ribbon" ? this.ribbons * 1.5 : this.ribbons,
             boost === "star" ? this.stars * 1.5 : this.stars,
+            boost
         )
     }
 

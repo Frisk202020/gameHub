@@ -167,17 +167,23 @@ export class Player {
     listAquisitions(): AquisitionName[] {
         return this.#aquisitions.map((aq) => aq.name);
     }
-    async #removeAquisition(aq: Aquisition, boostedClone: Aquisition) {
+    async #removeAquisition(aq: Aquisition) {
         if (this.#aquisitions.length === 0) {
             console.log("ERROR: tried to remove aquisition, but player didn't have one");
             return;
         }
-        const i = this.#aquisitions.indexOf(aq);
-        if (i === -1) {
+        let ind = -1;
+        for (let i = 0; i < this.#aquisitions.length; i++) {
+            if (this.#aquisitions[i].name === aq.name) {
+                ind = i;
+                break;
+            }
+        }
+        if (ind === -1) {
             console.log("ERROR: tried to remove aquisition but player did not have it");
             return;
         } else {
-            this.#aquisitions.splice(i, 1);
+            this.#aquisitions.splice(ind, 1);
         }
 
         Aquisition.returnToBank(aq);
@@ -186,15 +192,15 @@ export class Player {
             new Magic(tx);
             const m = await rx.recv()
             switch(m) {
-                case "coin": await this.progressiveCoinChange(boostedClone.coins); break;
-                case "ribbon": await this.progressiveRibbonChange(boostedClone.ribbons); break;
-                case "star": await this.progressiveStarChange(boostedClone.stars);
+                case "coin": await this.progressiveCoinChange(aq.coins); break;
+                case "ribbon": await this.progressiveRibbonChange(aq.ribbons); break;
+                case "star": await this.progressiveStarChange(aq.stars);
             }
         } else {
             await Promise.all([
-                this.progressiveCoinChange(boostedClone.coins),
-                this.progressiveRibbonChange(boostedClone.ribbons),
-                this.progressiveStarChange(boostedClone.stars)
+                this.progressiveCoinChange(aq.coins),
+                this.progressiveRibbonChange(aq.ribbons),
+                this.progressiveStarChange(aq.stars)
             ]);
         }
     }
@@ -202,10 +208,10 @@ export class Player {
         return removeFromArray(this.#aquisitions, Math.floor(Math.random() * this.aquisitionCount));  
     }
     generateSellMenu() {
-        const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-        Card.generateMenu(this.#aquisitions, this.#sellInterface(tx));
+        const {tx, rx} = initChannel<Aquisition | undefined>();
+        Card.generateMenu(this.#aquisitions, {tx});
         rx.recv().then((t) => {
-            if (t !== undefined) { this.#removeAquisition(t.first, t.second) } 
+            if (t !== undefined) { this.#removeAquisition(t) } 
             else { this.addItem(new Seller(this))}
         });
     }
@@ -236,7 +242,7 @@ export class Player {
             const delta = Math.min(this.#stars, chosen)
             pig.feed(delta * 2);
 
-            await this.progressiveStarChange(delta);
+            await this.progressiveStarChange(-delta);
         } else if (type === "blueStar") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
@@ -248,7 +254,7 @@ export class Player {
             const delta = Math.min(this.#ribbons, chosen)
             pig.feed(delta * 2);
 
-            await this.progressiveRibbonChange(delta);
+            await this.progressiveRibbonChange(-delta);
         } else if (type === "blueRibbon") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
@@ -275,20 +281,20 @@ export class Player {
             new PigEvent(this, tx);
             await rx.recv();
         } else if (type === "sale") {
-            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-            Card.generateMenu(this.#aquisitions, this.#sellInterface(tx, "coin"));
+            const {tx, rx} = initChannel<Aquisition | undefined>();
+            Card.generateMenu(this.#aquisitions, {tx, type: "coin"});
             const t = await rx.recv()
-            if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
+            if (t !== undefined) { await this.#removeAquisition(t); }
         } else if (type === "saleRibbon") {
-            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-            Card.generateMenu(this.#aquisitions, this.#sellInterface(tx, "ribbon"));
+            const {tx, rx} = initChannel<Aquisition | undefined>();
+            Card.generateMenu(this.#aquisitions, {tx, type: "ribbon"});
             const t = await rx.recv()
-            if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
+            if (t !== undefined) { await this.#removeAquisition(t); }
         } else if (type === "saleStar") {
-            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-            Card.generateMenu(this.#aquisitions, this.#sellInterface(tx, "star"));
+            const {tx, rx} = initChannel<Aquisition | undefined>();
+            Card.generateMenu(this.#aquisitions, {tx, type: "star"});
             const t = await rx.recv()
-            if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
+            if (t !== undefined) { await this.#removeAquisition(t); }
         } else if (type === "item") {
             const i = await Item.getRandomItem(this);
             const {tx: innerTx, rx} = initChannel<void>();
@@ -711,10 +717,6 @@ export class Player {
         elm.addEventListener("click", action);
         elm.onload = () => elm.style.border = `solid ${elm.offsetHeight * 0.05}px #ffd700`;
         return elm;
-    }
-
-    #sellInterface(tx: Sender<Tuple<Aquisition, Aquisition> | undefined>, type?: Money) {
-        return { tx, type }
     }
 
     loadData(data: PlayerData, enabled: boolean) {

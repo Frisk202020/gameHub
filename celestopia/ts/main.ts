@@ -186,6 +186,11 @@ function debugInit() {
     players.push(p);
     document.body.appendChild(p.pawn);
     players[0].enable();
+    for (let i = 0; i < 21; i++) {
+        p.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
+    }
+    p.teleport = true;
+    p.pendingCaseId = 22;
 }
 
 async function main() {
