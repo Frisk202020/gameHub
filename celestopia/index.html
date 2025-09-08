@@ -70,6 +70,9 @@
             padding: 0px;
             overflow-y: scroll;
         }
+        html {
+            scrollbar-color: #ffd700 transparent;
+        }
         html,body{
             height: 100%;
         }
@@ -123,7 +126,19 @@
         }
         .case {
             z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
+        .with-case-border::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border: 5px solid #ffd700;
+            border-radius: 100%;
+            pointer-events: none; /* so clicks pass through */
+            z-index: 3; /* above image */
+        }       
 
         /* backgrounds*/
         .spaceBG {
@@ -191,6 +206,11 @@
         }
 
         /* utility classes */
+        .centered-p {
+            display: grid;
+            text-align: center;
+            align-items: center;
+        }
         .row-box {
             display: flex;
             justify-content: center;

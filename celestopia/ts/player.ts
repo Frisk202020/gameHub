@@ -1,12 +1,12 @@
 import { Item, type ItemName } from "./item/Item.js";
 import { Aquisition, type AquisitionName } from "./card/Aquisition.js";
-import { Card, type ImgFolder } from "./card/Card.js";
+import { Card } from "./card/Card.js";
 import { Wonder, type WonderName } from "./card/Wonder.js";
 import { Position } from "./util/Position.js";
 import { DiceEvent } from "./event/DiceEvent.js";
-import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn, translateAnimation } from "./util/functions.js";
+import { assets_link, createHelperBox, removeFromArray, removeFromBodyOrWarn } from "./util/functions.js";
 import { initChannel, Sender } from "./util/channel.js";
-import { Case, caseSize, type caseType } from "./board/Case.js";
+import { caseSize, type CaseType } from "./board/Case.js";
 import { board, boardId, changeBoard, type Money, pig } from "./util/variables.js";
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
@@ -167,17 +167,23 @@ export class Player {
     listAquisitions(): AquisitionName[] {
         return this.#aquisitions.map((aq) => aq.name);
     }
-    async #removeAquisition(aq: Aquisition, boostedClone: Aquisition) {
+    async #removeAquisition(aq: Aquisition) {
         if (this.#aquisitions.length === 0) {
             console.log("ERROR: tried to remove aquisition, but player didn't have one");
             return;
         }
-        const i = this.#aquisitions.indexOf(aq);
-        if (i === -1) {
+        let ind = -1;
+        for (let i = 0; i < this.#aquisitions.length; i++) {
+            if (this.#aquisitions[i].name === aq.name) {
+                ind = i;
+                break;
+            }
+        }
+        if (ind === -1) {
             console.log("ERROR: tried to remove aquisition but player did not have it");
             return;
         } else {
-            this.#aquisitions.splice(i, 1);
+            this.#aquisitions.splice(ind, 1);
         }
 
         Aquisition.returnToBank(aq);
@@ -186,15 +192,15 @@ export class Player {
             new Magic(tx);
             const m = await rx.recv()
             switch(m) {
-                case "coin": await this.progressiveCoinChange(boostedClone.coins); break;
-                case "ribbon": await this.progressiveRibbonChange(boostedClone.ribbons); break;
-                case "star": await this.progressiveStarChange(boostedClone.stars);
+                case "coin": await this.progressiveCoinChange(aq.coins); break;
+                case "ribbon": await this.progressiveRibbonChange(aq.ribbons); break;
+                case "star": await this.progressiveStarChange(aq.stars);
             }
         } else {
             await Promise.all([
-                this.progressiveCoinChange(boostedClone.coins),
-                this.progressiveRibbonChange(boostedClone.ribbons),
-                this.progressiveStarChange(boostedClone.stars)
+                this.progressiveCoinChange(aq.coins),
+                this.progressiveRibbonChange(aq.ribbons),
+                this.progressiveStarChange(aq.stars)
             ]);
         }
     }
@@ -202,10 +208,10 @@ export class Player {
         return removeFromArray(this.#aquisitions, Math.floor(Math.random() * this.aquisitionCount));  
     }
     generateSellMenu() {
-        const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-        Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx));
+        const {tx, rx} = initChannel<Aquisition | undefined>();
+        Card.generateMenu(this.#aquisitions, {tx});
         rx.recv().then((t) => {
-            if (t !== undefined) { this.#removeAquisition(t.first, t.second) } 
+            if (t !== undefined) { this.#removeAquisition(t) } 
             else { this.addItem(new Seller(this))}
         });
     }
@@ -217,7 +223,7 @@ export class Player {
         return this.#wonders.map((w)=>w.name);
     }
 
-    async caseResponse(type: caseType) {
+    async caseResponse(type: CaseType) {
         const {tx, rx} = initChannel<void>();
         if (type === "redCoin") {
             const choices = [50, 100, 250, 500];
@@ -236,8 +242,8 @@ export class Player {
             const delta = Math.min(this.#stars, chosen)
             pig.feed(delta * 2);
 
-            await this.progressiveStarChange(delta);
-        } else if (type === "star") {
+            await this.progressiveStarChange(-delta);
+        } else if (type === "blueStar") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
 
@@ -248,13 +254,13 @@ export class Player {
             const delta = Math.min(this.#ribbons, chosen)
             pig.feed(delta * 2);
 
-            await this.progressiveRibbonChange(delta);
+            await this.progressiveRibbonChange(-delta);
         } else if (type === "blueRibbon") {
             const choices = [50, 100, 250, 500];
             const chosen = choices[Math.floor(Math.random() * 4)];
 
             await this.progressiveRibbonChange(chosen);
-        } else if (type === "greenEvent") {
+        } else if (type === "event") {
             Happening.pickRandomEvent(this, tx);
             await rx.recv();
         } else if (type === "aquisition") {
@@ -275,20 +281,20 @@ export class Player {
             new PigEvent(this, tx);
             await rx.recv();
         } else if (type === "sale") {
-            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-            Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "coin"));
+            const {tx, rx} = initChannel<Aquisition | undefined>();
+            Card.generateMenu(this.#aquisitions, {tx, type: "coin"});
             const t = await rx.recv()
-            if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
+            if (t !== undefined) { await this.#removeAquisition(t); }
         } else if (type === "saleRibbon") {
-            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-            Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "ribbon"));
+            const {tx, rx} = initChannel<Aquisition | undefined>();
+            Card.generateMenu(this.#aquisitions, {tx, type: "ribbon"});
             const t = await rx.recv()
-            if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
+            if (t !== undefined) { await this.#removeAquisition(t); }
         } else if (type === "saleStar") {
-            const {tx, rx} = initChannel<Tuple<Aquisition, Aquisition> | undefined>();
-            Card.generateMenu(this.#aquisitions, "aquisitions", Aquisition.menuText, this.#sellInterface(tx, "star"));
+            const {tx, rx} = initChannel<Aquisition | undefined>();
+            Card.generateMenu(this.#aquisitions, {tx, type: "star"});
             const t = await rx.recv()
-            if (t !== undefined) { await this.#removeAquisition(t.first, t.second); }
+            if (t !== undefined) { await this.#removeAquisition(t); }
         } else if (type === "item") {
             const i = await Item.getRandomItem(this);
             const {tx: innerTx, rx} = initChannel<void>();
@@ -309,28 +315,28 @@ export class Player {
             
             const x = await rx.recv();
             if (x) {
-                const delta = this.pendingCaseId - this.caseId;
-                this.caseId = 0;
-                this.pendingCaseId = 0;
-                console.log(this.boardId)
+                this.pendingCaseId = this.pendingCaseId - this.caseId;
+                this.caseId = 0; // If we land on telporter and change board, we SPAWN on case 0
                 changeBoard(this.boardId);
-                this.pendingCaseId = this.caseId + delta + 1;
-
                 switch(this.boardId) {
-                    case 0: return;
+                    case 0: break;
                     case 1:
                         const {tx, rx} = initChannel<number>();
                         new Convert(tx, "ribbon");
                         const x = await rx.recv();
                         this.progressiveCoinChange(-x);
                         this.progressiveRibbonChange(Math.floor(x / 3));
-                        return;
+                        break;
                     case 2: 
                         const {tx: tx2, rx: rx2} = initChannel<number>();
                         new Convert(tx2, "star");
                         const x2 = await rx2.recv();
                         this.progressiveCoinChange(-x2);
                         this.progressiveStarChange(Math.floor(x2 / 3));
+                }
+            } else {
+                if (this.pendingCaseId === this.caseId) {
+                    this.pendingCaseId = 0; // If we land on teleporter and stay on board, we go TOWARDS case 0
                 }
             }
         } else if (type === "end") {
@@ -454,14 +460,29 @@ export class Player {
 
     // assumes caseId has been changed by the caller (to indicate the target)
     async movePawn() {
-        return translateAnimation(
-            this.#pawn,
-            computePawnPosition(board.elements[this.caseId]),
-            60,
-            0.25,
-            true,
-            true
-        )
+        const frames = 60;
+        const it = 0.25 * frames;
+        const dt = 1000 / frames;
+
+        const pawnPos = Position.new(this.#pawn.getBoundingClientRect());
+        const current = pawnPos.translate(window.scrollX, window.scrollY) // correct pos with scroll values
+        const target = board.elements[this.caseId].uiPosition.translate(caseSize / 4, 0);
+        const dP = target.difference(current).divide(it);
+
+        for (let i = 0; i < it; i++) {
+            current.translateMut(dP);
+            this.#pawn.style.left = `${current.x}px`;
+            this.#pawn.style.top = `${current.y}px`;
+            window.scrollTo({
+                left: current.x - (window.innerWidth / 2) + (this.#pawn.offsetWidth / 2), // keep centered
+                top: current.y - (window.innerHeight / 2) + (this.#pawn.offsetHeight / 2),
+                behavior: 'instant' // no built-in scroll animation
+            });
+            await new Promise(r => setTimeout(r, dt));
+        }
+
+        this.#pawn.style.left = `${target.x}px`;
+        this.#pawn.style.top = `${target.y}px`;
     }
 
     enable() {
@@ -535,9 +556,9 @@ export class Player {
         pawn.style.height = `${caseSize/2}px`
         pawn.style.position = "absolute";
         
-        const pos = computePawnPosition(board.elements[this.caseId] as Case);
-        pawn.style.left = `${pos.x}px`;
-        pawn.style.top = `${pos.y}px`;
+        const currentCase = board.elements[this.caseId];
+        pawn.style.left = `${currentCase.uiPosition.x + caseSize/4}px`;
+        pawn.style.top = `${currentCase.uiPosition.y}px`;
         pawn.style.zIndex = "3";
         this.#pawn = pawn;
     }
@@ -587,23 +608,40 @@ export class Player {
         info.appendChild(this.#createSubInfoBox("star", this.#stars, false));
 
         const aq = this.#createSubInfoBox("chest", this.#aquisitions.length, true);
-        this.#addCardEventListeners(
-            aq, 
-            "aquisitions",
-            "Cliquez pour afficher votre collection d'aquisitions.", 
-            "Utilisez les flèches du clavier pour naviguer entre vos aquisitions."
-        );
+        aq.addEventListener("mouseenter", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = "Cliquez pour afficher votre collection d'aquisitions.";
+            } else {
+                console.log("WARN: helper box is undefined");
+            }
+        });
+        aq.addEventListener("mouseleave", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = activeInfoHelp;
+            }
+        });
+        aq.addEventListener("click", () => {
+            Card.generateMenu(this.#aquisitions);
+        });
         info.appendChild(aq);
 
         const w = this.#createSubInfoBox("wonder", this.#wonders.length, true);
-        this.#addCardEventListeners(
-            w,
-            "wonders",
-            "Cliquez pour afficher votre collection de merveilles.",
-            "Utilisez les flèches du clavier pour naviguer entre vos merveilles."
-        )
+        w.addEventListener("mouseenter", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = "Cliquez pour afficher votre collection de merveilles.";
+            } else {
+                console.log("WARN: helper box is undefined");
+            }
+        });
+        w.addEventListener("mouseleave", () => {
+            if (helperBox !== undefined) {
+                helperBox.textContent = activeInfoHelp;
+            }
+        });
+        w.addEventListener("click", () => {
+            Card.generateMenu(this.#wonders);
+        });
         info.appendChild(w);
-
         info.appendChild(this.#createActionBox());
 
         return info;
@@ -629,31 +667,6 @@ export class Player {
         box.appendChild(img);
         box.appendChild(counter);
         return box;
-    }
-
-    #addCardEventListeners(element: HTMLElement, imgFolder: ImgFolder, hoverMsg: string, clickMsg: string) {
-        element.addEventListener("mouseenter", () => {
-            if (helperBox !== undefined) {
-                helperBox.textContent = hoverMsg;
-            } else {
-                console.log("WARN: helper box is undefined");
-            }
-        });
-        element.addEventListener("mouseleave", () => {
-            if (helperBox !== undefined) {
-                helperBox.textContent = activeInfoHelp;
-            }
-        });
-
-        element.addEventListener("click", () => {
-            let folder: Card[];
-            switch(imgFolder) {
-                case "aquisitions" : folder = this.#aquisitions; break;
-                case "wonders": folder = this.#wonders; break;
-                default: console.log("unhandled img folder"); return;
-            }
-            Card.generateMenu(folder, imgFolder, clickMsg);
-        });
     }
 
     #createActionBox() {
@@ -706,10 +719,6 @@ export class Player {
         return elm;
     }
 
-    #sellInterface(tx: Sender<Tuple<Aquisition, Aquisition> | undefined>, type?: Money) {
-        return { tx, type }
-    }
-
     loadData(data: PlayerData, enabled: boolean) {
         this.#coins = data.coins;
         this.uiCoins = data.coins;
@@ -735,10 +744,6 @@ export class Player {
             this.disable();
         }
     }
-}
-
-function computePawnPosition(elm: Case) {
-    return new Position(elm.uiPosition.x + caseSize/4, elm.uiPosition.y);
 }
 
 export interface PlayerData {

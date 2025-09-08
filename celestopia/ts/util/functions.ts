@@ -116,6 +116,10 @@ export function createHelperBox(text: string, position?: Position, size?: number
     return helpBox;
 }
 
+export function pxToVw(px: number) {
+    return px * 100 / document.documentElement.clientWidth;
+}
+
 export function vwToPx(vw: number) {
     return vw * document.documentElement.clientWidth/100;
 }
@@ -129,41 +133,12 @@ export function removeFromBodyOrWarn(element: Node | undefined) {
         if (document.body.contains(element)) {
             document.body.removeChild(element);
         } else {
-            console.log("WARN: element is not in body");
+            console.log(`WARN: ${element} is not in body`);
         }
         element = undefined;
     } else {
         console.log("WARN: helper box is null before proper removal");
     }
-}
-
-export async function translateAnimation(element: HTMLElement, target: Position, frames: number, timeSeconds: number, correctScrollPos: boolean, follow?: true) {
-    // assumes the element is position: absolute or fixed
-    const it = timeSeconds * frames;
-    const dt = 1000 / frames;
-    
-    const rect = element.getBoundingClientRect();
-    let currentPos = correctScrollPos ? new Position(rect.left + window.scrollX, rect.top + window.scrollY) : new Position(rect.left, rect.top);
-    let dP = target.difference(currentPos);
-    dP.divideMut(it);
-
-    for (let i = 0; i < it; i++) {
-        currentPos.translateMut(dP);
-        element.style.left = `${currentPos.x}px`;
-        element.style.top = `${currentPos.y}px`;
-
-        if (follow === true) { 
-            window.scrollTo({
-                left: currentPos.x - (window.innerWidth / 2) + (element.offsetWidth / 2), // keep centered
-                top: currentPos.y - (window.innerHeight / 2) + (element.offsetHeight / 2),
-                behavior: 'instant' // no built-in scroll animation
-            }); 
-        }
-        await new Promise(r => setTimeout(r, dt));
-    }
-
-    element.style.left = `${target.x}px`;
-    element.style.top = `${target.y}px`;
 }
 
 export async function appear(elm: HTMLElement) {

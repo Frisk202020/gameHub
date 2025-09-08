@@ -28,7 +28,7 @@ export class ChestAccept extends BoardEvent {
         super(
             [
                 BoardEvent.generateTextBox("Vous obtenez une aquisition !"),
-                BoardEvent.generateImage(aq.src),
+                aq.neutralHtml
             ],
             BoardEvent.okSetup(true, undefined, tx === undefined ? () => {
                 if (!free) { player.progressiveCoinChange(-aq.price); }

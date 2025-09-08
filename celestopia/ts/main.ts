@@ -9,6 +9,8 @@ import { debugTools } from "./util/debug.js";
 import { assets_link, updateCounterValue } from "./util/functions.js";
 import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
 import { initPlayersLocal } from "./event/PlayerCreate.js";
+import { Wonder } from "./card/Wonder.js";
+import { Aquisition } from "./card/Aquisition.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -93,7 +95,11 @@ async function boardRenderLoop() {
                 } else {
                     const delta = p.pendingCaseId - p.caseId;
                     p.caseId = currentCase.nextId;
-                    p.pendingCaseId = p.caseId + delta - 1;
+                    if (currentCase.type === "teleporter" || currentCase.type === "intersection") {
+                        p.pendingCaseId = p.caseId + delta;
+                    } else {
+                        p.pendingCaseId = p.caseId + delta - 1;
+                    }
                 }
                 if (boardCanvas !== undefined) {
                     await p.movePawn();
@@ -174,8 +180,22 @@ async function nextPlayer(p: Player) {
     if (nextP.boardId !== boardId) { changeBoard(nextP.boardId); }  
 }
 
+function debugInit() {
+    const p = new Player(1, "debug", "hat", "red");
+    p.addWonder(Wonder.getWonder("astropy", false) as Wonder);
+    players.push(p);
+    document.body.appendChild(p.pawn);
+    players[0].enable();
+    for (let i = 0; i < 21; i++) {
+        p.addAquisition(Aquisition.getRandomAquisition() as Aquisition);
+    }
+    p.teleport = true;
+    p.pendingCaseId = 22;
+}
+
 async function main() {
-    initPlayers();
+    //initPlayers();
+    debugInit();
     counterRenderLoop();
     boardRenderLoop();
     initBoardBtns();

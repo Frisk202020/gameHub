@@ -7,6 +7,10 @@ export class Position {
         this.y = y;
     }
 
+    static new(x: DOMRect) {
+        return new Position(x.left, x.top);
+    }
+
     toString(): string {
         return `(${this.x}, ${this.y})`;
     }
@@ -22,6 +26,10 @@ export class Position {
     divideMut(z: number) {
         this.x /= z;
         this.y /= z;
+    }
+
+    divide(z: number) {
+        return new Position(this.x / z, this.y / z);
     }
 
     translateMut(other: Position) {
