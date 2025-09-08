@@ -1,27 +1,60 @@
-use axum::{extract::Path, http::{header, HeaderMap, StatusCode}, response::IntoResponse};
-use tokio::{fs::File, io::AsyncReadExt};
-use tower::ServiceBuilder;
-use tower_http::services::ServeDir;
-use tracing::trace;
+use std::path::{Component, PathBuf};
+use anyhow::Result;
+use tracing::error;
 
-pub fn service(path: &str) -> ServeDir {
-    ServiceBuilder::new().service(ServeDir::new(path))
+pub const FORMAT: &'static str = "%Y-%m-%d_%H-%M-%S";
+
+pub enum ServerDirectory {
+    Data,
+    Log
+} impl ToString for ServerDirectory {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Data => String::from("data"),
+            Self::Log => String::from(r"log\data"),
+        }
+    }
 }
 
-pub async fn get_file(Path(path): Path<String>) -> impl IntoResponse {
-    let path = format!("../{path}");
-    trace!("Asking for file {path}");
+pub fn read_dir(directory: ServerDirectory) -> Result<Vec<String>> {
+    let path = correct_path(
+        std::env::current_exe()?, 
+        directory,
+        None
+    );
 
-    match File::open(&path).await {
-        Ok(mut file) => {
-            let mut buffer = Vec::new();
-            if let Err(_) = file.read_to_end(&mut buffer).await { return StatusCode::INTERNAL_SERVER_ERROR.into_response()};
-            let mime_type = mime_guess::from_path(&path).first_or_octet_stream();
-            let mut headers = HeaderMap::new();
-            headers.insert(header::CONTENT_TYPE, mime_type.as_ref().parse().unwrap());
+    Ok(
+        std::fs::read_dir(path)?
+            .filter_map(|x| x.inspect_err(|e| error!("Failed to read a file: {e}")).ok())
+            .filter_map(
+                |x| x.file_name()
+                    .to_str()
+                    .and_then(|s| s.strip_suffix(".json").map(|s| s.to_string()))
+            ).collect::<Vec<String>>()
+    )
+}
 
-            (headers, buffer).into_response()
-        }
-        Err(_) => StatusCode::NOT_FOUND.into_response(),
+pub struct FileDescriptior {
+    name: String,
+    extention: String,
+} impl FileDescriptior {
+    pub fn new_json(name: &str) -> Self {
+        Self {name: name.to_string(), extention: "json".to_string()}
     }
-}   
+    pub fn new_log(name: &str) -> Self {
+        Self {name: name.to_string(), extention: "log".to_string()}
+    }
+}
+
+pub fn correct_path(path: PathBuf, directory: ServerDirectory,  file: Option<FileDescriptior>) -> PathBuf {
+    let mut path = path.components().take_while(|x|  *x != Component::Normal("gameHub".as_ref())).collect::<PathBuf>();
+    path.push("gameHub");
+    path.push("server");
+    path.push(directory.to_string());
+    if let Some(file) = file {
+        path.push(file.name);
+        path.set_extension(file.extention);
+    }
+
+    path
+}

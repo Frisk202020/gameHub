@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Logs du server</title>
+    </head>
+    <body>
+        <p id="title" style="font-size: 10vh; width: 100vw; text-align: center; margin: 2.5vh;">Hello</p>
+        <div id="entries" style="display: flex; flex-direction: column; height: 60vh; width: 100vw; overflow-y: scroll; background-color: red;"></div>
+        <div id="buttons" style="display: flex; justify-content: space-evenly; align-items: center; margin-top: 5vh;"></div>
+    </body>
+    <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+        }
+        .centered-p {
+            text-align: center;
+            display: grid;
+            align-items: center;
+        }
+    </style>
+    <script type="module" src="get_file/server/log/js/main.js"></script>
+</html>

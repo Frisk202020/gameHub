@@ -1,11 +1,10 @@
-use axum::{extract::Path, http::StatusCode, response::IntoResponse, Json};
+use axum::{extract::Path, http::StatusCode, Json};
 use serde::Serialize;
 use serde_json::Value;
-use tracing::error;
-use std::{fs::{File, OpenOptions}, io::{ErrorKind::AlreadyExists, Read, Write}, path::{Component, PathBuf}};
+use std::{fs::{File, OpenOptions}, io::{ErrorKind::AlreadyExists, Read, Write}};
 use rand::{Rng, distr::Alphanumeric};
 
-use crate::celestopia::game_data::{GameData, InputGameData, OutputGameData};
+use crate::{celestopia::game_data::{GameData, InputGameData, OutputGameData}, response::Response, util::{correct_path, read_dir, FileDescriptior, ServerDirectory}};
 
 mod aquisition;
 mod wonder;
@@ -20,7 +19,8 @@ pub async fn save(Json(data): Json<InputGameData>) -> Result<Response<SaveRespon
         std::env::current_exe().map_err(|e| 
             Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to get target directory path: {e}"))
         )?, 
-        Some(data.name())
+        ServerDirectory::Data,
+        Some(FileDescriptior::new_json(data.name()))
     );
 
     let mut key = String::new();
@@ -83,7 +83,8 @@ pub async fn load(Path(name): Path<String>) -> Result<Response<OutputGameData>, 
         std::env::current_exe().map_err(|e| 
             Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to build directory path: {e}"))
         )?, 
-        Some(&name)
+        ServerDirectory::Data,
+        Some(FileDescriptior::new_json(&name))
     );
 
     let mut file = File::open(path)
@@ -101,37 +102,11 @@ pub async fn load(Path(name): Path<String>) -> Result<Response<OutputGameData>, 
 }
 
 pub async fn list() -> Result<Response<Vec<String>>, Response<String>> {
-    let path = correct_path(
-        std::env::current_exe().map_err(
-            |e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to build directory path: {e}"))
-        )?, 
-        None
-    );
-
     Ok(Response::new(
         StatusCode::OK, 
-        std::fs::read_dir(path)
-            .map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read directory: {e}")))?
-            .filter_map(|x| x.inspect_err(|e| error!("Failed to read a file: {e}")).ok())
-            .filter_map(
-                |x| x.file_name()
-                    .to_str()
-                    .and_then(|s| s.strip_suffix(".json").map(|s| s.to_string()))
-            ).collect::<Vec<String>>()
+        read_dir(ServerDirectory::Data)
+        .map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read data directory: {e}")))?
     ))
-}
-
-fn correct_path(path: PathBuf, filename: Option<&str>) -> PathBuf {
-    let mut path = path.components().take_while(|x|  *x != Component::Normal("gameHub".as_ref())).collect::<PathBuf>();
-    path.push("gameHub");
-    path.push("server");
-    path.push("data");
-    if let Some(file) = filename {
-        path.push(file);
-        path.set_extension("json");
-    }
-
-    path
 }
 
 fn check_authentification(path: &str, key: &str) -> Result<bool, Response<SaveResponseBody>> {
@@ -154,34 +129,21 @@ fn check_authentification(path: &str, key: &str) -> Result<bool, Response<SaveRe
         .map(|s_key| s_key == key)
 }
 
-pub(crate) struct Response<T> {
-    status: StatusCode,
-    body: T
-} impl Response<SaveResponseBody> {
+impl Response<SaveResponseBody> {
     fn new_save(status: StatusCode, message: String) -> Self {
-        Self { status, body: SaveResponseBody { message, authentification: String::new(), errors: vec![] }}
+        Self::new(status, SaveResponseBody { message, authentification: String::new(), errors: vec![] })
     }
 
     fn set_authentification(&mut self, key: String) { 
-        self.body.authentification = key;
+        self.body_mut().authentification = key;
     }
 
     fn set_errors(&mut self, errors: Vec<String>) {
-        self.body.errors = errors;
+        self.body_mut().errors = errors;
     }
 } impl Response<OutputGameData> {
     fn new_load(data: GameData) -> Self {
-        Self { status: StatusCode::OK, body: OutputGameData::from(data) }
-    }
-}
-impl<T: Serialize> IntoResponse for Response<T> {
-    fn into_response(self) -> axum::response::Response {
-        let status = self.status;
-        (status, Json(self.body)).into_response()
-    }
-} impl<T> Response<T> {
-    fn new(status: StatusCode, body: T) -> Self {
-        Self {status, body}
+        Self::new(StatusCode::OK, OutputGameData::from(data))
     }
 }
 
