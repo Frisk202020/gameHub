@@ -12,7 +12,7 @@ use util::*;
 use anyhow::Result;
 use tower_http::cors::{Any, CorsLayer};
 
-use crate::{celestopia::{list, load, save}, shared_handler::{get_file, service}, log::get_latest_log};
+use crate::{celestopia::{list, load, save}, log::{get_latest_log, get_log_handler, log_list}, shared_handler::{get_file, service}};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -40,6 +40,8 @@ async fn main() -> Result<()> {
         Router::new()
             .route("/get_file/{*path}", routing::get(get_file))
             .route("/get-latest-log", routing::get(get_latest_log))
+            .route("/get-log-list", routing::get(log_list))
+            .route("/get_log/{*name}", routing::get(get_log_handler))
             .nest_service("/naval", service("../naval/code"))
             .nest_service("/celestopia", service("../celestopia"))
             .nest_service("/logs", service("log"))  

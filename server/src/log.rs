@@ -1,6 +1,6 @@
 use std::{env, fs::File, io::Read};
 
-use axum::{http::StatusCode, Json};
+use axum::{extract::Path, http::StatusCode, Json};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::error;
@@ -33,9 +33,21 @@ pub async fn get_latest_log() -> LogResult {
     get_log(min.format(FORMAT).to_string())
 }
 
+pub async fn get_log_handler(Path(name): Path<String>) -> LogResult {
+    get_log(name)
+}
+
+pub async fn log_list() -> Result<Response<Vec<String>>, Response<String>> {
+    Ok(Response::new(
+        StatusCode::OK, 
+        read_dir(ServerDirectory::Log)
+        .map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read data directory: {e}")))?
+    ))
+}
+
 fn get_log(name: String) -> LogResult {
     let path = correct_path(
-    env::current_exe().map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to find log file: {e}")))?, 
+    env::current_exe().map_err(|e| Response::new(StatusCode::BAD_REQUEST, format!("Failed to find log file: {e}")))?, 
     &ServerDirectory::Log, 
     Some(FileDescriptior::new_log(&name))
     );
