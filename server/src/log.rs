@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 use tracing::error;
 
 use crate::{response::Response, util::{correct_path, read_dir, FileDescriptior, ServerDirectory, FORMAT}};
-type LogResponse = Result<Json<Vec<Format>>, Response<String>>;
+type LogResult = Result<Json<LogResponse>, Response<String>>;
 
-pub async fn get_latest_log() -> LogResponse {
+pub async fn get_latest_log() -> LogResult {
     let files = read_dir(ServerDirectory::Log)
         .map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to list available files: {e}")))?;
 
@@ -33,7 +33,7 @@ pub async fn get_latest_log() -> LogResponse {
     get_log(min.format(FORMAT).to_string())
 }
 
-fn get_log(name: String) -> LogResponse {
+fn get_log(name: String) -> LogResult {
     let path = correct_path(
     env::current_exe().map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to find log file: {e}")))?, 
     &ServerDirectory::Log, 
@@ -47,16 +47,25 @@ fn get_log(name: String) -> LogResponse {
         .map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to read log file: {e}")))?;
     
     Ok(
-        Json(buffer.split("\n")
-            .filter(|x| !x.is_empty())
-            .map(|x| serde_json::from_str::<Format>(x)
-            .map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to parse log data: {e}")))
-        ).collect::<Result<Vec<Format>, Response<String>>>()?)
+        Json(LogResponse {
+            file_name: name,
+            content: buffer.split("\n")
+                .filter(|x| !x.is_empty())
+                .map(|x| serde_json::from_str::<Format>(x)
+                    .map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to parse log data: {e}")))
+                ).collect::<Result<Vec<Format>, Response<String>>>()?
+        })
     )
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Format {
+pub struct LogResponse {
+    file_name: String,
+    content: Vec<Format>
+}
+
+#[derive(Serialize, Deserialize)]
+struct Format {
     timestamp: String,
     level: String,
     fields: Fields,
