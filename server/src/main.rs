@@ -1,7 +1,8 @@
 mod util;
 mod response;
 mod celestopia;
-mod handler;
+mod shared_handler;
+mod log;
 
 use std::{env, fs::OpenOptions, net::SocketAddr};
 use axum::{routing, Router};
@@ -11,14 +12,14 @@ use util::*;
 use anyhow::Result;
 use tower_http::cors::{Any, CorsLayer};
 
-use crate::{celestopia::{list, load, save}, handler::{get_file, get_latest_log, service}};
+use crate::{celestopia::{list, load, save}, shared_handler::{get_file, service}, log::get_latest_log};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let now = Utc::now().format(FORMAT).to_string();
     let path = correct_path(
         env::current_exe().inspect_err(|_| println!("Failed to get current exe path"))?, 
-        ServerDirectory::Log, 
+        &ServerDirectory::Log, 
         Some(FileDescriptior::new_log(&now))
     );
     let log_file = OpenOptions::new()

@@ -14,12 +14,19 @@ pub enum ServerDirectory {
             Self::Log => String::from(r"log\data"),
         }
     }
+} impl ServerDirectory {
+    fn file_extention(&self) -> &str {
+        match self {
+            Self::Log => ".log",
+            Self::Data => ".json"
+        }
+    }
 }
 
 pub fn read_dir(directory: ServerDirectory) -> Result<Vec<String>> {
     let path = correct_path(
         std::env::current_exe()?, 
-        directory,
+        &directory,
         None
     );
 
@@ -29,7 +36,7 @@ pub fn read_dir(directory: ServerDirectory) -> Result<Vec<String>> {
             .filter_map(
                 |x| x.file_name()
                     .to_str()
-                    .and_then(|s| s.strip_suffix(".json").map(|s| s.to_string()))
+                    .and_then(|s| s.strip_suffix(directory.file_extention()).map(|s| s.to_string()))
             ).collect::<Vec<String>>()
     )
 }
@@ -46,7 +53,7 @@ pub struct FileDescriptior {
     }
 }
 
-pub fn correct_path(path: PathBuf, directory: ServerDirectory,  file: Option<FileDescriptior>) -> PathBuf {
+pub fn correct_path(path: PathBuf, directory: &ServerDirectory,  file: Option<FileDescriptior>) -> PathBuf {
     let mut path = path.components().take_while(|x|  *x != Component::Normal("gameHub".as_ref())).collect::<PathBuf>();
     path.push("gameHub");
     path.push("server");

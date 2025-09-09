@@ -19,7 +19,7 @@ pub async fn save(Json(data): Json<InputGameData>) -> Result<Response<SaveRespon
         std::env::current_exe().map_err(|e| 
             Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to get target directory path: {e}"))
         )?, 
-        ServerDirectory::Data,
+        &ServerDirectory::Data,
         Some(FileDescriptior::new_json(data.name()))
     );
 
@@ -83,7 +83,7 @@ pub async fn load(Path(name): Path<String>) -> Result<Response<OutputGameData>, 
         std::env::current_exe().map_err(|e| 
             Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to build directory path: {e}"))
         )?, 
-        ServerDirectory::Data,
+        &ServerDirectory::Data,
         Some(FileDescriptior::new_json(&name))
     );
 
