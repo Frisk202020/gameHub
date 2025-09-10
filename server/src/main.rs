@@ -4,9 +4,11 @@ mod celestopia;
 mod shared_handler;
 mod log;
 
-use std::{env, fs::OpenOptions, net::SocketAddr};
+use std::{env, fs::OpenOptions, net::{IpAddr, SocketAddr}};
 use axum::{routing, Router};
 use chrono::Utc;
+use tokio::task::JoinHandle;
+use tracing::{error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer, Registry};
 use util::*;
 use anyhow::Result;
@@ -35,7 +37,7 @@ async fn main() -> Result<()> {
                 .with_filter(EnvFilter::try_from_default_env().unwrap_or(EnvFilter::new("TRACE")))
         ).init();
 
-    axum::serve(
+    let _: JoinHandle<Result<()>> = tokio::spawn(async move {axum::serve(
         tokio::net::TcpListener::bind("0.0.0.0:10000".parse::<SocketAddr>()?).await?,
         Router::new()
             .route("/get_file/{*path}", routing::get(get_file))
@@ -55,7 +57,33 @@ async fn main() -> Result<()> {
                     .allow_methods(Any)
                     .allow_origin(Any)
             )
-    ).await?;
+    ).await?; Ok(())});  // axum::serve never returns
 
+    println!("Serveur activé !");
+    println!("Vous pouvez désormais vous connecter au server.");
+    println!("Voici la liste des addresses ouvertes à la connexion :");
+    println!();
+
+    let adapters = ipconfig::get_adapters()?;
+    for adapter in adapters {
+        let addresses = adapter.ip_addresses();
+        let ip4 = addresses.iter().filter(|x| x.is_ipv4()).collect::<Vec<&IpAddr>>();
+        println!("{}: {:?}", adapter.description(), ip4);
+    }
+    println!("L'addresse 127.0.0.1 (ou lacalhost) n'est accessible que depuis votre ordinateur. Pour accéder au serveur depuis un autre ordinateur connecté au même réseau WI-FI, utilisez l'addresse associée à 'Wireless LAN'.");
+    println!();
+    println!("/celestopia : accès au jeu 'Conquète de Celestopia'.");
+    println!("/naval : accès au jeu de bataille navale.");
+    println!("/logs : accès aux logs du serveur.");
+    println!();
+    println!("Vous pouvez entrer la commande Ctrl+C pour désactiver le serveur.");
+
+    let shut = tokio::signal::ctrl_c().await;
+    match shut {
+        Ok(()) => info!("Shutting down server."),
+        Err(e) => error!("Error on shutdown: {e}")
+    }
+
+    println!("Serveur désactivé.");
     Ok(())
 }
