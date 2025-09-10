@@ -8,6 +8,11 @@ interface LogResponse {
     content: LogFormat[]
 }
 
+interface LogDisplay {
+    display: boolean,
+    element: HTMLParagraphElement
+}
+
 interface LogFormat {
     timestamp: string,
     level: string,
@@ -17,4 +22,9 @@ interface LogFormat {
 
 interface Fields {
     message: string
+}
+
+interface LogLevel {
+    name: string,
+    color: string
 }

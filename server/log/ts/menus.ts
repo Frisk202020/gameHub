@@ -1,4 +1,63 @@
-import { buildLogEntry, ENTRIES, TITLE } from "./shared.js";
+import { logLevels } from "./level.js";
+import { buildFilterButtons } from "./providers.js";
+import { clearLogEntries, disableFilterBtn, enableFilterBtn, filterLogs, loadLogs } from "./shared.js";
+
+const enabledLevels: Record<string, boolean> = {};
+for (const level of logLevels) {
+    enabledLevels[level.name] = true;
+}
+
+export async function filterAction() {
+    const levelBtns: HTMLElement[] = [];
+    for (const level of logLevels) {
+        const p = document.createElement("div");
+        p.textContent = level.name;
+        p.className = "filter-btn"
+        if (enabledLevels[level.name]) {
+            enableFilterBtn(p, level.color)
+        } else {
+            disableFilterBtn(p);
+        }
+
+        p.addEventListener("click", ()=>{
+            if (enabledLevels[level.name]) {
+                disableFilterBtn(p);
+            } else {
+                enableFilterBtn(p, level.color);
+            }
+            enabledLevels[level.name] = !enabledLevels[level.name];
+        });
+        levelBtns.push(p);
+    }
+    
+    document.body.appendChild(menuTemplate(
+        [
+            {label: "Niveaux de verbosité", btns: levelBtns},
+            {label: "Sources", btns: buildFilterButtons()}
+        ].map((x)=>{
+            const parentBox = document.createElement("div");
+            parentBox.className = "evenly-spaced-column";
+            parentBox.style.width = "100vw";
+            
+            const p = document.createElement("p");
+            p.textContent = x.label;
+            p.className = "centered-p";
+            p.style.fontSize = "30px";
+            parentBox.appendChild(p);
+
+            const box = document.createElement("div");
+            box.style.display = "flex";
+            box.style.overflowX = "scroll";
+            box.style.width = "100vw";
+            box.style.paddingBottom = "50px";
+            x.btns.forEach((x)=>box.appendChild(x));
+            parentBox.appendChild(box);
+
+            return parentBox;
+        }), 
+        ()=>filterLogs(enabledLevels)
+    ));
+}
 
 export async function fileLoadButtonHandler() {
     const elements: HTMLElement[] = [];
@@ -24,9 +83,8 @@ export async function fileLoadButtonHandler() {
             p.addEventListener("dblclick", ()=>{
                 try {
                     fetch(`get_log/${x}`).then((res)=>res.json() as Promise<LogResponse>).then((x)=>{
-                        TITLE.textContent = x.file_name;
-                        ENTRIES.innerHTML = "";
-                        x.content.forEach((x)=>ENTRIES.appendChild(buildLogEntry(x)));
+                        clearLogEntries();
+                        loadLogs(x);
                         tryCloseMenu();
                     });
                 } catch (e) {
@@ -102,11 +160,12 @@ function tryCloseMenu() {
     }
 }
 
-function menuTemplate(elements: HTMLElement[]) {
+function menuTemplate(elements: HTMLElement[], closeAction?: ()=>void) {
     const box = document.createElement("div");
     box.id = "menu";
     box.className = "evenly-spaced-column";
-    box.style.position = "fixed";
+    box.style.overflowY = "scroll";
+    box.style.position = "absolute";
     box.style.height = "100vh";
     box.style.width = "100vw";
     box.style.left = "0px";
@@ -126,6 +185,9 @@ function menuTemplate(elements: HTMLElement[]) {
     close.style.backgroundColor = "#c20000";
     close.addEventListener("click", ()=>{
         if (document.body.contains(box)) {
+            if (closeAction !== undefined) {
+                closeAction();
+            }
             document.body.removeChild(box);
         }
     });

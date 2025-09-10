@@ -4,8 +4,16 @@
         <title>Logs du server</title>
     </head>
     <body>
-        <p id="title" style="font-size: 10vh; width: 100vw; text-align: center; margin: 2.5vh;"></p>
-        <div id="entries" style="height: 60vh; width: 100vw; overflow-y: scroll; background-color: #c1c1c1b1;"></div>
+        <p id="title" style="font-size: 10vh; width: 100vw; text-align: center; margin-top: 2.5vh; margin-bottom: 2.5vh;"></p>
+        <div id="entries" style="
+            height: 60vh; 
+            width: 100vw; 
+            overflow: scroll; 
+            background-color: #c1c1c1b1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-start;"
+        ></div>
         <div id="buttons" style="display: flex; justify-content: space-evenly; align-items: center; margin-top: 5vh;"></div>
     </body>
     <style>
@@ -13,6 +21,20 @@
             margin: 0px;
             padding: 0px;
             background-color: #838383;
+        }
+        .filter-btn {
+            display: grid;
+            text-align: center;
+            align-items: center;
+            font-size: 20px;
+            padding: 10px;
+            margin-left: 50px;
+            margin-right: 50px;
+            border-radius: 20px;
+            border: 5px solid;
+        }
+        .filter-btn:hover {
+            cursor: pointer;
         }
         .centered-p {
             text-align: center;

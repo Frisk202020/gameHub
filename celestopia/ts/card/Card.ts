@@ -3,7 +3,6 @@ import { Popup } from "../event/Popup.js";
 import { initChannel, Sender } from "../util/channel.js";
 import { assets_link, pxToVw, unwrap_or_default, vwToPx } from "../util/functions.js";
 import { KeyboardListener } from "../util/KeyboardListener.js";
-import { Tuple } from "../util/tuple.js";
 import { Money } from "../util/variables.js";
 import { Aquisition } from "./Aquisition.js";
 
