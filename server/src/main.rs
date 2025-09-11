@@ -37,9 +37,8 @@ async fn main() -> Result<()> {
                 .with_filter(EnvFilter::try_from_default_env().unwrap_or(EnvFilter::new("TRACE")))
         ).init();
 
-    let _: JoinHandle<Result<()>> = tokio::spawn(async move {axum::serve(
-        tokio::net::TcpListener::bind("0.0.0.0:10000".parse::<SocketAddr>()?).await?,
-        Router::new()
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:10000".parse::<SocketAddr>()?).await?;
+    let router = Router::new()
             .route("/get_file/{*path}", routing::get(get_file))
             .route("/get-latest-log", routing::get(get_latest_log))
             .route("/get-log-list", routing::get(log_list))
@@ -56,8 +55,8 @@ async fn main() -> Result<()> {
                     .allow_headers(Any)
                     .allow_methods(Any)
                     .allow_origin(Any)
-            )
-    ).await?; Ok(())});  // axum::serve never returns
+            );
+    let _: JoinHandle<Result<()>> = tokio::spawn(async move {axum::serve(listener, router).await?; Ok(())});  // axum::serve never returns
 
     println!("Serveur activé !");
     println!("Vous pouvez désormais vous connecter au server.");

@@ -7,14 +7,13 @@ import { MoneyThief } from "../item/MoneyThief.js";
 import { Pipe } from "../item/Pipe.js";
 import { Seller } from "../item/Seller.js";
 import { TrickItem } from "../item/TrickItem.js";
-import { currentKeyboardEventListener, pig, players, resizables } from "./variables.js";
+import { currentKeyboardEventListener, pig, players } from "./variables.js";
 
 type PlayerId = 1 | 2 |  3 | 4;
 
 export const debugTools = {
     keys: false,
     currentKeyboardEventListener() { console.log(currentKeyboardEventListener); },
-    resizables() { console.log(resizables); },
     diceNumber(id: PlayerId, n: 1 | 2 | 3) { players[id - 1].diceNumber = n; },
     showKeys() { this.keys = true },
     throwDice(id: PlayerId, value: number) { 

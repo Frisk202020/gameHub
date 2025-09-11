@@ -7,10 +7,8 @@ import { Player } from "./Player.js";
 import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
 import { assets_link, updateCounterValue } from "./util/functions.js";
-import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players, resizables } from "./util/variables.js";
+import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players } from "./util/variables.js";
 import { initPlayersLocal } from "./event/PlayerCreate.js";
-import { Wonder } from "./card/Wonder.js";
-import { Aquisition } from "./card/Aquisition.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -28,12 +26,6 @@ document.addEventListener("keydown", (event) => {
                 }
                 break;
         }
-    }
-});
-window.addEventListener("resize", () => {
-    const doc = document.documentElement;
-    for (const obj of resizables) {
-        obj.move(doc.clientWidth, doc.clientHeight);
     }
 });
 (window as any).debugTools = debugTools

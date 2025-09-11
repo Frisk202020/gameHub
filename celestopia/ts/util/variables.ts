@@ -1,7 +1,6 @@
 import { type BoardId, buildBoard } from "../board/Board.js";
 import { Piggy } from "../piggy.js";
 import { Player } from "../Player.js";
-import type { DynamicPlacement } from "./DynamicPlacement.js";
 import { appear } from "./functions.js";
 import { KeyboardListener } from "./KeyboardListener.js";
 
@@ -14,7 +13,6 @@ export function clearGlobalKeyboardListener() {
 }
 
 export const players: Player[] = Array();
-export const resizables: DynamicPlacement[] = Array();
 export let board = buildBoard(0);
 export let boardId = 0;
 export const pig = new Piggy();
