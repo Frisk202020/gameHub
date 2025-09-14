@@ -41,26 +41,21 @@ async fn main() -> Result<()> {
     let router = Router::new()
             .route("/logs", routing::get(Redirect::permanent("/logs/")))
             .nest_service("/logs/", service("log"))
-            .nest_service("/logs/assets", service("log/assets"))
             .route("/logs/get-latest-log", routing::get(get_latest_log))
             .route("/logs/get-log-list", routing::get(log_list))
             .route("/logs/get_log/{*name}", routing::get(get_log_handler))
 
             .route("/naval", routing::get(Redirect::permanent("/naval/")))
             .nest_service("/naval/", service("../naval"))
-            .nest_service("/naval/assets", service("../naval/assets"))
 
             .route("/celestopia", routing::get(Redirect::permanent("/celestopia/")))
             .nest_service("/celestopia/", service("../celestopia"))
-            .nest_service("/celestopia/assets", service("../celestopia/assets"))
             .route("/celestopia/save", routing::post(save))
             .route("/celestopia/load/{name}", routing::get(load))
             .route("/celestopia/database", routing::get(list))
 
             .route("/lost-in-the-void", routing::get(Redirect::permanent("/lost-in-the-void/")))
             .nest_service("/lost-in-the-void/", service("../lost-in-the-void"))  
-            .nest_service("/lost-in-the-void/assets", service("../lost-in-the-void/assets"))
-            .nest_service("/test", service("../test"))
             .layer(
                 CorsLayer::new()
                     .allow_headers(Any)

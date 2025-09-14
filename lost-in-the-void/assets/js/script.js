@@ -14,7 +14,7 @@ let clickListeners = Array();
 let state = "OTHER";
 let pointer = 0;
 let indicator = false; // indicates if action has been made before incomming death 
-let timeBetweenMessages = 0; // in ms
+let timeBetweenMessages = 3000; // in ms
 
 export async function readInstruction(){
     if (pointer >= data.length){
