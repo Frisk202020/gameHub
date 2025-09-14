@@ -1,0 +1,15 @@
+Here's a quick tutorial for using the terminal. Notice that it will rarely be useful, as all of the work can be done with keyboard/mouse inputs.
+
+1) "connect IP" : connect to a server identified by its IP
+    example : "connect 000.000.000.000" will connect your SOUL to the server with IP 000.000.000.000 (it is our current server)
+2) "web LINK" : connect to a webpage with link LINK
+    example : "web www.google.com" connects to Google
+3) "cd DIR" : move to the directory DIR
+    example : "cd Frisk" moves you to Frisk directory if you're located in Doc directory
+    tip : you can chain directories likewise => "cd Doc/Frisk" moves you from Home directory to Frisk directory
+4) "cat FILE" : open .txt and .md files 
+    example : "cat Terminal.txt" opens this file if you're in Frisk directory
+    tip : like "cd" command, you can open this file from Home directory like this : "cat Doc/Frisk/Terminal.txt"
+5) "open FILE" : same as "cat" but for .pdf and image/video files
+6) "fullscreen" : enable/disable fullscreen
+6) To execute a file, just prompt the name without any command (chain input works as well)

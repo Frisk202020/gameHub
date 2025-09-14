@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<head>
+    <title>Test #2</title>
+    <link rel="icon" href="../img/broken.png">
+    <link rel="stylesheet" href="../css/white.css">
+</head>
+<body>
+    <img src="../img/soul.png" id="SOUL">
+    <div id="terminal" class="terminal">
+        <div id="title" class="terminal">
+            <p>TERMINAL</p>
+        </div>
+        <div id="commands">
+
+        </div>
+    </div>
+    <div class="button" id="web"><img src="../img/webLogo/dark.png" id="webImg"><p id="webText">BROWSER</p></div>
+    <div class="button" id="connect"><img src="../img/connectLogo/dark.png" id="connectImg"><p id="connectText">CONNECT</p></div>
+    <style>
+        @keyframes disappear {
+            to{opacity: 0;}
+        }
+
+        @font-face {
+            font-family: DynaPuff;
+            src: url(../fonts/modes.ttf);
+        }
+        :root {
+            --bg-color: rgb(0, 0, 0);
+            --text-color: aliceblue;
+            --terminal-color: rgb(6, 147, 6);
+            --directory-color: rgb(6,147,6);
+            --file-color: rgb(12, 27, 235);
+            --select-color: rgb(238, 186, 30);
+        }
+        *{
+            font-family: DynaPuff, arial;
+            scrollbar-width: none;
+        }
+        body{
+            background-color: var(--bg-color);
+            font-size: 30px;
+        }
+        .button{
+            border: solid 5px var(--directory-color);
+            height: 5vh;
+            float: left;
+            left: 2vw;
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .button img{
+            height: 4vh;
+        }
+        .button p{
+            font-size: large;
+            color: var(--directory-color);
+            margin: 10px;
+            margin-left: 2px;
+        }
+        #connect{
+            bottom: 5vh;
+        }
+        #web{
+            margin-bottom: 2vh;
+            bottom: 12vh;
+        }
+        #terminal{
+            height: 80vh;
+            width: 50vw;
+            float: right;
+            margin-top: 1vh;
+            margin-right: 1vw;
+            color: var(--terminal-color);
+        }
+        .terminal{
+            border: 3px solid var(--terminal-color);
+        }   
+        .activeTerminal{
+            border: 3px solid rgb(232, 2, 33);
+        }
+        #terminal #title{
+            position: relative;
+            height: 10vh;
+            width: 50vw;
+        }
+        #title p{
+            font-size: 30px;
+            width: 50vw;
+            position: relative;
+            bottom: 0.5em;
+            margin-left: 1vw;
+        }
+        #terminal #commands{
+            font-size: 20px;
+            width: 50vw;
+            height:69vh;
+            position: relative;
+            font-size: 20px;
+        }
+        .command{
+            margin-left: 2vw;
+        }
+        .text{
+            margin-left: 2vw;
+            color: var(--text-color);
+            white-space: pre-wrap;
+        }
+        .error{
+            margin-left: 2vw;
+            color: crimson;
+        }
+        .file{
+            color: var(--file-color)
+        }
+        .directory{
+            color: var(--directory-color)
+        }
+        .selected{
+            color: var(--select-color)
+        }
+        #SOUL{
+            float: left;
+            position: absolute;
+            width: 50px;
+            top: 0px;
+            left: 0px;
+            z-index: 11; /* z-index of white screen is 10 */
+        }
+        #death{
+            float: left;
+            position: absolute;
+            width: 100vw;
+            top: 0px;
+            left: 0px;
+        }
+
+        .disappear{
+            animation: disappear 4s forwards;
+        }   
+    </style>
+    <script src="../js/test2/main.js" type="module"></script>
+</body>

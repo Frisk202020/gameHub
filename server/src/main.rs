@@ -1,20 +1,20 @@
 mod util;
 mod response;
 mod celestopia;
-mod shared_handler;
 mod log;
 
 use std::{env, fs::OpenOptions, net::{IpAddr, SocketAddr}};
-use axum::{routing, Router};
+use axum::{response::Redirect, routing, Router};
 use chrono::Utc;
 use tokio::task::JoinHandle;
+use tower::ServiceBuilder;
 use tracing::{error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer, Registry};
 use util::*;
 use anyhow::Result;
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::{cors::{Any, CorsLayer}, services::ServeDir};
 
-use crate::{celestopia::{list, load, save}, log::{get_latest_log, get_log_handler, log_list}, shared_handler::{get_file, service}};
+use crate::{celestopia::{list, load, save}, log::{get_latest_log, get_log_handler, log_list}};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -39,17 +39,28 @@ async fn main() -> Result<()> {
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:10000".parse::<SocketAddr>()?).await?;
     let router = Router::new()
-            .route("/get_file/{*path}", routing::get(get_file))
-            .route("/get-latest-log", routing::get(get_latest_log))
-            .route("/get-log-list", routing::get(log_list))
-            .route("/get_log/{*name}", routing::get(get_log_handler))
-            .nest_service("/naval", service("../naval/code"))
-            .nest_service("/celestopia", service("../celestopia"))
-            .nest_service("/logs", service("log"))  
-            .nest_service("/test", service("../test"))
+            .route("/logs", routing::get(Redirect::permanent("/logs/")))
+            .nest_service("/logs/", service("log"))
+            .nest_service("/logs/assets", service("log/assets"))
+            .route("/logs/get-latest-log", routing::get(get_latest_log))
+            .route("/logs/get-log-list", routing::get(log_list))
+            .route("/logs/get_log/{*name}", routing::get(get_log_handler))
+
+            .route("/naval", routing::get(Redirect::permanent("/naval/")))
+            .nest_service("/naval/", service("../naval"))
+            .nest_service("/naval/assets", service("../naval/assets"))
+
+            .route("/celestopia", routing::get(Redirect::permanent("/celestopia/")))
+            .nest_service("/celestopia/", service("../celestopia"))
+            .nest_service("/celestopia/assets", service("../celestopia/assets"))
             .route("/celestopia/save", routing::post(save))
             .route("/celestopia/load/{name}", routing::get(load))
             .route("/celestopia/database", routing::get(list))
+
+            .route("/lost-in-the-void", routing::get(Redirect::permanent("/lost-in-the-void/")))
+            .nest_service("/lost-in-the-void/", service("../lost-in-the-void"))  
+            .nest_service("/lost-in-the-void/assets", service("../lost-in-the-void/assets"))
+            .nest_service("/test", service("../test"))
             .layer(
                 CorsLayer::new()
                     .allow_headers(Any)
@@ -85,4 +96,8 @@ async fn main() -> Result<()> {
 
     println!("Serveur désactivé.");
     Ok(())
+}
+
+fn service(path: &str) -> ServeDir {
+    ServiceBuilder::new().service(ServeDir::new(path))
 }

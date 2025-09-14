@@ -13,7 +13,7 @@ export function isCharAlphanumeric(c: string) {
     }
 }
 
-export function assets_link(x: string) { return `get_file/celestopia/assets/${x}`; }
+export function assets_link(x: string) { return `assets/${x}`; }
 
 export function updateCounterValue(elementId: string, value: number) {
     const element = document.getElementById(elementId);
@@ -54,7 +54,7 @@ export function appendCross(idsToRemove: string[], parent?: HTMLDivElement, tx?:
     const cross = document.createElement("img");
     cross.className = "pointerHover";
     cross.id = "cross";
-    cross.src = "get_file/celestopia/assets/icons/cross.png";
+    cross.src = assets_link("icons/cross.png");
     cross.style.width = "10vw";
     cross.style.position = "fixed";
     cross.style.right = "0px";

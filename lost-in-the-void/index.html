@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<head>
+    <title>???</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/white.css">
+    <link rel="icon" href="assets/img/broken.png" type="image/png">
+</head>
+<body>
+    <div class="viewport">
+        <button class="start" id="start">Wake up</button>
+    </div>
+    <div class="viewport hide" id="mainframe">
+        <div class="messageBox" id="messageBox">
+            <div class="info" id="info">
+                <p id="person">???</p>
+                <img src="assets/img/avatar.png">
+            </div>
+            <div class="messageSlot" id="messageSlot">
+            </div>
+        </div>
+    </div>
+    <div class="viewport">
+        <div id="responseBox"> 
+        </div>
+    </div>
+    <style>
+        @keyframes introAppear {
+            0%{opacity: 0;}
+            90%{opacity: 0.5;}
+            100%{opacity: 1;}
+        }
+        .mainframe{
+            animation: introAppear 3s forwards;
+        }
+    </style>
+    <script src="assets/js/main.js" type="module" defer></script>
+</body>

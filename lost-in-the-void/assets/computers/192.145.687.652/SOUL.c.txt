@@ -1,0 +1,24 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <EXlt.h>
+
+typedef struct {
+    char* name;
+    byte* data;
+}SOUL;
+
+int main(){
+    char* IP = (char*)malloc(100*sizeof(char));
+    fgets("SOUL location ?", IP);
+    Memory m = fetch_data(IP);
+    SOUL s = import_SOUL(m);
+
+    uint64_t saveSize = pow(10, 15); //in bytes
+    Memory block = findFreeBlock(saveSize);
+    saveSOUL(m, block);
+
+    free(IP);
+    free(m);
+    free(block);
+    return 0;
+}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<head>
+    <title>Thanks For Playing !</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="../img/broken.png" type="image/png">
+</head>
+<body>
+    <img src="../img/heart.png" class="unactive" id="heart"> 
+    <style>
+        @font-face {
+            font-family: DynaPuff;
+            src: url(../fonts/DynaPuff/DynaPuff-Regular.ttf);
+        }
+        @keyframes wait {
+            25%{rotate: -45deg;}
+            75%{rotate: 45deg;}
+        }
+        @keyframes appear {
+            to{opacity: 1;}
+        }
+
+        *{
+            font-family: DynaPuff, arial;
+        }
+        body{
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        img{
+            float: right;
+            position: absolute;
+            bottom: 5vh;
+            right: 10vw;
+            width: 0px;
+        }
+        img:hover{
+            cursor: pointer;
+        }
+        .wait{
+            animation: wait 2s infinite;
+        }
+        .text{
+            animation: appear 3s forwards;
+        }
+        pre{
+            text-align: center;
+        }
+    </style>
+    <script type="module">
+        import { vwToPx, wait, absoluteAssetsPath, fullScreenHandler } from "../js/utilities.js"
+
+        const IMG = document.getElementById("heart");
+        let w = 0;
+        let right = vwToPx(0.1);
+        let initialized = false;
+        let frame;
+        let frameIndex;
+        let input = true;
+        appear();
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                fullScreenHandler();
+            }
+            if (input){
+                mainEvent();
+            }
+        });
+
+        IMG.addEventListener("click", () => {
+            mainEvent();
+        })
+
+        function mainEvent(){
+            if (!initialized){
+                initialized = true;
+                new Audio(absoluteAssetsPath("sound/credits.mp3")).play()
+                frame = document.createElement("iframe");
+                frame.src = absoluteAssetsPath("journal/11.pdf");
+                frame.style.width = "50vw";
+                frame.style.height = "80vh";
+                document.body.appendChild(frame);
+                frameIndex = 11;
+            }
+            else{
+                input = false;
+                if (frameIndex < 14){
+                    new Audio(absoluteAssetsPath("sound/skip.wav")).play();
+                    frameIndex++;
+                    frame.src = absoluteAssetsPath("journal/" + frameIndex + ".pdf");
+                    frame.onload = ()=>input = true;
+                }
+                else{
+                    new Audio(absoluteAssetsPath("sound/skip.wav")).play();
+                    document.querySelectorAll("body > *:not(style)").forEach(el => el.remove());
+
+                    document.body.style.overflowY = "scroll";
+                    const box = document.createElement("div");
+                    box.style.display = "flex";
+                    box.style.flexDirection = "column";
+                    box.style.alignItems = "center";
+                    [
+                        "Follow the end of this story in the roleplay Break The Metaverse !",
+                        "Thanks For Playing !",
+                        "Lost in the Void -- by Clément Heme",
+                        "Inspirations : Undertale, Undertale Yellow, Gravity Falls, Hacknet",
+                    ].forEach((x)=>{
+                        let p = document.createElement("p");
+                        p.textContent = x;
+                        p.style.opacity = 0;
+                        p.style.fontSize = "50px";
+                        p.style.color = "white";
+                        box.appendChild(p);
+                        p.style.textAlign = "center";
+                        p.className = "text";
+                    });
+                    document.body.appendChild(box);
+                }
+            }
+        }
+
+        async function appear(){
+            if (IMG.className === "unactive"){
+                IMG.className = "active"
+                while (w < 70 && IMG.className === "active"){
+                    w++;
+                    IMG.style.width = w + "px";
+                    right -= 0.5;
+                    IMG.style.right = right + "px";
+                    await wait(1);
+                }
+                if (IMG.className === "active"){
+                    IMG.className = "wait";
+                }
+            }
+        }
+        function disappear(){
+            if (IMG.className !== "unactive"){
+                IMG.className = "unactive";
+                new Audio(absoluteAssetsPath("sound/skip.wav")).play()
+                w = 0;
+                right = vwToPx(0.1);
+                IMG.style.width = "0px";
+                IMG.style.right = "10vw";
+            }
+        }
+    </script>
+</body>

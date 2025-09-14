@@ -18,6 +18,16 @@ Currently, games are playable only on a single computer, but future versions sho
 
 The easiest way is to download the *release* package. You can also download the source code and compile everything using the tools listed before.
 
+## About game's development
+
+These games were developped as I was learning (on my own) web development. As such, the creation process and quality of each entry varies. Here's a timeline of each game's development process :
+
+- lost-in-the-void : finished in december 2024 (first real js project), took ~1 month
+- naval : february 2025, took ~1 week
+- celestopia : september 2025 (discovered typescript, largest project so far), took ~2 months and updates to make it online are still planned
+
+The server was built with celestopia, then other projects were appended to it. Server's Log API was developped in a few days before the first release.
+
 ## How to contribute
 
 If you want to contribute, please make a seperate branch and create an issue explaining the purpose of your contribution. In any case, any merge request to a branch owned by myself will be reveiwed first.

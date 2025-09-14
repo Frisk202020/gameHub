@@ -1,0 +1,9 @@
+325.478.222.000$d
+>Doc$d
+>>key.txt
+>Bin$d
+>Sys$d
+>>data.SOUL$k
+>>dark.sys$c:dark
+>>light.sys$c:light
+>>frsk3.SOUL$*

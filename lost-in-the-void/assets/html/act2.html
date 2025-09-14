@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<head>
+    <title>???</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/white.css">
+    <link rel="icon" href="../img/broken.png" type="image/png">
+</head>
+<body>
+    <div class="viewport">
+        <button class="start" id="start">Wake up</button>
+    </div>
+    <div class="viewport hide" id="mainframe">
+        <div class="messageBox" id="messageBox">
+            <div class="info" id="info">
+                <p id="person">???</p>
+                <img src="../img/avatar.png">
+            </div>
+            <div class="messageSlot" id="messageSlot">
+                <div class="message" id="other">
+                    <p>Frisk, are you there ?</p>
+                </div>
+                <div class="message" id="other">
+                    <p>I know you're, you need to wake up !</p>
+                </div>
+                <div class="message" id="other">
+                    <p>I guess it's sleep, or rather inconcsiousness ?</p>
+                </div>
+                <div class="message" id="other">
+                    <p>Or maybe the SOUL shattered after changing the IP ?</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="viewport">
+        <div id="responseBox"> 
+        </div>
+    </div>
+    <style>
+        @keyframes introAppear {
+            0%{opacity: 0;}
+            100%{opacity: 1;}
+        }
+        .mainframe{
+            animation: introAppear 2s forwards;
+        }
+    </style>
+    <script src="../js/main.js" type="module" defer></script>
+</body>

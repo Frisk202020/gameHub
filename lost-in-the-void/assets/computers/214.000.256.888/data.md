@@ -1,0 +1,14 @@
+214.000.256.888$d
+>Jeff$d:XHARA
+>ExltStorageSpace$d
+>>soul$d
+>>>YOU$d
+>>>>WILL$d
+>>>>>FIND$d
+>>>>>>THE$d
+>>>>>>>LAST$d
+>>>>>>>>FRAGMENT$d
+>>>>>>>>>FRISK$d
+>>>>>>>>>>frsk4.SOUL$*
+>Projects$d:XHARA
+>data.SOUL$k

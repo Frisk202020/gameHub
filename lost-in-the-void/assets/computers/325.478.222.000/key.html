@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<head>
+    <title>Test#2</title>
+    <link rel="icon" href="../../assets/img/broken.png" type="image/png">
+</head>
+<body>
+    <img id="SOUL" src="../../../../assets/img/soul.png">
+    <div id="viewport"></div>
+    <div id="cursor"></div>
+    <style>
+        :root{
+            --cursorX: 0px;
+            --cursorY: 0px;
+            --soulX: 0px;
+            --soulY: 0px;
+            --cursorWidth: 0px;
+            --cursorHeight: 0px;
+            --soulWidth: 0px;
+            --soulHeight: 0px;
+        }
+        body{
+            background-color: rgba(29, 27, 27, 0.849);
+            overflow: hidden;
+            cursor: none;
+        }
+        #SOUL{
+            position: absolute;
+            left: var(--soulX);
+            top: var(--soulY);
+            width: var(--soulWidth);
+            height: var(--soulHeight);
+            z-index: 2;
+        }
+        #canvas{
+            position: absolute;
+            top: 5vh;
+            z-index: 0;
+            box-shadow: 10px 10px 3px ;
+        }
+        #viewport{
+            display: flex;
+            justify-content: center;
+        }
+        #cursor{
+            position: absolute;
+            float: left;
+            border-radius: 100%;
+            width: var(--cursorWidth);
+            height: var(--cursorHeight);
+            left: var(--cursorX);
+            top: var(--cursorY);
+            z-index: 1;
+            opacity: 0;
+
+            background: hsla(305, 70%, 76%, 0.2);
+            box-shadow: 0px 0px 0px 10px hsla(305, 70%, 76%, 0.5);
+        }
+    </style>
+    <script> 
+        initialLoading();
+        let w = window.innerWidth;
+        let h = window.innerHeight;
+        let imSize;
+        if (w < h){
+            imSize = w/1.33;
+        }
+        else{
+            imSize = h/1.33;
+        }
+        let back;
+        let front;
+        let canvas;
+        let authorizeInput = false;
+        let cursorInitialized = false;
+
+        let mouseX = 0;
+        let mouseY = 0;
+        let cursor = document.getElementById("cursor");
+        let cWidth = imSize / 10;
+        let cHeight = imSize / 10;
+
+        let sunCenterX = Math.round(0.265 * imSize);
+        let sunCenterY = Math.round(0.420 * imSize);
+        let rSun = Math.round(0.1 * imSize);
+
+        document.body.addEventListener('mousemove', function(event) {
+            if (!authorizeInput){
+                return;
+            }
+            if (!cursorInitialized){
+                initialCursor();
+            }
+            moveCursor();
+            canvas.getContext("2d").drawImage(front, 0, 0, 1000, 1000, 0, 0, imSize, imSize);
+            drawCircle();
+        });
+
+        document.body.addEventListener('click', function(event){
+            if (detectSun()){
+                window.location.href = "nikolas.pdf";
+            }
+        })
+
+        function detectSun(){
+            let boundaries = canvas.getBoundingClientRect();
+            let X = Math.round(mouseX - boundaries.left);
+            let Y = Math.round(mouseY - boundaries.top);
+            
+            return (X > sunCenterX - rSun && X < sunCenterX  + rSun && Y > sunCenterY - rSun && Y < sunCenterY + rSun);
+        }
+
+        function drawCircle(){
+            let boundaries = canvas.getBoundingClientRect();
+            let centerX = mouseX - boundaries.left;
+            let centerY = mouseY - boundaries.top;
+            let r = cWidth;
+            for (let y = -r; y < r; y++){
+                let dx = Math.round(Math.sqrt(Math.pow(r, 2) - Math.pow(y, 2)));
+                canvas.getContext("2d").drawImage(back, centerX - dx/2, centerY + y/2, dx, 1, centerX - dx/2, centerY + y/2, dx, 1);
+            }
+        }
+
+        function moveCursor(){
+            const rect = document.getElementById("canvas").getBoundingClientRect();
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+            let x = mouseX - cWidth/2;
+            let y = mouseY - cHeight/2;
+            let sx = mouseX - cWidth/4;
+            let sy = mouseY - cWidth/4;
+            document.documentElement.style.setProperty('--cursorX', x + "px");
+            document.documentElement.style.setProperty('--cursorY', y + "px");
+            document.documentElement.style.setProperty('--soulX', sx + "px");
+            document.documentElement.style.setProperty('--soulY', sy + "px");
+        }
+
+        async function initialLoading(){
+            try {
+                front = await loadImage("../../../../assets/img/front.png");
+                backIm = await loadImage("../../../../assets/img/back.jpg");
+
+                canvas = document.createElement("canvas");
+                back = document.createElement("canvas");  // This canvas serves to have back image in good dimensions. 
+                canvas.id = "canvas";
+                canvas.width = imSize;
+                canvas.height = imSize;
+                back.width = imSize;
+                back.height = imSize;
+                canvas.getContext("2d").drawImage(front, 0, 0, 1000, 1000, 0, 0, imSize, imSize);
+                back.getContext("2d").drawImage(backIm, 0, 0, 1000, 1000, 0, 0, imSize, imSize);
+                document.getElementById("viewport").appendChild(canvas);
+                authorizeInput = true;
+            } catch (error) {
+                console.error("Failed to load image", error);
+            }
+        }
+
+        function initialCursor(){
+            document.documentElement.style.setProperty('--cursorWidth', cWidth + "px");
+            document.documentElement.style.setProperty('--cursorHeight', cHeight + "px");
+            document.documentElement.style.setProperty('--soulWidth', cWidth/2 + "px");
+            document.documentElement.style.setProperty('--soulHeight', cHeight/2 + "px");
+            document.getElementById("cursor").style.opacity = 1;
+
+            cursorInitialized = true;
+        }
+
+        function loadImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.src = src;
+                img.onload = () => resolve(img);
+                img.onerror = err => reject(err);
+            });
+        }
+    </script>
+</body>

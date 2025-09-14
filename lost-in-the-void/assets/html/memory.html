@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<head>
+    <title>Reminescence</title>
+    <link rel="icon" href="../img/broken.png">
+    <link rel="stylesheet" href="../css/white.css">
+</head>
+<body>
+    <p id="memory"></p>
+    <img src="../img/heart.png" class="unactive" id="heart"> 
+    <style>
+        @keyframes wait {
+            25%{rotate: -45deg;}
+            75%{rotate: 45deg;}
+        }
+        @keyframes whiteScreen {
+            to{opacity: 1;}
+        }
+        @font-face {
+            font-family: paper;
+            src: url(../../assets/fonts/heygorgeous.ttf);
+        }
+        body{
+            background-color: black;
+            font-family: paper;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        p{
+            width: 50vw;
+            height: 50vh;
+            font-size: 20px;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        #memory{
+            width: 80vw;
+            font-size: 30px;
+        }
+        img{
+            float: right;
+            position: absolute;
+            bottom: 5vh;
+            right: 10vw;
+            width: 0px;
+        }
+        img:hover{
+            cursor: pointer;
+        }
+        .wait{
+            animation: wait 2s infinite;
+        }
+        #end{
+            animation: whiteScreen 10s forwards;
+        }
+    </style>
+    <script type="module">
+        import { readFile, wait, vwToPx, playAudioUntilEnd, fade, absoluteAssetsPath, fullScreenHandler } from "../js/utilities.js"
+
+        const TEXT_AUDIO = new Audio(absoluteAssetsPath("sound/text.wav"));
+        TEXT_AUDIO.volume = 0.5;
+
+        const TEXT = document.getElementById("memory");
+        const IMG = document.getElementById("heart");
+        let w = 0;
+        let right = vwToPx(0.1);
+        let bgList = Array();
+        bgList.push(new Audio(absoluteAssetsPath("sound/memory/mem1.mp3")));
+        bgList.push(new Audio(absoluteAssetsPath("sound/memory/mem2.mp3")));
+        bgList.push(new Audio(absoluteAssetsPath("sound/memory/mem3.mp3")));
+        bgList.push(new Audio(absoluteAssetsPath("sound/memory/mem4.mp3")));
+        let bgPlay = false;
+        let bgPointer = 0;
+
+        for (let bg of bgList){
+            bg.volume = 0.5;
+        }
+        bgList[0].addEventListener("timeupdate", () => {
+            const sLoop = 16.3;
+            const eLoop = 28.35;
+            if (bgList[0].currentTime >= eLoop){
+                bgList[0].currentTime = sLoop;
+            }
+        })
+
+        bgList[1].addEventListener("timeupdate", () => {
+            const sLoop = 16.3;
+            const eLoop = 28.35;
+            if (bgList[1].currentTime >= eLoop){
+                bgList[1].currentTime = sLoop;
+            }
+        })
+
+        bgList[2].addEventListener("timeupdate", () => {
+            const sLoop = 27.96;
+            const eLoop = 75.94;
+            if (bgList[2].currentTime >= eLoop){
+                bgList[2].currentTime = sLoop;
+            }
+        })
+
+        bgList[3].addEventListener("timeupdate", () => {
+            const sLoop = 0;
+            const eLoop = 26.6;
+            if (bgList[3].currentTime >= eLoop){
+                bgList[3].currentTime = sLoop;
+            }
+        })
+
+        async function write(n, sound=true){
+            TEXT.textContent = "";
+
+            let text = data[n];
+            if (text[0] === "$"){
+                text = text.split("$")[1];
+                await wait(Number(text) / 2);
+                let t = bgList[bgPointer].currentTime;
+                if (text === "3000"){
+                    bgPointer++;
+                    if (bgPointer === 3){
+                        await fade(bgList[bgPointer - 1], 5000);
+                        bgList[bgPointer - 1].pause();
+                        bgList[bgPointer].play()
+                    }
+                    else{
+                        bgList[bgPointer].currentTime = t;
+                        bgList[bgPointer - 1].pause();
+                        bgList[bgPointer].play();
+                    }
+                }
+                await wait(Number(text) / 2);
+                pointer++;
+                await write(pointer);
+            }
+            else if (text === "*END*"){
+                takeInputs = false;
+                let end = document.createElement("div");
+                end.className = "activeWhiteScreen";
+                end.style.zIndex = 10;
+                end.style.opacity = 0;
+                end.id = "end";
+                end.style.width = "100vw";
+                end.style.height = "100vh";
+                document.body.prepend(end);
+                fade(bgList[3], 5000);
+                playAudioUntilEnd(new Audio(absoluteAssetsPath("sound/exit.wav"))).then(function(){
+                    window.location.href = absoluteAssetsPath("html/act3.html");
+                })
+            }
+            else{
+                for (let c of text){
+                    TEXT.textContent += c;
+                    if (sound){
+                        TEXT_AUDIO.pause();
+                        TEXT_AUDIO.currentTime = 0;
+                        TEXT_AUDIO.playbackRate = 0.2 + 2 * Math.random();
+                        TEXT_AUDIO.play();
+                    }
+                    await wait(50);
+                }
+            }
+        }
+
+        let writing = true;
+        let takeInputs = true;
+        let pointer = 0;
+
+        let data = await readFile(absoluteAssetsPath("script/memories.md"));
+        write(0, false).then(() => {
+            writing = false;
+            appear();
+        });
+
+        function inputResponse(){
+            if (takeInputs){
+                if (!bgPlay){
+                    bgList[0].play();
+                    bgPlay = true;
+                }
+                disappear();
+                if (!writing){
+                    writing = true;
+                    pointer++;
+                    write(pointer).then(() => {
+                        writing = false;
+                        if (takeInputs){
+                            appear();
+                        }   
+                    });
+                }
+            }
+        }
+
+        IMG.addEventListener("click", () => {
+            inputResponse();
+        })
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                fullScreenHandler();
+            }
+            inputResponse();
+        })
+
+        async function appear(){
+            if (IMG.className === "unactive"){
+                IMG.className = "active"
+                while (w < 70 && IMG.className === "active"){
+                    w++;
+                    IMG.style.width = w + "px";
+                    right -= 0.5;
+                    IMG.style.right = right + "px";
+                    await wait(1);
+                }
+                if (IMG.className === "active"){
+                    IMG.className = "wait";
+                }
+            }
+        }
+        function disappear(){
+            if (IMG.className !== "unactive"){
+                IMG.className = "unactive";
+                new Audio(absoluteAssetsPath("sound/skip.wav")).play();
+                w = 0;
+                right = vwToPx(0.1);
+                IMG.style.width = "0px";
+                IMG.style.right = "10vw";
+            }
+        }
+    </script>
+</body>

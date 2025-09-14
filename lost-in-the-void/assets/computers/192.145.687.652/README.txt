@@ -1,0 +1,1 @@
+Here's some fragments I found, you can execute these to recover the data it contains. I don't know how many of these we need to find, but you should know when your SOUL is fulfilled.

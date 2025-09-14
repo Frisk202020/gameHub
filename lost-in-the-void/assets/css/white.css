@@ -1,0 +1,16 @@
+/* shared with all pages (white screen effect) */ 
+@keyframes appear {
+    to{opacity: 1;}
+}
+
+.activeWhiteScreen{
+    animation: appear 6s forwards;
+}
+#end{
+    position: absolute;
+    left: 0;
+    top: 0;
+    float: left;
+    opacity: 0;
+    background-color: white;
+}

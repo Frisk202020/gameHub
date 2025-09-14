@@ -1,0 +1,17 @@
+210.254.585.887$d
+>Doc$d
+>>private$d:ihatenikolas
+>>>server.md
+>>password.jpg
+>>suspicions.txt
+>Log$d
+>>sl1.log
+>>000000000000.log
+>>985456212222.log
+>Bin$d
+>>fragment_prototype.SOUL$k
+>>CCCleaner.exe$k
+>Sys$d
+>>data.SOUL$k
+>>dark.sys$c:dark
+>>hell.sys$c:hell

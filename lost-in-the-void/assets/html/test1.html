@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<head>
+    <title>Test #1</title>
+    <link rel="icon" href="../img/broken.png">
+    <link rel="stylesheet" href="../css/white.css">
+</head>
+<body>
+    <div id="end" class="unactiveWhiteScreen"></div>
+    <div id="player">
+        <img src="../img/arrow.png" id="arrow">
+        <img src="../img/soul.png" id="soul">
+    </div>
+    <style>
+        @keyframes disappear {
+            to{opacity: 0;}
+        }
+        body{
+            overflow-y: hidden;
+        }
+        #player{
+            width: 20vh;
+            position: absolute;
+            top: 26vh;
+            display: flex;
+            flex-direction: column;
+        }
+        #soul{
+            transform: scale(0.7, 0.7);
+        }
+        .disappear{
+            animation: disappear 6s forwards;
+        }
+    </style>
+    <script src="../js/test1.js" type="module"></script>
+</body>
