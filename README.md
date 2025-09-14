@@ -11,8 +11,9 @@ Currently, games are playable only on a single computer, but future versions sho
 
 ## Available games
 
-- naval/ is an online battleship game.
-- celestopia/ is a board game inspired by the game series _Mario Party_ and the board game _Pay Day_.
+- **Lost in the Void**, a solo narrative game inspired by Undertale's lore.
+- A **Battleship** game.
+- **Celestopia Conquest** is a board game inspired by the game series _Mario Party_ and the board game _Pay Day_.
 
 ## How to play
 
