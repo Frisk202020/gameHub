@@ -18,7 +18,6 @@ export class DuelEvent extends BoardEvent {
             const b = BoardEvent.generateButton(
                     p.name,
                     p.color.base,
-                    true,
                     ()=> {
                         this.#selectWinner = p;
                         if (this.#selectButton === undefined) {

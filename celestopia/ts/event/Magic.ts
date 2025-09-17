@@ -20,7 +20,7 @@ export class Magic extends BoardEvent {
         this.box.appendChild(box);
 
         for (const x of [new Tuple<string, Money>("Pièces", "coin"), new Tuple<string, Money>("Rubans", "ribbon"), new Tuple<string, Money>("Etoiles", "star")]) {
-            const button = BoardEvent.generateButton(x.first, "#ffd700", true, ()=>{ document.body.removeChild(this.menu); this.#tx.send(x.second)}, "#000000" );
+            const button = BoardEvent.generateButton(x.first, "#ffd700", ()=>{ document.body.removeChild(this.menu); this.#tx.send(x.second)}, "#000000" );
             button.style.margin = "5vw";
             box.appendChild(button);
         }

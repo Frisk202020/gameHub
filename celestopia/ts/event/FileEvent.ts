@@ -2,11 +2,12 @@ import { BoardEvent } from "./BoardEvent.js";
 import { Player, type PlayerData, type PlayerId } from "../Player.js"
 import { pig, players } from "../util/variables.js";
 import { assets_link } from "../util/functions.js";
+import { initChannel, Sender } from "../util/channel.js";
 
 export class FileEvent extends BoardEvent {
     constructor() {
         const buttons = [{0: "Sauvegarder",1: ()=>new SaveEvent()}, {0: "Charger", 1: ()=>new LoadEvent()}].map((x)=>{
-            const b = BoardEvent.generateButton(x[0], "#ffd700", true, x[1]);
+            const b = BoardEvent.generateButton(x[0], "#ffd700", x[1]);
             b.className = "pointerHover";
             b.addEventListener("mouseenter", ()=>b.classList.add("hue"));
             b.addEventListener("mouseleave", ()=>b.classList.remove("hue"));
@@ -67,8 +68,13 @@ class SaveKey extends BoardEvent {
     }
 }
 
+export function initLoadEvent() {
+    const {tx, rx} = initChannel<boolean>();
+    new LoadEvent(tx);
+    return rx;
+}
 class LoadEvent extends BoardEvent {
-    constructor() {
+    constructor(externalCallerSender?: Sender<boolean>) {
         removeOldMenu();
 
         const form = createForm(
@@ -78,19 +84,27 @@ class LoadEvent extends BoardEvent {
                 submitLabel: "Ok"
             }
         );
-        form.addEventListener("submit", loadHandler);
+        form.addEventListener("submit", (event)=>loadHandler(event, externalCallerSender));
 
         super(
             [BoardEvent.generateTextBox("Charger"), form],
-            BoardEvent.okSetup(true, "Afficher les fichiers disponibles", ()=>new DataEvent()),
-            BoardEvent.denySetup(true, "Retour", ()=>new FileEvent())
+            BoardEvent.okSetup(true, "Afficher les fichiers disponibles", ()=>new DataEvent(externalCallerSender)),
+            BoardEvent.denySetup(true, "Retour", ()=>{
+                if (externalCallerSender === undefined) {
+                    new FileEvent();
+                } else {
+                    externalCallerSender.send(false);
+                }
+            })
         )
     }
 }
 
 class DataEvent extends BoardEvent {
     #box: HTMLDivElement;
-    constructor() {
+    #externalCallerSender?: Sender<boolean>;
+    
+    constructor(externalCallerSender?: Sender<boolean>) {
         removeOldMenu();
         
         const box = document.createElement("div");
@@ -106,11 +120,12 @@ class DataEvent extends BoardEvent {
         super(
             [BoardEvent.generateTextBox("Fichiers disponibles"), box],
             BoardEvent.unappendedOkSetup(),
-            BoardEvent.denySetup(true, "Retour", ()=>new LoadEvent())
+            BoardEvent.denySetup(true, "Retour", ()=>new LoadEvent(externalCallerSender))
         )
 
         this.#box = box;
         this.loadData();
+        this.#externalCallerSender = externalCallerSender;
     }
 
     async loadData() {
@@ -136,7 +151,7 @@ class DataEvent extends BoardEvent {
         box.style.padding = "1vh";
         box.style.fontSize = "x-large";
         box.className = "pointerHover";
-        box.addEventListener("click", ()=>new FileLoadEvent(name));
+        box.addEventListener("click", ()=>new FileLoadEvent(name, this.#externalCallerSender));
         box.addEventListener("mouseenter", ()=>box.classList.add("hue"));
         box.addEventListener("mouseleave", ()=>box.classList.remove("hue"));
 
@@ -145,18 +160,18 @@ class DataEvent extends BoardEvent {
 }
 
 class FileLoadEvent extends BoardEvent {
-    constructor(file: string) {
+    constructor(file: string, externalCallerSender?: Sender<boolean>) {
         removeOldMenu();
         super([], BoardEvent.okSetup(false, "Charger"), BoardEvent.denySetup(true, "Retour", ()=>new DataEvent()))
         sendLoadRequest(file).then((x)=>{
             if (x === undefined) {
-                new Message(["Le chargement de ce fichier a échoué..."]);
+                new Message(["Le chargement de ce fichier a échoué..."], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: false});
             } else {
                 const oldFirst = this.box.firstChild;
                 this.box.insertBefore(createSaveFileBox(x, file), oldFirst);
                 this.enableOk(()=>{
                     loadData(x);
-                    new Message(["Chargement effectué !"]);
+                    new Message(["Chargement effectué !"], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: true});
                 });
             }
         })
@@ -164,11 +179,11 @@ class FileLoadEvent extends BoardEvent {
 }
 
 class Message extends BoardEvent {
-    constructor(messages: string[]) {
+    constructor(messages: string[], externalCallerResponse?: {tx: Sender<boolean>, success: boolean}) {
         removeOldMenu();
         super(
             messages.map((m)=>BoardEvent.generateTextBox(m)),
-            BoardEvent.okSetup(true),
+            BoardEvent.okSetup(true, undefined, externalCallerResponse === undefined ? undefined : ()=>externalCallerResponse.tx.send(externalCallerResponse.success)),
             BoardEvent.denySetup(false)
         )
     }
@@ -188,7 +203,7 @@ async function sendSaveRequest(name: string, key?: string): Promise<OutputRespon
             turnHolder
         }
         const res = await fetch(
-            "celestopia/save", 
+            "save", 
             {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -248,7 +263,13 @@ async function sendSaveRequest(name: string, key?: string): Promise<OutputRespon
 
 async function sendLoadRequest(name: string): Promise<GameData | undefined> {
     try {
-        const res = await fetch(`celestopia/load/${name}`);
+        const res = await fetch(`load/${name}`);
+        if (!res.ok) {
+            const blob = await res.blob();
+            const msg = await blob.text();
+            console.log(`Load error: ${msg}`);
+            return undefined;
+        }   
         const result: GameData = await res.json();
 
         return result;
@@ -295,7 +316,7 @@ function loadData(data: GameData) {
 
 async function sendDataRequest() {
     try {
-        const res = await fetch("celestopia/database");
+        const res = await fetch("database");
         if (!res.ok) {
             console.log(`Request failed: ${res.body}`);
             return [];
@@ -310,7 +331,7 @@ async function sendDataRequest() {
 }
 
 /* handlers */
-async function loadHandler(event: SubmitEvent) {
+async function loadHandler(event: SubmitEvent, externalCallerSender?: Sender<boolean>) {
     event.preventDefault();
     const form = event.target as HTMLFormElement;
     const data = new FormData(form);
@@ -318,10 +339,10 @@ async function loadHandler(event: SubmitEvent) {
     if (name !== null) { 
         const litteralName = name.toString();
         const data = await sendLoadRequest(litteralName); 
-        if (data === undefined) { new Message(["Echec du chargement..."]); }
+        if (data === undefined) { new Message(["Echec du chargement..."], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: false}); }
         else {
             loadData(data);
-            new Message(["Chargement effectué !"]); 
+            new Message(["Chargement effectué !"], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: true});
         }
     }
 }

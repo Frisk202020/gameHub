@@ -1,4 +1,4 @@
-use axum::{extract::Path, http::StatusCode, Json};
+use axum::{extract::{rejection::JsonRejection, Path}, http::StatusCode, Json};
 use serde::Serialize;
 use serde_json::Value;
 use std::{fs::{File, OpenOptions}, io::{ErrorKind::AlreadyExists, Read, Write}};
@@ -14,68 +14,75 @@ mod player_data;
 mod game_data;
 mod color;
 
-pub async fn save(Json(data): Json<InputGameData>) -> Result<Response<SaveResponseBody>, Response<SaveResponseBody>> {
-    let path = correct_path(
-        std::env::current_exe().map_err(|e| 
-            Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to get target directory path: {e}"))
-        )?, 
-        &ServerDirectory::Data,
-        Some(FileDescriptior::new_json(data.name()))
-    );
+pub async fn save(payload: Result<Json<InputGameData>, JsonRejection>) -> Result<Response<SaveResponseBody>, Response<SaveResponseBody>> {
+    match payload {
+        Ok(Json(data)) => {
+            let path = correct_path(
+                std::env::current_exe().map_err(|e| 
+                    Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to get target directory path: {e}"))
+                )?, 
+                &ServerDirectory::Data,
+                Some(FileDescriptior::new_json(data.name()))
+            );
 
-    let mut key = String::new();
-    let rng = rand::rng();
+            let mut key = String::new();
+            let rng = rand::rng();
 
-    let mut file = match OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(&path) {
-            Ok(file) => {
-                key = rng.sample_iter(Alphanumeric).take(8).map(char::from).collect();
-                Ok(file)
-            },
-            Err(e) if e.kind() == AlreadyExists => {
-                    if let Some(path) = path.to_str() {
-                            match check_authentification(path, data.key()) {
-                            Ok(true) => File::create(&path).map_err(
-                                |e| Response::new_save(
-                                    StatusCode::BAD_REQUEST,
-                                    format!("Failed to create save file: {e}")
-                                )
-                            ),
-                            Ok(false) => Err(Response::new_save(
-                                StatusCode::CONFLICT, 
-                                "Provided authentification key is invalid".to_string()
-                            )),
-                            Err(e) => Err(e)
-                        }
-                    } else {
-                        Err(Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, "Invalid file path".to_string()))
-                    }
-                },
-            Err(e) => Err(Response::new_save(
-                StatusCode::BAD_REQUEST, 
-                format!("Failed to create save file: {e} {}", path.display())
-            ))
-        }?;
+            let mut file = match OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&path) {
+                    Ok(file) => {
+                        key = rng.sample_iter(Alphanumeric).take(8).map(char::from).collect();
+                        Ok(file)
+                    },
+                    Err(e) if e.kind() == AlreadyExists => {
+                            if let Some(path) = path.to_str() {
+                                    match check_authentification(path, data.key()) {
+                                    Ok(true) => File::create(&path).map_err(
+                                        |e| Response::new_save(
+                                            StatusCode::BAD_REQUEST,
+                                            format!("Failed to create save file: {e}")
+                                        )
+                                    ),
+                                    Ok(false) => Err(Response::new_save(
+                                        StatusCode::CONFLICT, 
+                                        "Provided authentification key is invalid".to_string()
+                                    )),
+                                    Err(e) => Err(e)
+                                }
+                            } else {
+                                Err(Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, "Invalid file path".to_string()))
+                            }
+                        },
+                    Err(e) => Err(Response::new_save(
+                        StatusCode::BAD_REQUEST, 
+                        format!("Failed to create save file: {e} {}", path.display())
+                    ))
+                }?;
 
-    let (mut data, errors) = GameData::analyze_input(data);
-    if !key.is_empty() { data.set_key(&key); }
-    let data = serde_json::to_string(&data)
-        .map_err(|e| Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to build save data: {e}")))?;
+            let (mut data, errors) = GameData::analyze_input(data);
+            if !key.is_empty() { data.set_key(&key); }
+            let data = serde_json::to_string(&data)
+                .map_err(|e| Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to build save data: {e}")))?;
 
-    file.write(data.as_bytes())
-        .map_err(|e| Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to write data on save file: {e}")))?;
-    
-    let mut res = Response::new_save(StatusCode::OK, "Save complete !".to_string());
-    if !key.is_empty() {
-        res.set_authentification(key);
+            file.write(data.as_bytes())
+                .map_err(|e| Response::new_save(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to write data on save file: {e}")))?;
+            
+            let mut res = Response::new_save(StatusCode::OK, "Save complete !".to_string());
+            if !key.is_empty() {
+                res.set_authentification(key);
+            }
+            if !errors.is_empty() {
+                res.set_errors(errors);
+            }
+
+            Ok(res)
+        },
+        Err(e) => {
+            Err(Response::new_save(StatusCode::BAD_REQUEST, format!("Invalid request body: {e}")))
+        }
     }
-    if !errors.is_empty() {
-        res.set_errors(errors);
-    }
-
-    Ok(res)
 }
 
 pub async fn load(Path(name): Path<String>) -> Result<Response<OutputGameData>, Response<String>> {

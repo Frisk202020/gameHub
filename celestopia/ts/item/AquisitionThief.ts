@@ -48,7 +48,6 @@ class Event extends BoardEvent {
                 BoardEvent.generateButton(
                     p.name,
                     p.color.base,
-                    true,
                     ()=> {
                         document.body.removeChild(this.menu);
                         tx.send(p);
@@ -62,7 +61,6 @@ class Event extends BoardEvent {
             BoardEvent.generateButton(
                 "Annuler",
                 "#7c0000",
-                true,
                 ()=>{
                     document.body.removeChild(this.menu);
                     holder.addItem(new AquisitionThief(holder));

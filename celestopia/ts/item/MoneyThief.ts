@@ -42,7 +42,6 @@ class Event extends BoardEvent {
             const b = BoardEvent.generateButton(
                     p.name,
                     p.color.base,
-                    true,
                     ()=> {
                         if (this.#selectPlayer !== undefined) {
                             buttonMap.get(this.#selectPlayer.name).style.borderColor = "transparent";
@@ -67,7 +66,6 @@ class Event extends BoardEvent {
             const b = BoardEvent.generateButton(
                     t.second,
                     itemHolder.color.base,
-                    true,
                     ()=> {
                         if (this.#selectMoney !== undefined) {
                             buttonMap.get(this.#selectMoney).style.borderColor = "transparent";

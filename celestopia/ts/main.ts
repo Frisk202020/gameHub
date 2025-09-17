@@ -9,6 +9,7 @@ import { debugTools } from "./util/debug.js";
 import { assets_link, updateCounterValue } from "./util/functions.js";
 import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players } from "./util/variables.js";
 import { initPlayersLocal } from "./event/PlayerCreate.js";
+import { Welcome } from "./event/Welcome.js";
 
 document.addEventListener("keydown", (event) => {
     if (debugTools.keys) { console.log(event.key) };
@@ -116,16 +117,6 @@ async function boardRenderLoop() {
     requestAnimationFrame(boardRenderLoop);
 }
 
-function initPlayers() {
-    initPlayersLocal().then((x)=>{
-        x.forEach((x)=>{
-            players.push(x);
-            document.body.appendChild(x.pawn);
-        });
-        players[0].enable();
-    });
-}
-
 function initBoardBtns() {
     const p = document.createElement("p");
     p.className = "pointerHover";
@@ -173,10 +164,14 @@ async function nextPlayer(p: Player) {
 }
 
 async function main() {
-    initPlayers();
-    counterRenderLoop();
-    boardRenderLoop();
-    initBoardBtns();
+    const {tx, rx} = initChannel<void>();
+    new Welcome(tx);
+
+    rx.recv().then(()=>{
+        counterRenderLoop();
+        boardRenderLoop();
+        initBoardBtns();
+    });
 }
 
 main();

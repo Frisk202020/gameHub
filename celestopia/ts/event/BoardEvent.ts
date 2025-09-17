@@ -37,6 +37,10 @@ export abstract class BoardEvent {
         document.body.appendChild(menu);
     }
 
+    protected remove() {
+        document.body.removeChild(this.menu);
+    }
+
     protected static generateTextBox(text: string) {
         const description = document.createElement("div");
         description.textContent = text;
@@ -55,10 +59,11 @@ export abstract class BoardEvent {
         return img;
     }
 
-    protected static generateButton(label: string, color: string, enabled: boolean, event: ()=>void, borderColor?: string) {
+    protected static generateButton(label: string, color: string, event?: ()=>void, borderColor?: string) {
         const button = document.createElement("div");
-        if (enabled) {
-            button.className = "pointerHover"
+        if (event !== undefined) {
+            button.className = "pointerHover";
+            button.addEventListener("click", event);
         }
         button.textContent = label;
         button.style.fontSize = "30px";
@@ -67,7 +72,6 @@ export abstract class BoardEvent {
         button.style.borderRadius = "10px";
         button.style.border = `3px solid ${borderColor === undefined ? "#ffd700" : borderColor}`;
         button.style.backgroundColor = color;
-        button.addEventListener("click", event);
 
         return button;
     }
@@ -129,13 +133,9 @@ export abstract class BoardEvent {
         const button = BoardEvent.generateButton(
             config.customLabel === undefined ? "Ok" : config.customLabel,
             config.enable ? "#03a316" : "#aba7a7",
-            config.enable,
-            ()=>{}
+            config.enable ? this.#handlerOrDefault(config.customHandler) : undefined
         );
-        if (config.enable) {
-            button.className = "pointerHover";
-            button.addEventListener("click", this.#handlerOrDefault(config.customHandler));
-        }
+
         button.id = "menuOk";
         button.style.textAlign = "center";
 
@@ -146,7 +146,6 @@ export abstract class BoardEvent {
         const button = BoardEvent.generateButton(
             label === undefined ? "Refuser" : label,
             "#c10a19ff",
-            true,
             this.#handlerOrDefault(handler)
         );
         button.id = "menuDeny";
@@ -155,6 +154,6 @@ export abstract class BoardEvent {
     }
 
     #handlerOrDefault(handler?: ()=>void) {
-        return handler === undefined ? ()=>{ document.body.removeChild(this.menu)} : ()=>{ document.body.removeChild(this.menu); handler();}
+        return handler === undefined ? ()=>{ this.remove(); } : ()=>{ document.body.removeChild(this.menu); handler();}
     }
 }
