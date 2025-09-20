@@ -48,6 +48,11 @@ class LocalGameFileSelect extends BoardEvent {
 
 function initPlayers(tx: Sender<void>) {
     initPlayersLocal().then((x)=>{
+        if (x.length === 0) {
+            new Welcome(tx);
+            return;
+        }
+
         x.forEach((x)=>{
             players.push(x);
             document.body.appendChild(x.pawn);

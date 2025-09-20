@@ -62,7 +62,7 @@ class InitEvent extends BoardEvent {
         super(
             [BoardEvent.generateTextBox("Combien sommes nous à jouer ?"), boxes],
             BoardEvent.okSetup(false),
-            BoardEvent.denySetup(false)
+            BoardEvent.denySetup(true, "Retour", ()=>tx.send([]))
         );
         this.#tx = tx;
     }

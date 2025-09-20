@@ -8,7 +8,6 @@ import { initChannel } from "./util/channel.js";
 import { debugTools } from "./util/debug.js";
 import { assets_link, updateCounterValue } from "./util/functions.js";
 import { board, boardId, changeBoard, clearGlobalKeyboardListener, currentKeyboardEventListener, pig, players } from "./util/variables.js";
-import { initPlayersLocal } from "./event/PlayerCreate.js";
 import { Welcome } from "./event/Welcome.js";
 
 document.addEventListener("keydown", (event) => {
