@@ -15,6 +15,11 @@ export function isCharAlphanumeric(c: string) {
 
 export function assets_link(x: string) { return `assets/${x}`; }
 
+export function removeOldMenu() {
+    const old = document.getElementById("menu");
+    if (old !== null) { document.body.removeChild(old); }
+}
+
 export function updateCounterValue(elementId: string, value: number) {
     const element = document.getElementById(elementId);
     if (element === null) {

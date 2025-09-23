@@ -13,7 +13,7 @@ type PlayerId = 1 | 2 |  3 | 4;
 
 export const debugTools = {
     keys: false,
-    currentKeyboardEventListener() { console.log(currentKeyboardEventListener); },
+    currentKeyboardEventListener() { return currentKeyboardEventListener; },
     diceNumber(id: PlayerId, n: 1 | 2 | 3) { players[id - 1].diceNumber = n; },
     showKeys() { this.keys = true },
     throwDice(id: PlayerId, value: number) { 

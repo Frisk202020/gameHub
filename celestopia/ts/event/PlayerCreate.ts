@@ -17,6 +17,10 @@ export async function initPlayersLocal() {
     return await rx.recv();
 }
 
+export async function initSinglePlayerLocal(id: PlayerId) {
+    return await InitEvent.initPlayer(id);
+}
+
 interface PlayerCreateData {
     name: string,
     avatar: Avatar,
@@ -70,16 +74,21 @@ class InitEvent extends BoardEvent {
     async #okHandler() {
         const res: Player[] = [];
         for (let j = 0; j < this.#chosen!; j++) {
-            const {tx, rx} = initChannel<PlayerCreateData>();
-            new PlayerCreate(tx);
-            const data = await rx.recv();
-
-            removeFromArrayByValue(AVAILABLE_AVATARS, data.avatar);
-            removeFromArrayByValue(AVAILABLE_COLORS, data.color);
-            res.push(new Player(j+1 as PlayerId, data.name, data.avatar, data.color));
+            res.push(await InitEvent.initPlayer(j+1 as PlayerId));
         }
 
         this.#tx.send(res);
+    }
+
+    static async initPlayer(id: PlayerId) {
+        const {tx, rx} = initChannel<PlayerCreateData>();
+        new PlayerCreate(tx);
+        const data = await rx.recv();
+
+        removeFromArrayByValue(AVAILABLE_AVATARS, data.avatar);
+        removeFromArrayByValue(AVAILABLE_COLORS, data.color);
+
+        return new Player(id, data.name, data.avatar, data.color);
     }
 }
 

@@ -40,13 +40,18 @@ async function counterRenderLoop() {
         updateCounterValue(`bankCounter`, pig.content);
         pig.setColor();
     }
+
+    requestAnimationFrame(counterRenderLoop);
+}
+
+async function keyboardEventListenerGarbageCollector() {
     if (currentKeyboardEventListener !== undefined) {
         if (!document.body.contains(currentKeyboardEventListener.element)) {
             clearGlobalKeyboardListener();
         }
     }
 
-    requestAnimationFrame(counterRenderLoop);
+    requestAnimationFrame(keyboardEventListenerGarbageCollector);
 }
 
 async function boardRenderLoop() {
@@ -163,6 +168,7 @@ async function nextPlayer(p: Player) {
 }
 
 async function main() {
+    keyboardEventListenerGarbageCollector();
     const {tx, rx} = initChannel<void>();
     new Welcome(tx);
 

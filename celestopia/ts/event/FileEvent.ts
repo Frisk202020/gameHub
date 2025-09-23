@@ -1,8 +1,9 @@
 import { BoardEvent } from "./BoardEvent.js";
 import { Player, type PlayerData, type PlayerId } from "../Player.js"
 import { pig, players } from "../util/variables.js";
-import { assets_link } from "../util/functions.js";
+import { assets_link, removeOldMenu } from "../util/functions.js";
 import { initChannel, Sender } from "../util/channel.js";
+import { Message } from "./Message.js";
 
 export class FileEvent extends BoardEvent {
     constructor() {
@@ -22,6 +23,30 @@ export class FileEvent extends BoardEvent {
 }
 
 /* event classes */
+export interface CreateResponse {
+    name: string,
+    key: string
+}
+export class CreateEvent extends BoardEvent {
+    constructor(tx: Sender<CreateResponse|undefined>) {
+        const form = createForm(
+            {
+                name: "saveForm",
+                entries: [{name: "name", label: "Choisissez un nom pour cette partie"}],
+                submitLabel: "Ok"
+            }
+        );
+        form.addEventListener("submit", (event)=>{
+            gameCreateHandler(event).then((x)=>tx.send(x));
+        });
+
+        super(
+            [BoardEvent.generateTextBox("Créer une partie"), form],
+            BoardEvent.unappendedOkSetup(),
+            BoardEvent.denySetup(true, "Retour", ()=>tx.send(undefined))
+        )
+    }
+}
 class SaveEvent extends BoardEvent {
     constructor() {
         removeOldMenu();
@@ -165,27 +190,29 @@ class FileLoadEvent extends BoardEvent {
         super([], BoardEvent.okSetup(false, "Charger"), BoardEvent.denySetup(true, "Retour", ()=>new DataEvent()))
         sendLoadRequest(file).then((x)=>{
             if (x === undefined) {
-                new Message(["Le chargement de ce fichier a échoué..."], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: false});
+                new FileEventSuccessMessage(["Le chargement de ce fichier a échoué..."], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: false});
             } else {
                 const oldFirst = this.box.firstChild;
                 this.box.insertBefore(createSaveFileBox(x, file), oldFirst);
                 this.enableOk(()=>{
                     loadData(x);
-                    new Message(["Chargement effectué !"], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: true});
+                    new FileEventSuccessMessage(["Chargement effectué !"], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: true});
                 });
             }
         })
     }
 }
 
-class Message extends BoardEvent {
+class FileEventSuccessMessage {
     constructor(messages: string[], externalCallerResponse?: {tx: Sender<boolean>, success: boolean}) {
         removeOldMenu();
-        super(
-            messages.map((m)=>BoardEvent.generateTextBox(m)),
-            BoardEvent.okSetup(true, undefined, externalCallerResponse === undefined ? undefined : ()=>externalCallerResponse.tx.send(externalCallerResponse.success)),
-            BoardEvent.denySetup(false)
-        )
+        if (externalCallerResponse === undefined) {
+            new Message(messages);
+        } else {
+            const {tx: tx2, rx: rx2} = initChannel<void>()
+            new Message(messages, tx2);
+            rx2.recv().then(()=>externalCallerResponse.tx.send(externalCallerResponse.success));
+        }
     }
 }
 
@@ -339,10 +366,10 @@ async function loadHandler(event: SubmitEvent, externalCallerSender?: Sender<boo
     if (name !== null) { 
         const litteralName = name.toString();
         const data = await sendLoadRequest(litteralName); 
-        if (data === undefined) { new Message(["Echec du chargement..."], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: false}); }
+        if (data === undefined) { new FileEventSuccessMessage(["Echec du chargement..."], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: false}); }
         else {
             loadData(data);
-            new Message(["Chargement effectué !"], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: true});
+            new FileEventSuccessMessage(["Chargement effectué !"], externalCallerSender === undefined ? undefined : {tx: externalCallerSender, success: true});
         }
     }
 }
@@ -358,13 +385,29 @@ async function saveHandler(event: SubmitEvent) {
         if (res.success) {
             const messages = ["Sauvegarde effectuée"];
             if (res.key !== "") { messages.push(`Clé d'authentification: ${res.key}.`); }
-            new Message(messages);
+            new FileEventSuccessMessage(messages);
         } else {
             if (res.authentification_error) {
                 new SaveKey(litteralName);
             } else {
-                new Message(["Sauvegarde échouée, veuillez réessayer avec un autre nom."]);
+                new FileEventSuccessMessage(["Sauvegarde échouée, veuillez réessayer avec un autre nom."]);
             }
+        }
+    }
+}
+
+async function gameCreateHandler(event: SubmitEvent) {
+    event.preventDefault();
+    const form = event.target as HTMLFormElement;
+    const data = new FormData(form);
+    const name = data.get("name");
+    if (name !== null) { 
+        const litteralName = name.toString();
+        const res = await sendSaveRequest(litteralName); 
+        if (res.success) {
+            return {name: litteralName, key: res.key};
+        } else {
+            return undefined;
         }
     }
 }
@@ -377,7 +420,7 @@ async function authentification_handler(file: string, event: SubmitEvent) {
     if (key !== null) { 
         const res = await sendSaveRequest(file, key.toString()); 
         if (res.success) {
-            new Message(["Sauvegarde effectuée"]);
+            new FileEventSuccessMessage(["Sauvegarde effectuée"]);
         } else {
             if (res.authentification_error) {
                 (document.getElementById("message") as HTMLElement).textContent = res.message;
@@ -385,12 +428,6 @@ async function authentification_handler(file: string, event: SubmitEvent) {
             }
         }
     }
-}
-
-/* util */
-function removeOldMenu() {
-    const old = document.getElementById("menu");
-    if (old !== null) { document.body.removeChild(old); }
 }
 
 function createForm(builder: FormBuilder) {
