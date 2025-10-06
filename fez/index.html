@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>FEZ decipher</title>
+        <link rel="icon" href="assets/icon.png" type="imege/png"> 
+    </head>
+    <body>
+        <div id="main" style="width: 100vw; display: flex; flex-direction: column; align-items: center;">
+            <h1>FEZ decipher</h1>
+            <p id="input" style="
+                font-size: 20px; 
+                background-color: #f4f4f470; 
+                border-radius: 5px; 
+                padding: 10px;
+                width: 80vw;
+                text-align: center;
+                word-wrap: break-word;
+            ">
+                Input some text.
+            </p>
+            <div id="output" style="
+                display: flex; 
+                justify-content: center; 
+                width: 80vw;
+                padding: 10px;
+                background-color: #fd9d9d70;
+                flex-wrap: wrap;
+            "></div>
+        </div>
+    </body>
+</html>
+<script>
+    const MAIN = document.getElementById("main");
+    const INPUT = document.getElementById("input");
+    const OUTPUT = document.getElementById("output");
+    const PLACEHOLDER = "Input some text.";
+    const BINDINGS = [
+        "A", "B", "C", "D", "E", "F",
+        "G", "H", "I", "J", "K", "L",
+        "M", "N", "O", "P", "R", "S",
+        "T", "U", "V", "W", "X", "Y"
+    ];
+    const CLASSES = ["", "rotate-90", "rotate-180", "rotate-270"];
+    let input_length = 0;
+    const OUTPUTS = [];
+
+    document.addEventListener("keydown", (event)=>{
+        if (event.key === "Backspace") {
+            if (input_length === 0) { return; }
+
+            INPUT.textContent = INPUT.textContent.substring(0, INPUT.textContent.length - 1);
+            input_length--;
+            if (input_length === 0) {
+                INPUT.textContent = PLACEHOLDER;
+            }
+
+            let opt = OUTPUTS.pop();
+            OUTPUT.removeChild(opt);
+        }
+    });
+
+    for (let i = 0; i < CLASSES.length; i++) {
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.justifyContent = "center";
+
+        for (let j = 0; j < 6; j++) {
+            row.appendChild(createCharacterDiv(i, j));
+        }
+
+        MAIN.appendChild(row);
+    }
+
+    function computeBinding(i, j) {
+        return i * CLASSES.length + j;
+    }
+    function createCharacterDiv(i, j) {
+        const box = document.createElement("img");
+        box.src = `assets/${j+1}.png`;
+        box.style.width = "50px";
+        box.className = CLASSES[i];
+        box.style.margin = "10px";
+        box.addEventListener("click", ()=>{
+            const toAdd = BINDINGS[computeBinding(i, j)];
+            if (input_length === 0) {
+                INPUT.textContent = toAdd;
+            } else {
+                INPUT.textContent = INPUT.textContent + toAdd;
+            }
+
+            input_length++;
+            const opt = createOutput(i, j);
+            OUTPUT.appendChild(opt);
+            OUTPUTS.push(opt);
+        });
+
+        return box;
+    }
+
+    function createOutput(i, j) {
+        const img = document.createElement("img");
+        img.src = `assets/${j+1}.png`;
+        img.className = CLASSES[i];
+        img.style.width = "20px";
+
+        return img;
+    }
+</script>
+<style>
+    body {
+        background-image: url(assets/bg.jpg);
+    }
+    img:hover {
+        cursor: pointer;        
+    }
+
+    .rotate-90 {
+        transform: rotateZ(90deg);
+    }
+
+    .rotate-180 {
+        transform: rotateZ(180deg);
+    }
+
+    .rotate-270 {
+        transform: rotateZ(270deg);
+    }
+</style>
