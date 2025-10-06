@@ -56,6 +56,9 @@ async fn main() -> Result<()> {
 
             .route("/lost-in-the-void", routing::get(Redirect::permanent("/lost-in-the-void/")))
             .nest_service("/lost-in-the-void/", service("../lost-in-the-void"))  
+            .nest_service("/test/", service("../test"))
+            .nest_service("/fez/", service("../fez"))
+            .route("/fez", routing::get(Redirect::permanent("/fez/")))
             .layer(
                 CorsLayer::new()
                     .allow_headers(Any)
