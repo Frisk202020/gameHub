@@ -3,6 +3,7 @@
     <head>
         <title>FEZ decipher</title>
         <link rel="icon" href="assets/icon.png" type="imege/png"> 
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
         <div id="main" style="width: 100vw; display: flex; flex-direction: column; align-items: center;">
@@ -34,11 +35,18 @@
     const INPUT = document.getElementById("input");
     const OUTPUT = document.getElementById("output");
     const PLACEHOLDER = "Input some text.";
+    const ROOTS = 6;
+    // const BINDINGS = [
+    //     "A", "B", "C", "D", "E", "F",
+    //     "G", "H", "I", "J", "K", "L",
+    //     "M", "N", "O", "P", "R", "S",
+    //     "T", "U", "V", "W", "X", "Y"
+    // ];
     const BINDINGS = [
-        "A", "B", "C", "D", "E", "F",
-        "G", "H", "I", "J", "K", "L",
-        "M", "N", "O", "P", "R", "S",
-        "T", "U", "V", "W", "X", "Y"
+        "M", "N", "K", "O", "L", "J",
+        "S", "H", "E", "I", "F", "D",
+        "A", "B", "X", "C", "Y", "W",
+        "G", "T", "Z", "U", "R", "P",
     ];
     const CLASSES = ["", "rotate-90", "rotate-180", "rotate-270"];
     let input_length = 0;
@@ -46,16 +54,18 @@
 
     document.addEventListener("keydown", (event)=>{
         if (event.key === "Backspace") {
-            if (input_length === 0) { return; }
-
-            INPUT.textContent = INPUT.textContent.substring(0, INPUT.textContent.length - 1);
-            input_length--;
-            if (input_length === 0) {
-                INPUT.textContent = PLACEHOLDER;
+            backspaceHandler();
+        } else if (event.key === " ") {
+            blankspaceHandler();
+        } else if (event.ctrlKey) { return; } else {
+            console.log(event.key);
+            const key = event.key.toUpperCase();
+            const index = BINDINGS.indexOf(key);
+            if (index !== -1) {
+                const i = ~~(index / ROOTS); // euclidian division
+                const j = index % ROOTS;
+                handleInput(i, j);
             }
-
-            let opt = OUTPUTS.pop();
-            OUTPUT.removeChild(opt);
         }
     });
 
@@ -64,37 +74,118 @@
         row.style.display = "flex";
         row.style.justifyContent = "center";
 
-        for (let j = 0; j < 6; j++) {
+        for (let j = 0; j < ROOTS; j++) {
             row.appendChild(createCharacterDiv(i, j));
         }
 
         MAIN.appendChild(row);
     }
+    if (window.innerWidth <= 768) {
+        const btns = {
+            "back": backspaceHandler,
+            "blank": blankspaceHandler,
+            "trash": clearHandler
+        };
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.justifyContent = "center";
+
+        Object.entries(btns).forEach(([k, v])=> {
+            const btn = document.createElement("div");
+            btn.className = "btn";
+            btn.style.display = "flex";
+            btn.style.justifyContent = "center";
+            btn.style.alignItems = "center";
+            btn.style.backgroundColor = "#f4f4f4e5";
+            btn.style.borderRadius = "10px";
+            const img = document.createElement("img");
+            img.src = `assets/${k}.png`;
+            img.style.width = "8vw";
+            img.style.padding = "1vw";
+            btn.appendChild(img);
+            
+            btn.addEventListener("pointerdown", v);
+            row.appendChild(btn);
+        });
+        MAIN.appendChild(row);
+    }
 
     function computeBinding(i, j) {
-        return i * CLASSES.length + j;
+        return i * ROOTS + j;
     }
     function createCharacterDiv(i, j) {
-        const box = document.createElement("img");
-        box.src = `assets/${j+1}.png`;
-        box.style.width = "50px";
-        box.className = CLASSES[i];
-        box.style.margin = "10px";
-        box.addEventListener("click", ()=>{
-            const toAdd = BINDINGS[computeBinding(i, j)];
-            if (input_length === 0) {
-                INPUT.textContent = toAdd;
-            } else {
-                INPUT.textContent = INPUT.textContent + toAdd;
-            }
+        const box = document.createElement("div");
+        box.style.display = "flex";
+        box.style.flexDirection = "column";
+        box.className = "btn-box";
+        const BINDING = BINDINGS[computeBinding(i, j)];
 
-            input_length++;
-            const opt = createOutput(i, j);
-            OUTPUT.appendChild(opt);
-            OUTPUTS.push(opt);
-        });
+        const img = document.createElement("img");
+        img.src = `assets/${j+1}.png`;
+        img.className = CLASSES[i];
+        img.classList.add("btn");
+        img.addEventListener("pointerdown", ()=>handleInput(i, j, BINDING));
+        box.appendChild(img);
+        
+        const p = document.createElement("p");
+        p.style.fontSize = "20px";
+        p.style.padding = "5px";
+        p.style.backgroundColor = "#f4f4f4c6";
+        p.style.borderRadius = "10px";
+        p.style.textAlign = "center";
+        p.textContent = BINDING;
+        p.style.margin = "0px";
+        box.appendChild(p);
 
         return box;
+    }
+
+    function clearHandler() {
+        INPUT.textContent = PLACEHOLDER;
+        input_length = 0;
+
+        OUTPUTS.forEach((x)=>OUTPUT.removeChild(x));
+        OUTPUTS.length = 0;
+    }
+    function blankspaceHandler() {
+        if (input_length === 0) { return; }
+        if (INPUT.textContent.charAt(INPUT.textContent.length - 1) === " ") { return; }
+
+        INPUT.textContent = INPUT.textContent + " ";
+        input_length++;
+        const opt = document.createElement("div");
+        opt.style.width = "20px";
+        opt.style.height = "20px";
+        OUTPUT.appendChild(opt);
+        OUTPUTS.push(opt);
+    }
+    function backspaceHandler() {
+        if (input_length === 0) { return; }
+
+        INPUT.textContent = INPUT.textContent.substring(0, INPUT.textContent.length - 1);
+        input_length--;
+        if (input_length === 0) {
+            INPUT.textContent = PLACEHOLDER;
+        }
+
+        let opt = OUTPUTS.pop();
+        OUTPUT.removeChild(opt);
+    }
+    function handleInput(i, j, binding) {
+        if (binding === undefined) {
+            binding = BINDINGS[computeBinding(i, j)];
+        }
+
+        if (input_length === 0) {
+            INPUT.textContent = binding;
+        } else {
+            INPUT.textContent = INPUT.textContent + binding;
+        }
+
+        input_length++;
+        const opt = createOutput(i, j);
+        OUTPUT.appendChild(opt);
+        OUTPUTS.push(opt);
     }
 
     function createOutput(i, j) {
@@ -109,6 +200,7 @@
 <style>
     body {
         background-image: url(assets/bg.jpg);
+        overflow-y: hidden;
     }
     img:hover {
         cursor: pointer;        
@@ -124,5 +216,22 @@
 
     .rotate-270 {
         transform: rotateZ(270deg);
+    }
+
+    .btn {
+        width: 50px;
+        margin: 10px;
+    }
+    .btn-box {
+        margin: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .btn {
+            width: 10vw;
+        }
+        .btn-box {
+            margin: 0.5vw;
+        }
     }
 </style>
