@@ -68,6 +68,8 @@ async fn main() -> Result<()> {
     let _: JoinHandle<Result<()>> = tokio::spawn(async move {axum::serve(listener, router).await?; Ok(())});  // axum::serve never returns
 
     println!("Serveur activé !");
+
+    /*
     println!("Vous pouvez désormais vous connecter au server.");
     println!("Voici la liste des addresses ouvertes à la connexion :");
     println!();
@@ -85,6 +87,7 @@ async fn main() -> Result<()> {
     println!("/logs : accès aux logs du serveur.");
     println!();
     println!("Vous pouvez entrer la commande Ctrl+C pour désactiver le serveur.");
+    */
 
     let shut = tokio::signal::ctrl_c().await;
     match shut {
