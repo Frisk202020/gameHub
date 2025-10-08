@@ -11,7 +11,7 @@ pub enum ServerDirectory {
     fn to_string(&self) -> String {
         match self {
             Self::Data => String::from("data"),
-            Self::Log => String::from(r"log\data"),
+            Self::Log => String::from(r"log/data"),
         }
     }
 } impl ServerDirectory {
