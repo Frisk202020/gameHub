@@ -1,5 +1,5 @@
 /target
 /data/*
 /log/js
-/log/data/*
+/log/data/*.log
 Cargo.lock

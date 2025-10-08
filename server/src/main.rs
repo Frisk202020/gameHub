@@ -3,7 +3,13 @@ mod response;
 mod celestopia;
 mod log;
 
-use std::{env, fs::OpenOptions, net::{IpAddr, SocketAddr}};
+use std::{
+    env, fs::OpenOptions, 
+    net::{
+        //IpAddr, 
+        SocketAddr
+    }
+};
 use axum::{response::Redirect, routing, Router};
 use chrono::Utc;
 use tokio::task::JoinHandle;
