@@ -4,6 +4,7 @@ use tracing::error;
 
 pub const FORMAT: &'static str = "%Y-%m-%d_%H-%M-%S";
 
+#[derive(Clone)]
 pub enum ServerDirectory {
     Data,
     Log
@@ -25,10 +26,9 @@ pub enum ServerDirectory {
 
 pub fn read_dir(directory: ServerDirectory) -> Result<Vec<String>> {
     let path = correct_path(
-        std::env::current_exe()?, 
-        &directory,
+        directory.clone(),
         None
-    );
+    )?;
 
     Ok(
         std::fs::read_dir(path)?
@@ -53,7 +53,8 @@ pub struct FileDescriptior {
     }
 }
 
-pub fn correct_path(path: PathBuf, directory: &ServerDirectory,  file: Option<FileDescriptior>) -> PathBuf {
+pub fn correct_path(directory: ServerDirectory,  file: Option<FileDescriptior>) -> Result<PathBuf, std::io::Error> {
+    let path = std::env::current_exe()?;
     let mut path = path.components().take_while(|x|  *x != Component::Normal("gameHub".as_ref())).collect::<PathBuf>();
     path.push("gameHub");
     path.push("server");
@@ -63,5 +64,5 @@ pub fn correct_path(path: PathBuf, directory: &ServerDirectory,  file: Option<Fi
         path.set_extension(file.extention);
     }
 
-    path
+    Ok(path)
 }

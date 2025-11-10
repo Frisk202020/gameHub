@@ -3,7 +3,7 @@ mod response;
 mod celestopia;
 mod log;
 
-use std::{env, fs::OpenOptions, net::{IpAddr, SocketAddr}};
+use std::{fs::OpenOptions, net::{IpAddr, SocketAddr}};
 use axum::{response::Redirect, routing, Router};
 use chrono::Utc;
 use tokio::task::JoinHandle;
@@ -14,16 +14,15 @@ use util::*;
 use anyhow::Result;
 use tower_http::{cors::{Any, CorsLayer}, services::ServeDir};
 
-use crate::{celestopia::{list, load, save}, log::{get_latest_log, get_log_handler, log_list}};
+use crate::{celestopia::{add_player, list, load, save}, log::{get_latest_log, get_log_handler, log_list}};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let now = Utc::now().format(FORMAT).to_string();
     let path = correct_path(
-        env::current_exe().inspect_err(|_| println!("Failed to get current exe path"))?, 
-        &ServerDirectory::Log, 
+        ServerDirectory::Log, 
         Some(FileDescriptior::new_log(&now))
-    );
+    ).inspect_err(|e| println!("Failed to find exe path : {e}"))?;
     let log_file = OpenOptions::new()
         .write(true)
         .create_new(true)
@@ -53,9 +52,11 @@ async fn main() -> Result<()> {
             .route("/celestopia/save", routing::post(save))
             .route("/celestopia/load/{name}", routing::get(load))
             .route("/celestopia/database", routing::get(list))
+            .route("/celestopia/add-player", routing::post(add_player))
 
             .route("/lost-in-the-void", routing::get(Redirect::permanent("/lost-in-the-void/")))
             .nest_service("/lost-in-the-void/", service("../lost-in-the-void"))  
+            .route("/", routing::get(sanity))
             .layer(
                 CorsLayer::new()
                     .allow_headers(Any)
@@ -96,3 +97,5 @@ async fn main() -> Result<()> {
 fn service(path: &str) -> ServeDir {
     ServiceBuilder::new().service(ServeDir::new(path))
 }
+
+async fn sanity() -> String { String::from("OK") }

@@ -1,4 +1,4 @@
-use std::{env, fs::File, io::Read};
+use std::{fs::File, io::Read};
 
 use axum::{extract::Path, http::StatusCode, Json};
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
@@ -46,11 +46,10 @@ pub async fn log_list() -> Result<Response<Vec<String>>, Response<String>> {
 }
 
 fn get_log(name: String) -> LogResult {
-    let path = correct_path(
-    env::current_exe().map_err(|e| Response::new(StatusCode::BAD_REQUEST, format!("Failed to find log file: {e}")))?, 
-    &ServerDirectory::Log, 
+    let path = correct_path( 
+    ServerDirectory::Log, 
     Some(FileDescriptior::new_log(&name))
-    );
+    ).map_err(|e| Response::new(StatusCode::BAD_REQUEST, format!("Failed to find log file: {e}")))?;
     let mut file = File::open(path)
         .map_err(|e| Response::new(StatusCode::INTERNAL_SERVER_ERROR, format!("Failed to open log file: {e}")))?;
     

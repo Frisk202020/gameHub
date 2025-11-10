@@ -1,6 +1,8 @@
 use axum::{http::StatusCode, response::IntoResponse, Json};
 use serde::Serialize;
 
+use crate::celestopia::SaveResponseBody;
+
 pub(crate) struct Response<T> {
     status: StatusCode,
     body: T
@@ -14,4 +16,8 @@ pub(crate) struct Response<T> {
         Self {status, body}
     }
     pub fn body_mut(&mut self) -> &mut T { &mut self.body } 
-}
+} impl From<Response<String>> for Response<SaveResponseBody> {
+    fn from(value: Response<String>) -> Self {
+        Response::new_save(value.status, value.body)
+    }
+} 
