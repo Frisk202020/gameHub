@@ -16,7 +16,8 @@ pub(crate) struct PlayerData {
     items: Vec<Item>,
     case_id: u8,   
     board_id: u8,
-    dice_number: u8
+    dice_number: u8,
+    connected: bool
 }
 impl From<&InputPlayerData> for PlayerData {
     fn from(value: &InputPlayerData) -> Self {
@@ -32,7 +33,8 @@ impl From<&InputPlayerData> for PlayerData {
             items: value.items.iter().map(|aq| Item::from(aq.as_str())).filter(|aq| !aq.is_none()).collect(),
             case_id: value.case_id,
             board_id: value.board_id,
-            dice_number: value.dice_number
+            dice_number: value.dice_number,
+            connected: true
         }
     }
 } impl PlayerData {

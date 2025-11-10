@@ -55,6 +55,14 @@ pub(crate) struct GameData {
         (data, errors)
     }
     pub(crate) fn set_key(&mut self, key: &str) { self.key = key.to_string(); }
+    pub(crate) fn add_player(&mut self, player: PlayerData) -> bool {
+        if self.players.len() < 4 {
+            self.players.push(player);
+            return true;
+        }
+
+        false
+    }
 }
 
 #[derive(Serialize)]
