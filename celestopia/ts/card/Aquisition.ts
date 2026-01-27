@@ -1,9 +1,9 @@
 import { removeFromArray } from "../util/functions.js";
 import { type Money } from "../util/variables.js";
-import { Card, cardHeight, cardWidth } from "./Card.js";
+import { Card, cardHeight, cardWidth, GOLDEN } from "./Card.js";
 
 export type AquisitionName = "astropy" | "baloon" | "bd" | "beauty" | "camping" | "car" | "castle" | "chest" | "horse" | "magic" | "moto"
-    | "necklace" | "picasso" | "pool" | "post" | "tractor" | "vase" | "wine" | "coins" | "dog" | "garden";
+    | "necklace" | "picasso" | "pool" | "post" | "tractor" | "vase" | "wine" | "coins" | "dog" | "garden" | "golden";
 
 export class Aquisition extends Card {
     #price: number;
@@ -73,6 +73,7 @@ export class Aquisition extends Card {
     }
 
     static #bank = [
+        new Aquisition("golden", GOLDEN, 10, 200, 0, 0),
         new Aquisition("astropy", "Un voyage pour Astropy", 1050, 150, 0, 1800),
         new Aquisition("baloon", "Un ballon tout neuf", 2400, 150, 3600, 0),
         new Aquisition("bd", "Une collection de BD", 600, 50, 1650, 0),
@@ -108,7 +109,7 @@ export class Aquisition extends Card {
 
     static getRandomAquisition() {
         const i = Math.floor(Math.random() * Aquisition.#bank.length);
-        return removeFromArray(Aquisition.#bank, i);
+        return removeFromArray(Aquisition.#bank, 0);
     }
 
     static returnToBank(aquisition: Aquisition) {

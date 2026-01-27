@@ -1,11 +1,12 @@
 import { Wonder, type WonderName } from "../card/Wonder.js";
 import { Player } from "../Player.js";
 import { Sender } from "../util/channel.js";
+import { assets_link } from "../util/functions.js";
 import { BoardEvent } from "./BoardEvent.js";
 
-export class Crown extends BoardEvent {
-    constructor(player: Player, name: WonderName, tx: Sender<void>) {
-        const w = Wonder.getWonder(name, false);
+class Crown extends BoardEvent {
+    constructor(player: Player, name: WonderName, tx: Sender<void>, wonder?: Wonder) {
+        const w = wonder === undefined ? Wonder.getWonder(name, false) : wonder;
         if (w === undefined) {
             super(
                 [BoardEvent.generateTextBox("Cette merveille a déjà été achetée...")],
@@ -37,4 +38,16 @@ export class Crown extends BoardEvent {
             )
         }
     }
+}
+
+export async function callCrownEvent(player: Player, name: WonderName, tx: Sender<void>): Promise<Crown> {
+    const w  = Wonder.getWonder(name, false);
+    if (w !== undefined && w.name === "golden") {
+        const audio = new Audio(assets_link("golden.mp3"));
+        audio.play();
+        await new Promise((r)=>setTimeout(r, 8400));
+        return new Crown(player, name, tx, w);
+    }
+
+    return new Crown(player, name, tx, w);
 }

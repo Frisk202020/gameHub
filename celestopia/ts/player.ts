@@ -11,7 +11,7 @@ import { board, boardId, changeBoard, type Money, pig } from "./util/variables.j
 import { Happening } from "./event/Happening.js";
 import { Popup } from "./event/Popup.js";
 import { Chest } from "./event/Chest.js";
-import { Crown } from "./event/Crown.js";
+import { callCrownEvent } from "./event/Crown.js";
 import { PigEvent } from "./event/PigEvent.js";
 import { Magic } from "./event/Magic.js";
 import { ItemMenu } from "./item/ItemMenu.js";
@@ -271,7 +271,7 @@ export class Player {
         } else if (type === "dice") {
             new Popup("Relancez les dés !");
         } else if (type === "wonder") {
-            new Crown(this, (board.elements[this.caseId] as any).wonder, tx);
+            callCrownEvent(this, (board.elements[this.caseId] as any).wonder, tx);
             await rx.recv();
         } else if (type === "duel") {
             new DuelEvent(tx);

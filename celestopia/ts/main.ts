@@ -125,6 +125,13 @@ function initPlayers() {
         players[0].enable();
     });
 }
+function initDebug() {
+    [new Player(1, "Frisk", "crown", "red")].forEach((x)=>{
+        players.push(x);
+        document.body.appendChild(x.pawn);
+    });
+    players[0].enable();
+}
 
 function initBoardBtns() {
     const p = document.createElement("p");
@@ -173,7 +180,8 @@ async function nextPlayer(p: Player) {
 }
 
 async function main() {
-    initPlayers();
+    //initPlayers();
+    initDebug();
     counterRenderLoop();
     boardRenderLoop();
     initBoardBtns();

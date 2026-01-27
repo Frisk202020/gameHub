@@ -8,12 +8,15 @@ import { Aquisition } from "./Aquisition.js";
 
 export const cardWidth = 35 //vw
 export const cardHeight = 20; //vw
+export const GOLDEN = "Le chemin vers le 2e objectif";
 const border = cardHeight/25; //vw
 const oultine = cardHeight/35; //vw
 const frames = 60; //FPS
 const animationTime = 0.5; //seconds
 const centerX = (100 - cardWidth) / 2;
 const inactiveSquareColor = "#5e5c5c";
+
+export let goldenPathFound = false;
 
 export abstract class Card {
     protected _name: string;
@@ -195,7 +198,8 @@ class CardMenu extends BoardEvent {
 
         this.#current = 0;
         if (cards.length > 0) {
-            if (cards.length !== 1) { new Listener(this.menu, this); }// menu as seperate arg bc it's protected
+            if (cards.length !== 1) { new Listener(this.menu, this, false); }// menu as seperate arg bc it's protected
+            else if (cards[0].title === GOLDEN && !goldenPathFound) { new Listener(this.menu, this, true); }
             this.#imgBox = setup.elements[0]!;
             this.#navSquares = setup.navSquares!;
             this.#navColor = navBarColor;
@@ -299,6 +303,7 @@ class CardMenu extends BoardEvent {
         await Promise.all(promises);
     }
 
+    // true: new card is golden
     async nextCard() {
         await this.#moveCards((this.#current + 1) % this.#cards.length, -cardWidth, true);
     }
@@ -312,13 +317,25 @@ class CardMenu extends BoardEvent {
 
 class Listener extends KeyboardListener {
     #caller: CardMenu;
+    #analyzer: GoldenPathAnalyzer | null;
 
-    constructor(menu: HTMLDivElement, caller: CardMenu) {
+    constructor(menu: HTMLDivElement, caller: CardMenu, enablePath: boolean) {
         super(menu);
-        this.#caller = caller;
+        this.#caller = caller; 
+        this.#analyzer = enablePath ? new GoldenPathAnalyzer() : null;
     }
 
     eventHandler(event: KeyboardEvent): void {
+        if (this.#analyzer != null) {
+            const res = this.#analyzer.input(event.key);
+            if (res === GoldenResponse.Done) {
+                new Audio(assets_link(`fairy.mp3`)).play();
+                new Promise((r)=>setTimeout(r, 3600)).then(()=>{
+                    goldenPathFound = true;
+                    document.body.removeChild(this.element);
+                });
+            }
+        }
         if (!this.enabled) { return; }
         
         this.enabled = false;
@@ -374,4 +391,37 @@ async function translate(elm: HTMLElement, targetX: number) {
     }
 
     elm.style.left = `${targetX}vw`;
+}
+
+enum Direction {
+    Left, Right, Up, Down
+}
+enum GoldenResponse {
+    Ok, Wrong, Done, None
+}
+class GoldenPathAnalyzer {
+    static #goldenPath = [Direction.Up, Direction.Down];
+    #currentId: number;
+
+    constructor() { this.#currentId = 0; }
+    input(ipt: string): GoldenResponse {
+        let x: Direction;
+        switch (ipt) {
+            case "ArrowUp": x = Direction.Up; break;
+            case "ArrowDown": x = Direction.Down; break;
+            case "ArrowLeft": x = Direction.Left; break; 
+            case "ArrowRight": x = Direction.Right; break;
+            default: return GoldenResponse.None;
+        }
+
+        if (x === GoldenPathAnalyzer.#goldenPath[this.#currentId]) {
+            this.#currentId++;
+            return this.#currentId === GoldenPathAnalyzer.#goldenPath.length
+                ? GoldenResponse.Done
+                : GoldenResponse.Ok;
+        }
+
+        this.#currentId = 0;
+        return GoldenResponse.Wrong;
+    }
 }

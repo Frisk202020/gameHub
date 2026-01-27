@@ -1,6 +1,6 @@
-import { Card } from "./Card.js";
+import { Card, goldenPathFound } from "./Card.js";
 
-export type WonderName = "statue" | "astropy" | "bank" | "bridge" | "dress" | "comet" | "teleporter";
+export type WonderName = "statue" | "astropy" | "bank" | "bridge" | "dress" | "comet" | "teleporter" | "golden";
 
 export class Wonder extends Card {
     #coinPrice: number;
@@ -47,11 +47,20 @@ export class Wonder extends Card {
         ["bridge", new Wonder("bridge", "Le pont de tissu", 1200, 30000, 0)],
         ["dress", new Wonder("dress", "La robe dorée", 7500, 20000, 0)],
         ["comet", new Wonder("comet", "La comète mère", 0, 0, 40000)],
-        ["teleporter", new Wonder("teleporter", "Le téléporteur de tissu", 10000, 10000, 0)]
+        ["teleporter", new Wonder("teleporter", "Le téléporteur de tissu", 10000, 10000, 0)],
+        ["golden", new Wonder("golden", "the/golden/path?key=", 15697321445, 0, 0)]
     ]);
 
 
     static getWonder(name: WonderName, warn: boolean): Wonder | undefined {
+        if (goldenPathFound) {
+            const x = this.#bank.get("golden");
+            if (x !== undefined) {
+                this.#bank.delete("golden");
+                return x;
+            }
+        }
+
         const x = this.#bank.get(name);
         if (x === undefined) {
             if (warn) { console.log(`WARN: ${name} not found`); }
