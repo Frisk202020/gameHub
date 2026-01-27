@@ -38,7 +38,11 @@ export class Wonder extends Card {
         return this.#starPrice;
     } get name() {
         return this._name as WonderName;
-    }
+    } set coins(val: number) {
+        if (this.name === "golden") {
+            this.#coinPrice = val;
+        }
+    } 
 
     static #bank = new Map<WonderName, Wonder>([
         ["statue", new Wonder("statue", "La statue de la Mairesse", 25000, 0, 0)],

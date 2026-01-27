@@ -2,11 +2,12 @@ mod util;
 mod response;
 mod celestopia;
 mod log;
+mod api;
 
 use std::{env, fs::OpenOptions, net::{IpAddr, SocketAddr}};
 use axum::{response::Redirect, routing, Router};
 use chrono::Utc;
-use tokio::task::JoinHandle;
+use tokio::{net::TcpListener, task::JoinHandle};
 use tower::ServiceBuilder;
 use tracing::{error, info};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer, Registry};
@@ -14,10 +15,16 @@ use util::*;
 use anyhow::Result;
 use tower_http::{cors::{Any, CorsLayer}, services::ServeDir};
 
-use crate::{celestopia::{list, load, save}, log::{get_latest_log, get_log_handler, log_list}};
+use crate::{api::internal_api, celestopia::{list, load, save}, log::{get_latest_log, get_log_handler, log_list}};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let mut args = env::args();
+    if args.len() < 3 {
+        println!("Please provide a golden path key and golden path");
+        return Ok(());
+    }
+    let golden_key = args.nth(1).unwrap(); let golden_path = args.next().unwrap(); 
     let now = Utc::now().format(FORMAT).to_string();
     let path = correct_path(
         env::current_exe().inspect_err(|_| println!("Failed to get current exe path"))?, 
@@ -37,7 +44,7 @@ async fn main() -> Result<()> {
                 .with_filter(EnvFilter::try_from_default_env().unwrap_or(EnvFilter::new("TRACE")))
         ).init();
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:10000".parse::<SocketAddr>()?).await?;
+    let listener = TcpListener::bind("0.0.0.0:10000".parse::<SocketAddr>()?).await?;
     let router = Router::new()
             .route("/logs", routing::get(Redirect::permanent("/logs/")))
             .nest_service("/logs/", service("log"))
@@ -62,7 +69,17 @@ async fn main() -> Result<()> {
                     .allow_methods(Any)
                     .allow_origin(Any)
             );
-    let _: JoinHandle<Result<()>> = tokio::spawn(async move {axum::serve(listener, router).await?; Ok(())});  // axum::serve never returns
+    let _: JoinHandle<Result<()>> = tokio::spawn(
+        async move {axum::serve(listener, router).await?; Ok(())}
+    );  // axum::serve never returns
+
+    let internal_listener = TcpListener::bind(
+        "127.0.0.1:9000".parse::<SocketAddr>()?
+    ).await?;
+    let internal_api = internal_api(golden_key, golden_path).await?;
+    let _: JoinHandle<Result<()>> = tokio::spawn(
+        async move {axum::serve(internal_listener, internal_api).await?; Ok(())}
+    );
 
     println!("Serveur activé !");
     println!("Vous pouvez désormais vous connecter au server.");

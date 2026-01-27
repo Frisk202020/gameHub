@@ -317,27 +317,32 @@ class CardMenu extends BoardEvent {
 
 class Listener extends KeyboardListener {
     #caller: CardMenu;
-    #analyzer: GoldenPathAnalyzer | null;
+    #analyzer: GoldenPathBuilder | null;
+    #pathEnabled: boolean
 
     constructor(menu: HTMLDivElement, caller: CardMenu, enablePath: boolean) {
         super(menu);
         this.#caller = caller; 
-        this.#analyzer = enablePath ? new GoldenPathAnalyzer() : null;
+        this.#analyzer = enablePath ? new GoldenPathBuilder() : null; this.#pathEnabled = true;
     }
 
     eventHandler(event: KeyboardEvent): void {
-        if (this.#analyzer != null) {
-            const res = this.#analyzer.input(event.key);
-            if (res === GoldenResponse.Done) {
-                new Audio(assets_link(`fairy.mp3`)).play();
-                new Promise((r)=>setTimeout(r, 3600)).then(()=>{
-                    goldenPathFound = true;
-                    document.body.removeChild(this.element);
-                });
-            }
+        if (this.#analyzer != null && this.#pathEnabled) {
+            this.#pathEnabled = false;
+            this.#analyzer.input(event.key).then((res)=>{
+                if (res === GoldenResponse.Done) {
+                    new Audio(assets_link(`fairy.mp3`)).play();
+                    new Promise((r)=>setTimeout(r, 3600)).then(()=>{
+                        goldenPathFound = true;
+                        document.body.removeChild(this.element);
+                    });
+                }
+                this.#pathEnabled = true;
+            });
+            return;
         }
+
         if (!this.enabled) { return; }
-        
         this.enabled = false;
         if (event.key === "ArrowRight") {
             this.#caller.nextCard().then(()=>this.enabled = true);
@@ -399,29 +404,43 @@ enum Direction {
 enum GoldenResponse {
     Ok, Wrong, Done, None
 }
-class GoldenPathAnalyzer {
-    static #goldenPath = [Direction.Up, Direction.Down];
-    #currentId: number;
+class GoldenPathBuilder {
+    #currentSequence: Direction[]
+    static #expectedLength = 100;
 
-    constructor() { this.#currentId = 0; }
-    input(ipt: string): GoldenResponse {
-        let x: Direction;
-        switch (ipt) {
-            case "ArrowUp": x = Direction.Up; break;
-            case "ArrowDown": x = Direction.Down; break;
-            case "ArrowLeft": x = Direction.Left; break; 
-            case "ArrowRight": x = Direction.Right; break;
+    constructor() { this.#currentSequence = []; }
+    #format(): string {
+        let acc = "";
+        this.#currentSequence.forEach((x)=>{
+            switch(x) {
+                case Direction.Down: acc += "D"; break;
+                case Direction.Up: acc += "U"; break;
+                case Direction.Left: acc += "L"; break;
+                case Direction.Right: acc += "R"; break;
+            }
+        });
+
+        this.#currentSequence = [];
+        return acc;
+    }
+    async input(ipt: string): Promise<GoldenResponse> {
+        switch(ipt) {
+            case "ArrowUp": this.#currentSequence.push(Direction.Up); break;
+            case "ArrowDown": this.#currentSequence.push(Direction.Down); break;
+            case "ArrowLeft": this.#currentSequence.push(Direction.Left); break; 
+            case "ArrowRight": this.#currentSequence.push(Direction.Right); break;
             default: return GoldenResponse.None;
         }
 
-        if (x === GoldenPathAnalyzer.#goldenPath[this.#currentId]) {
-            this.#currentId++;
-            return this.#currentId === GoldenPathAnalyzer.#goldenPath.length
-                ? GoldenResponse.Done
-                : GoldenResponse.Ok;
+        if (this.#currentSequence.length === GoldenPathBuilder.#expectedLength) {
+            const res = await fetch(`http://127.0.0.1:9000/vrfy-path/${this.#format()}`);
+            if (res.status === 200) {
+                return GoldenResponse.Done;
+            } else {
+                return GoldenResponse.Wrong;
+            }
+        } else {
+            return GoldenResponse.Ok;
         }
-
-        this.#currentId = 0;
-        return GoldenResponse.Wrong;
     }
 }
