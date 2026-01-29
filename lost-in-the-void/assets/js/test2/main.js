@@ -5,7 +5,7 @@ import { ThemeManager } from "./ThemeManager.js";
 
 /* Shered values and constants */
 let cpmList = Array("000.000.000.000", "192.145.687.652", "210.254.585.887", "325.478.222.000", "214.000.256.888");
-let web = {"www.google.com":"https://www.google.com", "www.NikolasKey.com":"computers/325.478.222.000/key.html"};
+let web = {"www.google.com":"https://www.google.com", "page":"key.html"};
 let themeManager = new ThemeManager();
 
 let sx = 0;

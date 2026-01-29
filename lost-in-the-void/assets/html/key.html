@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <head>
     <title>Test#2</title>
-    <link rel="icon" href="../../assets/img/broken.png" type="image/png">
+    <link rel="icon" href="../img/broken.png" type="image/png">
 </head>
 <body>
-    <img id="SOUL" src="../../../../assets/img/soul.png">
+    <img id="SOUL" src="../img/soul.png">
     <div id="viewport"></div>
     <div id="cursor"></div>
     <style>
@@ -97,7 +97,7 @@
 
         document.body.addEventListener('click', function(event){
             if (detectSun()){
-                window.location.href = "nikolas.pdf";
+                window.location.href = "../journal/nikolas.pdf";
             }
         })
 
@@ -136,8 +136,9 @@
 
         async function initialLoading(){
             try {
-                front = await loadImage("../../../../assets/img/front.png");
-                backIm = await loadImage("../../../../assets/img/back.jpg");
+                const x = await loadImage("../img/front.png");
+                front = x;
+                backIm = await loadImage("../img/back.jpg");
 
                 canvas = document.createElement("canvas");
                 back = document.createElement("canvas");  // This canvas serves to have back image in good dimensions. 

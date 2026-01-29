@@ -21,6 +21,7 @@ Home$d
 >Bin$d
 >>Chara.txt
 >>debug.mt
+>>hunt.txt
 >Sys$d
 >>light.sys$c:lIGht
 >>dark.sys$c:dark

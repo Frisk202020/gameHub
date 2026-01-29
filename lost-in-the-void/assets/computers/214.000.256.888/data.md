@@ -1,5 +1,7 @@
 214.000.256.888$d
->Jeff$d:XHARA
+>DaughterStorage$d:XHARA
+>>ETH
+>>>REDEMPTION
 >ExltStorageSpace$d
 >>soul$d
 >>>YOU$d
