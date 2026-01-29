@@ -52,7 +52,7 @@ export class Wonder extends Card {
         ["dress", new Wonder("dress", "La robe dorée", 7500, 20000, 0)],
         ["comet", new Wonder("comet", "La comète mère", 0, 0, 40000)],
         ["teleporter", new Wonder("teleporter", "Le téléporteur de tissu", 10000, 10000, 0)],
-        ["golden", new Wonder("golden", "the/golden/path?key=", 15697321445, 0, 0)]
+        ["golden", new Wonder("golden", "the/far/shore?key=", 15697321445, 0, 0)]
     ]);
 
 

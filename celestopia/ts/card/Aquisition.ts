@@ -109,7 +109,7 @@ export class Aquisition extends Card {
 
     static getRandomAquisition() {
         const i = Math.floor(Math.random() * Aquisition.#bank.length);
-        return removeFromArray(Aquisition.#bank, 0);
+        return removeFromArray(Aquisition.#bank, i);
     }
 
     static returnToBank(aquisition: Aquisition) {

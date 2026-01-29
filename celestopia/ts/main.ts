@@ -180,8 +180,8 @@ async function nextPlayer(p: Player) {
 }
 
 async function main() {
-    //initPlayers();
-    initDebug();
+    initPlayers();
+    //initDebug();
     counterRenderLoop();
     boardRenderLoop();
     initBoardBtns();

@@ -28,7 +28,6 @@ async fn handler(State(state): State<InternalState>) -> String {
 
 async fn vrfy(State(state): State<InternalState>, Path(sequence): Path<String>) -> StatusCode {
     if sequence.len() != state.golden_path.len() || sequence.chars().zip(state.golden_path.chars()).any(|(a, b)| a != b) {
-        println!("{} {sequence}", state.golden_path);
         StatusCode::CONFLICT
     } else {
         StatusCode::OK
