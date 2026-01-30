@@ -2,22 +2,17 @@ use std::path::{Component, PathBuf};
 use anyhow::Result;
 use tracing::error;
 
-pub const FORMAT: &'static str = "%Y-%m-%d_%H-%M-%S";
-
 pub enum ServerDirectory {
     Data,
-    Log
 } impl ToString for ServerDirectory {
     fn to_string(&self) -> String {
         match self {
             Self::Data => String::from("data"),
-            Self::Log => String::from(r"log\data"),
         }
     }
 } impl ServerDirectory {
     fn file_extention(&self) -> &str {
         match self {
-            Self::Log => ".log",
             Self::Data => ".json"
         }
     }
@@ -47,9 +42,6 @@ pub struct FileDescriptior {
 } impl FileDescriptior {
     pub fn new_json(name: &str) -> Self {
         Self {name: name.to_string(), extention: "json".to_string()}
-    }
-    pub fn new_log(name: &str) -> Self {
-        Self {name: name.to_string(), extention: "log".to_string()}
     }
 }
 
