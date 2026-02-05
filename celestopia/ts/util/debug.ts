@@ -55,11 +55,11 @@ export const debugTools = {
         if (aq === undefined) { return "unrecognized aquisition"; }
         players[id-1].addAquisition(aq);
     },
-    giveWonder(id: PlayerId, name: WonderName) {
-        const aq = Wonder.getWonder(name, false);
-        if (aq === undefined) { return "unrecognized wonder"; }
-        players[id-1].addWonder(aq);
-    },
+    // giveWonder(id: PlayerId, name: WonderName) {
+    //     const aq = Wonder.getWonder(name, false);
+    //     if (aq === undefined) { return "unrecognized wonder"; }
+    //     players[id-1].addWonder(aq);
+    // },
     setBoardId(id: PlayerId, board: BoardId) {players[id-1].boardId = board;},
     setCaseId(id: PlayerId, n: number) {
         const p = players[id-1];

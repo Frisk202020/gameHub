@@ -4,7 +4,7 @@ mod api;
 mod util;
 
 use std::{env, net::SocketAddr};
-use axum::{response::Redirect, routing, Router};
+use axum::{Router, response::Redirect, routing};
 use tokio::{net::TcpListener, task::JoinHandle};
 use tower::ServiceBuilder;
 use tracing::{error, info};
@@ -33,6 +33,8 @@ async fn main() -> Result<()> {
 
     let listener = TcpListener::bind("0.0.0.0:10000".parse::<SocketAddr>()?).await?;
     let router = Router::new()
+            .fallback_service(service("../index"))
+
             .route("/naval", routing::get(Redirect::permanent("/naval/")))
             .nest_service("/naval/", service("../naval"))
 
